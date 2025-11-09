@@ -25,8 +25,6 @@ const Hero = () => {
         backgroundImage: `url(${heroBg})`,
       }}
     >
-      {/* Overlay for better readability */}
-      <div className="absolute inset-0 bg-black/40"></div>
 
       {/* Content */}
       <motion.div
