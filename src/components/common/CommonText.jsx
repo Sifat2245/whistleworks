@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils"
 
 const CommonText = ({ className, text = "" }) => {
     return (
-        <h3 className={cn("text-2xl font-medium text-white", className)}>
+        <h3 className={cn("text-xl", className)}>
             {text}
         </h3>
     )

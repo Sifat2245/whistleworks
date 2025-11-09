@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "camp_name": "Whistle Works",
+    "camp_logo": "https://example.com/logos/whistle-works.png",
+    "location": "Los Angeles, CA",
+    "start_date": "2025-11-01",
+    "end_date": "2025-11-07",
+    "sport_type": "soccer",
+    "camp_details": "This intensive training camp focuses on advanced officiating techniques, rule interpretations, and game management skills. Participants will engage in classroom sessions, on-field practice, and receive personalized feedback from experienced instructors.",
+    "fee": 899.00
+  },
+  {
+    "id": 2,
+    "camp_name": "Elite Basketball Referee Camp",
+    "camp_logo": "https://example.com/logos/elite-basketball.png",
+    "location": "Chicago, IL",
+    "start_date": "2025-08-15",
+    "end_date": "2025-08-20",
+    "sport_type": "basketball",
+    "camp_details": "Advanced basketball officiating camp focusing on court positioning, foul recognition, and game tempo management with NBA and NCAA officials.",
+    "fee": 750.00
+  },
+  {
+    "id": 3,
+    "camp_name": "Gridiron Officials Academy",
+    "camp_logo": "https://example.com/logos/gridiron-academy.png",
+    "location": "Dallas, TX",
+    "start_date": "2025-07-10",
+    "end_date": "2025-07-15",
+    "sport_type": "football",
+    "camp_details": "Comprehensive football officiating training with focus on rule mechanics, crew coordination, and instant replay procedures.",
+    "fee": 825.00
+  },
+  {
+    "id": 4,
+    "camp_name": "Ice Guardians Hockey Officiating",
+    "camp_logo": "https://example.com/logos/ice-guardians.png",
+    "location": "Detroit, MI",
+    "start_date": "2025-09-05",
+    "end_date": "2025-09-10",
+    "sport_type": "hockey",
+    "camp_details": "Professional hockey officiating camp covering positioning, penalty assessment, and game control strategies on ice.",
+    "fee": 950.00
+  },
+  {
+    "id": 5,
+    "camp_name": "Volleyball Officials Institute",
+    "camp_logo": "https://example.com/logos/volleyball-institute.png",
+    "location": "Orlando, FL",
+    "start_date": "2025-06-20",
+    "end_date": "2025-06-25",
+    "sport_type": "volleyball",
+    "camp_details": "Beach and indoor volleyball officiating techniques with focus on net violations, hand signals, and scoring procedures.",
+    "fee": 675.00
+  },
+  {
+    "id": 6,
+    "camp_name": "Baseball Umpire Development Camp",
+    "camp_logo": "https://example.com/logos/baseball-umpire.png",
+    "location": "Phoenix, AZ",
+    "start_date": "2025-03-15",
+    "end_date": "2025-03-20",
+    "sport_type": "baseball",
+    "camp_details": "Professional baseball umpiring training with emphasis on strike zone consistency, base coverage, and MLB rule interpretations.",
+    "fee": 780.00
+  },
+  {
+    "id": 7,
+    "camp_name": "Tennis Officiating Masters",
+    "camp_logo": "https://example.com/logos/tennis-masters.png",
+    "location": "Miami, FL",
+    "start_date": "2025-04-10",
+    "end_date": "2025-04-15",
+    "sport_type": "tennis",
+    "camp_details": "Comprehensive tennis officiating program covering line judging, chair umpiring, and tournament administration.",
+    "fee": 720.00
+  },
+  {
+    "id": 8,
+    "camp_name": "Lacrosse Referee Training Center",
+    "camp_logo": "https://example.com/logos/lacrosse-center.png",
+    "location": "Baltimore, MD",
+    "start_date": "2025-05-12",
+    "end_date": "2025-05-17",
+    "sport_type": "lacrosse",
+    "camp_details": "Men's and women's lacrosse officiating techniques with focus on safety enforcement and game flow management.",
+    "fee": 690.00
+  }
+]
