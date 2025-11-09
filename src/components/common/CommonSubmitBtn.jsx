@@ -9,24 +9,51 @@ const CommonSubmitBtn = ({
   className,
   path = "",
   isLoading = false,
-  onclick,
+  onClick,
+  variant = "primary", // new prop
 }) => {
+  // Variant styles
+  const variantClasses = {
+    primary:
+      "bg-primary hover:bg-transparent border border-primary hover:border-1 text-white hover:text-primary transition px-4 py-3 rounded-lg",
+    secondary:
+      "bg-transparent hover:bg-primary text-primary hover:text-white border border-primary transition px-4 py-3 rounded-lg",
+    danger:
+      "bg-red-600 hover:bg-red-700 text-white transition px-4 py-2 rounded-lg",
+    outline:
+      "border border-indigo-600 text-indigo-600 hover:bg-indigo-50 transition",
+  };
+
+  const baseClasses =
+    "inline-flex font-medium cursor-pointer text-center justify-center items-center";
+
+  const combinedClasses = cn(baseClasses, variantClasses[variant], className);
+
+  // Conditional render
+  if (link) {
+    return (
+      <Link to={path} className={combinedClasses}>
+        {children}
+      </Link>
+    );
+  }
+
   return (
-    <>
-      {link ? (
-        <Link to={path} className={cn("w-full rounded-[10px] cursor-pointer text-white sm:text-xl text-base font-medium text-center sm:p-3 p-2  flex justify-center items-center common_gradient_bg", className)}  >
-          {children}
-        </Link>
-      ) : (
-        <button
-          type={type}
-          onClick={onclick}
-          className={cn("w-full rounded-[10px] text-white font-medium cursor-pointer text-center sm:p-3 p-2  flex justify-center items-center common_gradient_bg ", className)}
-        >
-          {isLoading ? <Loader size={28} color="white" speed={1} /> : children}
-        </button>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={isLoading}
+      className={cn(
+        combinedClasses,
+        isLoading ? "opacity-70 cursor-not-allowed" : ""
       )}
-    </>
+    >
+      {isLoading ? (
+        <Loader size={28} color="white" speed={1} />
+      ) : (
+        children
+      )}
+    </button>
   );
 };
 
