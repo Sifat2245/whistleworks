@@ -1,4 +1,8 @@
+import Features from "@/components/home/Features"
 import Hero from "@/components/home/Hero"
+import Partners from "@/components/home/Partners"
+import ReadyToTrasform from "@/components/home/ReadyToTrasform"
+import Reviews from "@/components/home/Reviews"
 import TrainingCamps from "@/components/home/TrainingCamps"
 import { useQuery } from "@tanstack/react-query"
 import axios from "axios"
@@ -19,6 +23,10 @@ const Home = () => {
         <div>
             <Hero />
             <TrainingCamps camps={camps} isLoading={isLoading} />
+            <Partners/>
+            <Features/>
+            <ReadyToTrasform/>
+            <Reviews/>
         </div>
     )
 }

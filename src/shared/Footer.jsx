@@ -1,11 +1,12 @@
 import Logo from "@/components/common/Logo";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
     <footer className="py-12 border-t border-black/20">
       <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 justify-items-center">
         {/* Logo + Brand */}
-        <div className="w-2/3">
+        <Link to={'/'} className="w-2/3">
           <div className="flex items-center space-x-3 mb-4">
             <Logo className={"h-14 w-20"} />
             <h1 className="text-xl text-primary font-semibold">
@@ -15,7 +16,7 @@ const Footer = () => {
           <p className="text-sm text-gray-400">
             Professional referee camp management for modern sports organizations
           </p>
-        </div>
+        </Link>
 
         {/* Products */}
         <div>

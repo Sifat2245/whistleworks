@@ -2,6 +2,7 @@ import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import Logo from "@/components/common/Logo";
 import { useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,10 +18,10 @@ const Header = () => {
     <header className="bg-white shadow-md fixed top-0 left-0 w-full z-50">
       <div className="custom-container py-5 flex justify-between items-center">
         {/* Logo */}
-        <div className="flex items-center text-primary">
+        <Link to={'/'} className="flex items-center text-primary">
           <Logo className={"h-9 w-14"} />
           <h1 className="text-2xl font-semibold">WHISTLE WORKS</h1>
-        </div>
+        </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex space-x-8">
