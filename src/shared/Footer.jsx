@@ -2,7 +2,7 @@ import Logo from "@/components/common/Logo";
 
 const Footer = () => {
   return (
-    <footer className="py-12">
+    <footer className="py-12 border-t border-black/20">
       <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 justify-items-center">
         {/* Logo + Brand */}
         <div className="w-2/3">
