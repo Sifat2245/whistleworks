@@ -1,5 +1,5 @@
 /* google fonts */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 /* tailwind css */
 @import "tailwindcss";
@@ -8,7 +8,7 @@
 
 @theme {
   --font-primary: "Poppins", sans-serif;
-  --color-primary: #00AEEF;
+  --color-primary: #00aeef;
   /* custom breakpoints */
   --breakpoint-3xs: 375px; /* For small phones */
   --breakpoint-2xs: 390px; /* For medium phones */
@@ -16,7 +16,7 @@
 }
 
 .custom-container {
-  max-width: 90%; 
+  max-width: 90%;
   margin-left: auto;
   margin-right: auto;
 }
@@ -34,7 +34,6 @@ xl: 1280px
   padding-inline: 1rem;
 }
 
-
 ::-webkit-scrollbar {
   width: 8px; /* Width of the scrollbar */
 }
@@ -46,6 +45,29 @@ xl: 1280px
 ::-webkit-scrollbar-thumb {
   background: var(--color-primary); /* Darker grey */
   border-radius: 2px;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector {
+  border: 0 !important;
+}
+.ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+  padding: 0 !important;
+}
+.ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector {
+  font-size: 16px;
+}
+
+.ant-select-focused .ant-select-selector {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 body {
