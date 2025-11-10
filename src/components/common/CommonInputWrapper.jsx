@@ -32,18 +32,20 @@ const CommonInputWrapper = ({
   const normalizeValue = (val) => {
     if (selectMode === "multiple" || selectMode === "tags") {
       if (Array.isArray(val)) {
-        return val.map(item => typeof item === 'object' ? item.value : item);
+        return val.map((item) =>
+          typeof item === "object" ? item.value : item
+        );
       }
-      return val ? [typeof val === 'object' ? val.value : val] : [];
+      return val ? [typeof val === "object" ? val.value : val] : [];
     }
-    return typeof val === 'object' ? val?.value : val;
+    return typeof val === "object" ? val?.value : val;
   };
   // Normalize the initial value
   const normalizedValue = normalizeValue(value);
   return (
     <div
       className={cn(
-        "w-full flex flex-col gap-2 justify-start items-start relative text-base text-white",
+        "w-full flex flex-col justify-start items-start relative text-base text-white",
         wrapperClass
       )}
     >
@@ -62,8 +64,9 @@ const CommonInputWrapper = ({
         <button
           type="button"
           onClick={() => setShow((prevState) => !prevState)}
-          className={`absolute cursor-pointer right-5 top-[50%] transform ${errorMessage ? "translate-y-[-46%]" : "translate-y-[50%]"
-            }`}
+          className={`absolute cursor-pointer right-5 top-[50%] text-neutral-500 transform ${
+            errorMessage ? "translate-y-[-46%]" : "translate-y-[50%]"
+          }`}
         >
           {show ? <FaEye /> : <FaEyeSlash />}
         </button>
@@ -85,7 +88,7 @@ const CommonInputWrapper = ({
       ) : type === "select" ? (
         <div
           className={cn(
-            "w-full bg-[#d3d6da] text-black border-[rgba(31,39,48,0.10)] flex gap-2 px-4 py-2 sm:min-h-[66px] items-center border rounded-lg",
+            "w-full text-black border-black/20 flex gap-2 px-4 py-2 sm:min-h-[66px] items-center border rounded-lg",
             selectClass
           )}
         >
@@ -101,17 +104,20 @@ const CommonInputWrapper = ({
                 placeholder={placeholder}
                 options={options}
                 optionFilterProp="label"
-                value={normalizeValue(field.value)}
+                value={
+                  normalizeValue(field.value) === "" ||
+                  normalizeValue(field.value)?.length === 0
+                    ? undefined
+                    : normalizeValue(field.value)
+                }
                 onChange={(selectedValue, option) => {
                   if (selectMode === "multiple" || selectMode === "tags") {
-                    // For multiple select, return array of values
                     field.onChange(selectedValue);
                   } else {
-                    // For single select, return just the value (not the object)
                     field.onChange(option?.value || selectedValue);
                   }
                 }}
-                className="w-full bg-transparent placeholder:text-dark"
+                className="w-full bg-transparent placeholder-neutral-600"
                 showSearch
                 allowClear
               />
@@ -127,7 +133,7 @@ const CommonInputWrapper = ({
           defaultValue={value}
           readOnly={readOnly}
           className={cn(
-            "w-full px-4 sm:py-5 py-3 rounded-lg placeholder-[#5A5C5F] outline-none text-white shadow-input border border-dark bg-[rgba(255,255,255,0.05)]",
+            "w-full px-4 sm:py-5 py-3 rounded-lg placeholder-[#5A5C5F] outline-none text-black shadow-input border border-black/20 bg-[rgba(255,255,255,0.05)]",
             inputClass
           )}
           {...register(register_as, validationRules)}
@@ -141,11 +147,8 @@ const CommonInputWrapper = ({
 
 export default CommonInputWrapper;
 
-
-
-
 {
-/**
+  /**
 import ErrorText from "@/components/common/ErrorText";
 import { useState } from "react";
 import { FaEyeSlash, FaEye } from "react-icons/fa6";
