@@ -55,7 +55,7 @@ const FilterCamps = ({ camps, isLoading }) => {
     }
 
     return filtered;
-  }, [selectedSport, selectedLocation, selectedDateRange, camps]);
+  }, [selectedSport, selectedLocation, selectedDateRange, camps, selectedSort]);
 
   //   console.log("camps", camps);
 
@@ -167,5 +167,4 @@ const FilterCamps = ({ camps, isLoading }) => {
     </>
   );
 };
-
 export default FilterCamps;

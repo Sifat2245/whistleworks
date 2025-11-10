@@ -2,7 +2,7 @@ import FilterCamps from "@/shared/FilterCamps";
 import CommonText from "../common/CommonText";
 import CommonTitle from "../common/CommonTitle";
 
-const TrainingCamps = ({camps = [], isLoading}) => {
+const TrainingCamps = ({ camps = [], isLoading }) => {
   return (
     <div className="pt-16">
       <div className="text-center">
