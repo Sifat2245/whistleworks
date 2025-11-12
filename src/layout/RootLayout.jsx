@@ -1,6 +1,6 @@
-import Footer from "@/shared/Footer"
-import Header from "@/shared/Header"
-import { Outlet, ScrollRestoration } from "react-router-dom"
+import Footer from "@/shared/Footer";
+import Header from "@/shared/Header";
+import { Outlet, ScrollRestoration } from "react-router-dom";
 
 const RootLayout = () => {
     return (
@@ -11,6 +11,5 @@ const RootLayout = () => {
             <ScrollRestoration />
         </div>
     )
-}
-
-export default RootLayout
+};
+export default RootLayout;

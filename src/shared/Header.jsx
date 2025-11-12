@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Note: navLinks dummy data
   const links = [
     { name: "Home", href: "#" },
     { name: "Features", href: "#" },
@@ -92,5 +93,4 @@ const Header = () => {
     </header>
   );
 };
-
 export default Header;
