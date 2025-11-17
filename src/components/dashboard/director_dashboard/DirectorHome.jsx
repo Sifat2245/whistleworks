@@ -1,5 +1,6 @@
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import CommonSectionTitle from "./CommonSectionTitle";
+import MyCampus from "./MyCampus";
 
 const DirectorHome = () => {
     return (
@@ -14,6 +15,10 @@ const DirectorHome = () => {
                 {/* create camp button */}
                 <CommonSubmitBtn className={""}>Create New Camp</CommonSubmitBtn>
             </div>
+
+            {/* My campus list */}
+            <MyCampus />
+
         </div>
     );
 };
