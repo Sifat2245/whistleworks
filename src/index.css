@@ -15,11 +15,11 @@
   --breakpoint-xs: 480px; /* For small tablets */
 }
 
-.custom-container {
+/* .container  {
   max-width: 90%;
   margin-left: auto;
   margin-right: auto;
-}
+} */
 
 /*
 default breakpoints of tailwind css 
