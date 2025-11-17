@@ -76,7 +76,9 @@ const SignIn = () => {
         </div>
 
         <CommonSubmitBtn
-        variant="primary"
+          link={true}
+          path="/director-dashboard"
+          variant="primary"
           type="submit"
           className="w-full"
         >

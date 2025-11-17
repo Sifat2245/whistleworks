@@ -27,7 +27,7 @@ const Reviews = () => {
   ];
 
   return (
-    <div className="custom-container my-16">
+    <div className="container  my-16">
       <div className="text-center">
         <CommonTitle text="What Our Users Say" />
         <CommonText
