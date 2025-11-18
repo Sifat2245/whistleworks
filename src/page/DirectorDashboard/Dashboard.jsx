@@ -1,9 +1,9 @@
-
+import DirectorHome from "@/components/dashboard/director_dashboard/DirectorHome";
 
 const Dashboard = () => {
     return (
-        <div>
-            <h1>director dashboard</h1>
+        <div className="w-full">
+            <DirectorHome/>
         </div>
     );
 };

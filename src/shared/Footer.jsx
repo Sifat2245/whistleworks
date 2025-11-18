@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="py-12 border-t border-black/20">
-      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 justify-items-center">
+    <footer className="py-12 border-t border-gray-200">
+      <div className="container w-full grid grid-cols-1 md:grid-cols-3 gap-4 justify-between">
         {/* Logo + Brand */}
         <Link to={'/'} className="w-2/3">
           <div className="flex items-center space-x-3 mb-4">
@@ -13,13 +13,10 @@ const Footer = () => {
               WHISTLE WORKERS
             </h1>
           </div>
-          <p className="text-sm text-gray-400">
-            Professional referee camp management for modern sports organizations
-          </p>
         </Link>
 
         {/* Products */}
-        <div>
+        <div className="w-full">
           <h2 className="text-lg font-semibold mb-3">Products</h2>
           <ul className="space-y-2 text-neutral-500">
             <li>
@@ -41,7 +38,7 @@ const Footer = () => {
         </div>
 
         {/* Company */}
-        <div>
+        <div className="w-full">
           <h2 className="text-lg font-semibold mb-3">Company</h2>
           <ul className="space-y-2 text-neutral-500">
             <li>
@@ -62,13 +59,7 @@ const Footer = () => {
           </ul>
         </div>
       </div>
-
-      {/* Footer Bottom
-      <div className="border-t border-neutral-700 mt-10 pt-6 text-center text-gray-500 text-sm">
-        © {new Date().getFullYear()} Whistle Workers. All rights reserved.
-      </div> */}
     </footer>
   );
 };
-
 export default Footer;

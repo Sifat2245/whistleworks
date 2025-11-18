@@ -55,7 +55,7 @@ const FilterCamps = ({ camps, isLoading }) => {
     }
 
     return filtered;
-  }, [selectedSport, selectedLocation, selectedDateRange, camps]);
+  }, [selectedSport, selectedLocation, selectedDateRange, camps, selectedSort]);
 
   //   console.log("camps", camps);
 
@@ -67,8 +67,8 @@ const FilterCamps = ({ camps, isLoading }) => {
     );
   }
   return (
-    <>
-      <div className="custom-container border border-black/5 rounded-2xl p-6 bg-white shadow-sm">
+    <div className="container">
+      <div className="border border-black/5 rounded-2xl p-6 bg-white shadow-sm">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
           <img src={filterIcon} alt="filter icon" className="h-6 w-6" />
@@ -152,7 +152,7 @@ const FilterCamps = ({ camps, isLoading }) => {
         </div>
       </div>
       {/* render card by filtering */}
-      <div className="custom-container mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
         {filterCamps.length > 0 ? (
           filterCamps.map((camp) => <CampCard key={camp.id} camp={camp} />)
         ) : (
@@ -164,8 +164,7 @@ const FilterCamps = ({ camps, isLoading }) => {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
-
 export default FilterCamps;

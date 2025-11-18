@@ -45,7 +45,7 @@ const Features = () => {
   ];
 
   return (
-    <div className="custom-container pt-16">
+    <div className="container  pt-16">
       <div className="text-center">
         <CommonTitle text="Powerful Features" />
         <CommonText

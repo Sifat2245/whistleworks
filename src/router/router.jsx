@@ -1,4 +1,3 @@
-
 import { createBrowserRouter } from "react-router-dom";
 import Home from "@/page/Home";
 import RootLayout from "@/layout/RootLayout";
@@ -14,6 +13,9 @@ import SignUp from "@/page/auth/SignUp";
 import ForgetPassword from "@/page/auth/ForgetPassword";
 import VerifyOtp from "@/page/auth/VerifyOtp";
 import ResetPassword from "@/page/auth/ResetPassword";
+import CreateNewCamp from "@/page/DirectorDashboard/CreateNewCamp";
+import BuildSchedule from "@/page/DirectorDashboard/BuildSchedule";
+import Ranking from "@/page/DirectorDashboard/Ranking";
 
 
 const router = createBrowserRouter([
@@ -33,53 +35,66 @@ const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <Dashboard/>
+                path: "/director-dashboard",
+                element: <Dashboard />
+            },
+            {
+                path: "/director-dashboard/create-new-camp",
+                element: <CreateNewCamp />
+            },
+            {
+                path: "/director-dashboard/build-schedule",
+                element: <BuildSchedule />
+            },
+            {
+                path: "/director-dashboard/ranking",
+                element: <Ranking />
             }
         ]
     },
     {
         path: "evolator-dashboard",
-        element: <EvolatorLayout/>,
+        element: <EvolatorLayout />,
         children: [
             {
                 index: true,
-                element: <EvolatorDashboard/>
+                element: <EvolatorDashboard />
             }
         ]
     },
     {
         path: "/referee-dashboard",
-        element: <RefereeLayout/>,
+        element: <RefereeLayout />,
         children: [
             {
                 index: true,
-                element: <RefereeDashboard/>
+                element: <RefereeDashboard />
             }
         ]
     },
     {
         path: '/auth',
-        element: <AuthLayout/>,
+        element: <AuthLayout />,
         children: [
             {
                 path: 'signin',
-                element: <SignIn/>
+                element: <SignIn />
             },
             {
                 path: 'signup',
-                element: <SignUp/>
+                element: <SignUp />
             },
             {
                 path: 'forget-password',
-                element: <ForgetPassword/>
+                element: <ForgetPassword />
             },
             {
                 path: 'verify-otp',
-                element: <VerifyOtp/>
+                element: <VerifyOtp />
             },
             {
                 path: 'reset-password',
-                element: <ResetPassword/>
+                element: <ResetPassword />
             }
 
         ]

@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Note: navLinks dummy data
   const links = [
     { name: "Home", href: "#" },
     { name: "Features", href: "#" },
@@ -16,7 +17,7 @@ const Header = () => {
 
   return (
     <header className="bg-white shadow-md fixed top-0 left-0 w-full z-50">
-      <div className="custom-container py-5 flex justify-between items-center">
+      <div className="container py-5 flex justify-between items-center">
         {/* Logo */}
         <Link to={"/"} className="flex items-center text-primary">
           <Logo className={"h-9 w-14"} />
@@ -92,5 +93,4 @@ const Header = () => {
     </header>
   );
 };
-
 export default Header;
