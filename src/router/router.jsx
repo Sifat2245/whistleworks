@@ -15,8 +15,8 @@ import VerifyOtp from "@/page/auth/VerifyOtp";
 import ResetPassword from "@/page/auth/ResetPassword";
 import CreateNewCamp from "@/page/DirectorDashboard/CreateNewCamp";
 import BuildSchedule from "@/page/DirectorDashboard/BuildSchedule";
+import CreatedCourt from "@/page/DirectorDashboard/CreatedCourt";
 import Ranking from "@/page/DirectorDashboard/Ranking";
-
 
 const router = createBrowserRouter([
     {
@@ -39,14 +39,17 @@ const router = createBrowserRouter([
                 element: <Dashboard />
             },
             {
-                path: "/director-dashboard/create-new-camp",
+                path: "create-new-camp",
                 element: <CreateNewCamp />
             },
             {
-                path: "/director-dashboard/build-schedule",
+                path: "build-schedule",
                 element: <BuildSchedule />
             },
             {
+                path: "court-list",
+                element: <CreatedCourt />
+            },
                 path: "/director-dashboard/ranking",
                 element: <Ranking />
             }
