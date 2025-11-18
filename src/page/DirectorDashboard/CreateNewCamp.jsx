@@ -164,7 +164,7 @@ const CreateNewCamp = () => {
 
                 {/* submit buttons */}
                 <div className="w-full flex items-center gap-5">
-                    <CommonSubmitBtn variant="primary" className={"w-full"}>Submit</CommonSubmitBtn>
+                    <CommonSubmitBtn link={true} path="/director-dashboard/court-list" variant="primary" className={"w-full"}>Submit</CommonSubmitBtn>
                     <CommonSubmitBtn variant="secondary" className={"w-full"}>Reset Form</CommonSubmitBtn>
                 </div>
             </form>
