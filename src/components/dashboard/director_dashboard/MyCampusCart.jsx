@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const MyCampusCart = ({ league }) => {
     return (
         <div className="border border-[#E8E8E8] rounded-lg p-5">
@@ -37,13 +39,14 @@ const MyCampusCart = ({ league }) => {
 
             <div className="grid grid-cols-4 gap-3 mt-5">
                 {league?.actions.map((action) => (
-                    <button
+                    <Link 
+                    to={action.path}
                         key={action.id}
                         className="flex items-center justify-center gap-2 cursor-pointer border border-[#E8E8E8] p-2 rounded-md bg-[#F5F5F5] hover:bg-gray-200 transition"
                     >
                         {action?.icon}
                         {action?.label}
-                    </button>
+                    </Link>
                 ))}
             </div>
         </div>

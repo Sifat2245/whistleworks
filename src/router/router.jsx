@@ -1,4 +1,3 @@
-
 import { createBrowserRouter } from "react-router-dom";
 import Home from "@/page/Home";
 import RootLayout from "@/layout/RootLayout";
@@ -15,6 +14,7 @@ import ForgetPassword from "@/page/auth/ForgetPassword";
 import VerifyOtp from "@/page/auth/VerifyOtp";
 import ResetPassword from "@/page/auth/ResetPassword";
 import CreateNewCamp from "@/page/DirectorDashboard/CreateNewCamp";
+import BuildSchedule from "@/page/DirectorDashboard/BuildSchedule";
 
 
 const router = createBrowserRouter([
@@ -40,6 +40,10 @@ const router = createBrowserRouter([
             {
                 path: "/director-dashboard/create-new-camp",
                 element: <CreateNewCamp />
+            },
+            {
+                path: "/director-dashboard/build-schedule",
+                element: <BuildSchedule />
             }
         ]
     },

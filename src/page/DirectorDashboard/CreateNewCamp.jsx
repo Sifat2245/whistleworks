@@ -52,7 +52,7 @@ const CreateNewCamp = () => {
             {/* camp add form */}
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="border border-[#CCCCCC] rounded-2xl p-4 mt-10 grid grid-cols-1 gap-4"
+                className="border border-[#CCCCCC] rounded-2xl p-4 my-10 grid grid-cols-1 gap-4"
             >
                 {/* Camp Name */}
                 <CommonInputWrapperV2
@@ -159,7 +159,7 @@ const CreateNewCamp = () => {
                         }}
                         innerWrapper="w-full"
                     />
-                    <p className="font-medium whitespace-nowrap mt-6 text-primary text-base">+$35 (software fee)</p>
+                    <p className="font-medium whitespace-nowrap mt-2 text-primary text-base">+$35 (software fee)</p>
                 </div>
 
                 {/* submit buttons */}

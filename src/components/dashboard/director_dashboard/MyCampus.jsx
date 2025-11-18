@@ -17,13 +17,12 @@ const leaguesData = [
         locationIcon: basketBall,
 
         actions: [
-            { id: "schedule", label: "Schedule", icon: <CiCalendar className="text-xl shrink-0" /> },
-            { id: "evaluate", label: "Evaluate", icon: <PiSunglassesLight className="text-xl shrink-0" /> },
-            { id: "ranking", label: "Ranking", icon: <BsArrowLeftRight className="text-xl shrink-0" /> },
-            { id: "roster", label: "Roster", icon: <HiOutlineUser className="text-xl shrink-0" /> },
+            { id: "schedule", label: "Schedule", icon: <CiCalendar className="text-xl shrink-0" />, path: "/director-dashboard/build-schedule" },
+            { id: "evaluate", label: "Evaluate", icon: <PiSunglassesLight className="text-xl shrink-0" />, path: "" },
+            { id: "ranking", label: "Ranking", icon: <BsArrowLeftRight className="text-xl shrink-0" />, path: "" },
+            { id: "roster", label: "Roster", icon: <HiOutlineUser className="text-xl shrink-0" />, path: "" },
         ],
     },
-
     {
         id: "league-2",
         name: "Winter Basketball League",
@@ -34,10 +33,10 @@ const leaguesData = [
         locationIcon: football,
 
         actions: [
-            { id: "schedule", label: "Schedule", icon: <CiCalendar className="text-xl shrink-0" /> },
-            { id: "evaluate", label: "Evaluate", icon: <PiSunglassesLight className="text-xl shrink-0" /> },
-            { id: "ranking", label: "Ranking", icon: <BsArrowLeftRight className="text-xl shrink-0" /> },
-            { id: "roster", label: "Roster", icon: <HiOutlineUser className="text-xl shrink-0" /> },
+            { id: "schedule", label: "Schedule", icon: <CiCalendar className="text-xl shrink-0" />, path: "/director-dashboard/build-schedule" },
+            { id: "evaluate", label: "Evaluate", icon: <PiSunglassesLight className="text-xl shrink-0" />, path: "" },
+            { id: "ranking", label: "Ranking", icon: <BsArrowLeftRight className="text-xl shrink-0" />, path: "" },
+            { id: "roster", label: "Roster", icon: <HiOutlineUser className="text-xl shrink-0" />, path: "" },
         ],
     },
 ];
