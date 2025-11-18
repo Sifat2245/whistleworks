@@ -16,6 +16,7 @@ import ResetPassword from "@/page/auth/ResetPassword";
 import CreateNewCamp from "@/page/DirectorDashboard/CreateNewCamp";
 import BuildSchedule from "@/page/DirectorDashboard/BuildSchedule";
 import CreatedCourt from "@/page/DirectorDashboard/CreatedCourt";
+import Ranking from "@/page/DirectorDashboard/Ranking";
 
 const router = createBrowserRouter([
     {
@@ -49,6 +50,9 @@ const router = createBrowserRouter([
                 path: "court-list",
                 element: <CreatedCourt />
             },
+                path: "/director-dashboard/ranking",
+                element: <Ranking />
+            }
         ]
     },
     {
