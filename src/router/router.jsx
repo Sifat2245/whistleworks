@@ -15,6 +15,7 @@ import VerifyOtp from "@/page/auth/VerifyOtp";
 import ResetPassword from "@/page/auth/ResetPassword";
 import CreateNewCamp from "@/page/DirectorDashboard/CreateNewCamp";
 import BuildSchedule from "@/page/DirectorDashboard/BuildSchedule";
+import Ranking from "@/page/DirectorDashboard/Ranking";
 
 
 const router = createBrowserRouter([
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
             {
                 path: "/director-dashboard/build-schedule",
                 element: <BuildSchedule />
+            },
+            {
+                path: "/director-dashboard/ranking",
+                element: <Ranking />
             }
         ]
     },
