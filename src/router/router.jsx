@@ -17,6 +17,7 @@ import CreateNewCamp from "@/page/DirectorDashboard/CreateNewCamp";
 import BuildSchedule from "@/page/DirectorDashboard/BuildSchedule";
 import CreatedCourt from "@/page/DirectorDashboard/CreatedCourt";
 import Ranking from "@/page/DirectorDashboard/Ranking";
+import ActiveCamps from "@/page/RefereeDashboard/ActiveCamps";
 
 const router = createBrowserRouter([
     {
@@ -73,6 +74,10 @@ const router = createBrowserRouter([
             {
                 index: true,
                 element: <RefereeDashboard />
+            },
+            {
+                path: "active-camps",
+                element: <ActiveCamps />
             }
         ]
     },

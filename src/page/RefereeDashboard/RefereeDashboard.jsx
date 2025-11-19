@@ -21,30 +21,22 @@ const RefereeDashboard = () => {
         <DashboardButton
           label="Active Camps"
           iconSrc="/referee/home-icon.svg"
-          onClick={() => {
-            console.log("Active Camps clicked");
-          }}
+          path="/referee-dashboard/active-camps"
         />
         <DashboardButton
           label="Previous Camps"
           iconSrc="/referee/calender-icon.svg"
-          onClick={() => {
-            console.log("Previous Camps clicked");
-          }}
+          path=""
         />
         <DashboardButton
           label="Find Camps"
           iconSrc="/referee/group-user-icon.svg"
-          onClick={() => {
-            console.log("Find Camps clicked");
-          }}
+          path=""
         />
         <DashboardButton
           label="Profile"
           iconSrc="/referee/single-user-icon.svg"
-          onClick={() => {
-            console.log("Profile clicked");
-          }}
+          path=""
         />
       </div>
     </section>
