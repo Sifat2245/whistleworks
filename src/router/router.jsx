@@ -17,6 +17,8 @@ import CreateNewCamp from "@/page/DirectorDashboard/CreateNewCamp";
 import BuildSchedule from "@/page/DirectorDashboard/BuildSchedule";
 import CreatedCourt from "@/page/DirectorDashboard/CreatedCourt";
 import Ranking from "@/page/DirectorDashboard/Ranking";
+import Roster from "@/page/DirectorDashboard/Roster";
+import Evaluate from "@/page/DirectorDashboard/Evaluate";
 
 const router = createBrowserRouter([
     {
@@ -51,8 +53,16 @@ const router = createBrowserRouter([
                 element: <CreatedCourt />
             },
             {
-                path: "/director-dashboard/ranking",
+                path: "ranking",
                 element: <Ranking />
+            },
+            {
+                path: "Roster",
+                element: <Roster/> 
+            },
+            {
+                path: "Evaluate",
+                element: <Evaluate/> 
             }
         ]
     },
