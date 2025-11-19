@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { TiPlus } from "react-icons/ti";
+import ScheduleAddModal from "./ScheduleAddModal";
 
 const filterIcon = [
   { id: 1, label: "November 20", value: "nov20" },
@@ -13,12 +15,28 @@ const courtsData = [
 ];
 
 const timeSlots = [
-  { id: 1, time: "100 PM" },
-  { id: 2, time: "100 PM" }
+  { id: 1, time: "10.00 PM" },
+  { id: 2, time: "09.00 PM" },
+  { id: 3, time: "07.00 PM" },
+  { id: 4, time: "08.00 PM" },
 ];
 
 const CourtLists = () => {
   const [activeFilter, setActiveFilter] = useState("nov20");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourt, setSelectedCourt] = useState(null);
+  // is court blocked
+  const [isBlocked, setIsBlocked] = useState(false);
+
+  const handleBoxClick = (court) => {
+    setSelectedCourt(court);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCourt(null);
+  };
 
   return (
     <div className="w-full mt-6">
@@ -30,111 +48,81 @@ const CourtLists = () => {
             key={item.id}
             onClick={() => setActiveFilter(item.value)}
             className={`border border-[#00AEEF] px-4 py-3 rounded-lg transition-all
-                ${
-                  activeFilter === item.value
-                    ? "bg-[#00AEEF] text-white"
-                    : "bg-white text-gray-700"
-                }`}
+                ${activeFilter === item.value
+                ? "bg-[#00AEEF] text-white"
+                : "bg-white text-gray-700"
+              }`}
           >
             {item.label}
           </button>
         ))}
       </div>
 
-      {/* Main schedule table container */}
+      {/* Main schedule */}
       <div className="w-full border border-[#E8E8E8] rounded-xl p-5">
 
-        {/* Court Headers */}
+        {/* Headers */}
         <div className="grid grid-cols-5 gap-4 mb-4">
           <div className="font-semibold text-lg">Time</div>
 
           {courtsData.map((court) => (
             <div
               key={court.id}
-              className="border border-[#00AEEF] rounded-xl p-3 text-center"
+              className="p-4 text-center"
             >
-              <div className="text-red-500 text-sm">{court?.name}</div>
-              <div className="text-[#00AEEF] font-semibold">{court?.court}</div>
+              <div className="text-red-500 text-sm">{court.name}</div>
+              <div className="text-[#00AEEF] font-semibold">{court.court}</div>
             </div>
           ))}
         </div>
 
-        {/* Time rows */}
+        {/* Timeslots */}
         {timeSlots.map((slot) => (
-          <div
-            key={slot.id}
-            className="grid grid-cols-5 gap-4 mb-6 items-start"
-          >
-            {/* Time label */}
+          <div key={slot.id} className="grid grid-cols-5 gap-4 mb-6">
             <div className="text-lg font-medium">{slot.time}</div>
 
-            {/* Courts for this time */}
-            {courtsData.map((court) => (
-              <div
-                key={court.id}
-                className="border border-[#00AEEF] rounded-xl p-3"
-              >
-                {/* If court has no game */}
-                {court.id === 1 || court.id === 2 ? (
-                  <div className="bg-gray-500 w-full h-[140px] text-center text-white flex flex-col justify-center items-center rounded-xl">
-                    <div className="flex gap-2 items-center">
-                      <span>🚫</span> No Game
-                    </div>
-                    <button className="mt-3 border px-4 py-1 rounded-lg">
-                      Undo
-                    </button>
+            {courtsData.map((court) => {
+              return (
+                // Square box for showing the schedule with plus icon
+                <div
+                  key={court.id}
+                  className="shadow-sm rounded-lg p-3 min-h-[150px] border border-gray-200 hover:shadow-lg transition-all cursor-pointer flex items-center justify-center"
+                  onClick={() => handleBoxClick(court)}
+                >
+                  {/* Plus icon */}
+                  <div className="transition-colors bg-primary text-white rounded">
+                    <TiPlus className="text-2xl" />
                   </div>
-                ) : (
-                  <div className="flex flex-col gap-3">
-
-                    {/* Three add slots */}
-                    {[1, 2, 3].map((btn) => (
-                      <button
-                        key={btn}
-                        className="border p-3 rounded-lg text-[#00AEEF] text-xl font-bold flex justify-center"
-                      >
-                        +
-                      </button>
-                    ))}
-
-                    {/* Referee list */}
-                    {[1, 2, 3].map((ref) => (
-                      <div
-                        key={ref}
-                        className="border rounded-lg flex gap-2 items-center p-2"
-                      >
-                        <img
-                          src="https://i.pravatar.cc/300"
-                          className="w-7 h-7 rounded-full"
-                        />
-                        <span>ref63</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>
 
-      {/* Footer buttons */}
-      <div className="flex justify-between mt-6">
-        <button className="bg-red-500 text-white px-6 py-3 rounded-xl">
+      {/* Footer */}
+      <div className="flex justify-between my-6">
+        <button className="cursor-pointer bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition-colors">
           Delete Schedule
         </button>
 
         <div className="flex gap-4">
-          <button className="border border-red-500 text-red-500 px-6 py-3 rounded-xl">
+          <button className="cursor-pointer border border-red-500 text-red-500 px-6 py-3 rounded-xl hover:bg-red-50 transition-colors">
             Clear Schedule
           </button>
-          <button className="bg-[#00AEEF] text-white px-6 py-3 rounded-xl">
+          <button className="cursor-pointer bg-[#00AEEF] text-white px-6 py-3 rounded-xl hover:bg-[#0099D6] transition-colors">
             Publish Schedule
           </button>
         </div>
       </div>
+
+      {/* Ant Design Modal */}
+      <ScheduleAddModal
+        isModalOpen={isModalOpen}
+        handleCloseModal={handleCloseModal}
+        selectedCourt={selectedCourt}
+      />
     </div>
   );
 };
-
 export default CourtLists;
