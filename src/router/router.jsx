@@ -19,106 +19,109 @@ import CreatedCourt from "@/page/DirectorDashboard/CreatedCourt";
 import Ranking from "@/page/DirectorDashboard/Ranking";
 import Roster from "@/page/DirectorDashboard/Roster";
 import Evaluate from "@/page/DirectorDashboard/Evaluate";
+import ActiveCamps from "@/page/RefereeDashboard/ActiveCamps";
 
 const router = createBrowserRouter([
-    {
+  {
+    path: "/",
+    element: <RootLayout />,
+    children: [
+      {
         path: "/",
-        element: <RootLayout />,
-        children: [
-            {
-                path: "/",
-                element: <Home />
-            },
-        ]
-    },
-    {
+        element: <Home />,
+      },
+    ],
+  },
+  {
+    path: "/director-dashboard",
+    element: <DirectorLayout />,
+    children: [
+      {
+        index: true,
         path: "/director-dashboard",
-        element: <DirectorLayout />,
-        children: [
-            {
-                index: true,
-                path: "/director-dashboard",
-                element: <Dashboard />
-            },
-            {
-                path: "create-new-camp",
-                element: <CreateNewCamp />
-            },
-            {
-                path: "build-schedule",
-                element: <BuildSchedule />
-            },
-            {
-                path: "court-list",
-                element: <CreatedCourt />
-            },
-            {
-                path: "ranking",
-                element: <Ranking />
-            },
-            {
-                path: "Roster",
-                element: <Roster/> 
-            },
-            {
-                path: "Evaluate",
-                element: <Evaluate/> 
-            }
-        ]
-    },
-    {
-        path: "evolator-dashboard",
-        element: <EvolatorLayout />,
-        children: [
-            {
-                index: true,
-                element: <EvolatorDashboard />
-            }
-        ]
-    },
-    {
-        path: "/referee-dashboard",
-        element: <RefereeLayout />,
-        children: [
-            {
-                index: true,
-                element: <RefereeDashboard />
-            }
-        ]
-    },
-    {
-        path: '/auth',
-        element: <AuthLayout />,
-        children: [
-            {
-                path: 'signin',
-                element: <SignIn />
-            },
-            {
-                path: 'signup',
-                element: <SignUp />
-            },
-            {
-                path: 'forget-password',
-                element: <ForgetPassword />
-            },
-            {
-                path: 'verify-otp',
-                element: <VerifyOtp />
-            },
-            {
-                path: 'reset-password',
-                element: <ResetPassword />
-            }
-
-        ]
-    },
-    {
-        path: "*",
-        element: () => <h1>Page Not Found</h1>,
-    }
-
-
+        element: <Dashboard />,
+      },
+      {
+        path: "create-new-camp",
+        element: <CreateNewCamp />,
+      },
+      {
+        path: "build-schedule",
+        element: <BuildSchedule />,
+      },
+      {
+        path: "court-list",
+        element: <CreatedCourt />,
+      },
+      {
+        path: "ranking",
+        element: <Ranking />,
+      },
+      {
+        path: "Roster",
+        element: <Roster />,
+      },
+      {
+        path: "Evaluate",
+        element: <Evaluate />,
+      },
+    ],
+  },
+  {
+    path: "evolator-dashboard",
+    element: <EvolatorLayout />,
+    children: [
+      {
+        index: true,
+        element: <EvolatorDashboard />,
+      },
+    ],
+  },
+  {
+    path: "/referee-dashboard",
+    element: <RefereeLayout />,
+    children: [
+      {
+        index: true,
+        element: <RefereeDashboard />,
+      },
+      {
+        path: "active-camps",
+        element: <ActiveCamps />,
+      },
+    ],
+  },
+  {
+    path: "/auth",
+    element: <AuthLayout />,
+    children: [
+      {
+        path: "signin",
+        element: <SignIn />,
+      },
+      {
+        path: "signup",
+        element: <SignUp />,
+      },
+      {
+        path: "forget-password",
+        element: <ForgetPassword />,
+      },
+      {
+        path: "verify-otp",
+        element: <VerifyOtp />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPassword />,
+      },
+    ],
+  },
+ 
+  {
+    path: "*",
+    element: () => <h1>Page Not Found</h1>,
+  },
 ]);
 
 export default router;
