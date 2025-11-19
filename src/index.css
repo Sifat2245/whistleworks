@@ -13,6 +13,7 @@
   --breakpoint-3xs: 375px; /* For small phones */
   --breakpoint-2xs: 390px; /* For medium phones */
   --breakpoint-xs: 480px; /* For small tablets */
+  --color-border: #E8E8E8;
 }
 
 /* .container  {

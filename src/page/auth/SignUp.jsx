@@ -178,7 +178,7 @@ const SignUp = () => {
         )}
 
         {/* Submit Button */}
-        <CommonSubmitBtn variant="primary" type="submit" className="w-full">
+        <CommonSubmitBtn link={true} path="/referee-dashboard" variant="primary" type="submit" className="w-full">
           Sign Up
         </CommonSubmitBtn>
       </form>
