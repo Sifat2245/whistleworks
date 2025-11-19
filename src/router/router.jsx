@@ -50,6 +50,7 @@ const router = createBrowserRouter([
                 path: "court-list",
                 element: <CreatedCourt />
             },
+            {
                 path: "/director-dashboard/ranking",
                 element: <Ranking />
             }
