@@ -45,7 +45,7 @@ const CommonInputWrapper = ({
   return (
     <div
       className={cn(
-        "w-full flex flex-col gap-2 justify-start items-start relative text-base text-white",
+        "w-full flex flex-col gap-2 justify-start items-start relative text-base text-black",
         wrapperClass
       )}
     >
@@ -79,7 +79,7 @@ const CommonInputWrapper = ({
           name={name}
           defaultValue={value}
           className={cn(
-            "w-full resize-none min-h-48 px-4 py-5 rounded-lg placeholder-[#5A5C5F] outline-none text-white border border-dark shadow-input bg-[rgba(255,255,255,0.05)]",
+            "w-full resize-none min-h-48 px-4 py-5 rounded-lg placeholder-[#5A5C5F] outline-none text-black border border-dark shadow-input bg-[rgba(255,255,255,0.05)]",
             textareaClass
           )}
           {...register(register_as, validationRules)}
