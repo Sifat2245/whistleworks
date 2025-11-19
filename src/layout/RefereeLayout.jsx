@@ -6,7 +6,7 @@ const RefereeLayout = () => {
   console.log("Current Pathname:", pathname);
   return (
     <div className="w-full">
-      <div className={`${pathname === '/referee-dashboard' && 'hidden'}`}>
+      <div >
         <DashboardHeader />
       </div>
       <main className="">
