@@ -18,9 +18,9 @@ const leaguesData = [
 
         actions: [
             { id: "schedule", label: "Schedule", icon: <CiCalendar className="text-xl shrink-0" />, path: "/director-dashboard/build-schedule" },
-            { id: "evaluate", label: "Evaluate", icon: <PiSunglassesLight className="text-xl shrink-0" />, path: "" },
+            { id: "evaluate", label: "Evaluate", icon: <PiSunglassesLight className="text-xl shrink-0" />, path: "/director-dashboard/evaluate" },
             { id: "ranking", label: "Ranking", icon: <BsArrowLeftRight className="text-xl shrink-0" />, path: "/director-dashboard/ranking" },
-            { id: "roster", label: "Roster", icon: <HiOutlineUser className="text-xl shrink-0" />, path: "" },
+            { id: "roster", label: "Roster", icon: <HiOutlineUser className="text-xl shrink-0" />, path: "/director-dashboard/roster" },
         ],
     },
     {
@@ -34,9 +34,9 @@ const leaguesData = [
 
         actions: [
             { id: "schedule", label: "Schedule", icon: <CiCalendar className="text-xl shrink-0" />, path: "/director-dashboard/build-schedule" },
-            { id: "evaluate", label: "Evaluate", icon: <PiSunglassesLight className="text-xl shrink-0" />, path: "" },
-            { id: "ranking", label: "Ranking", icon: <BsArrowLeftRight className="text-xl shrink-0" />, path: "" },
-            { id: "roster", label: "Roster", icon: <HiOutlineUser className="text-xl shrink-0" />, path: "" },
+            { id: "evaluate", label: "Evaluate", icon: <PiSunglassesLight className="text-xl shrink-0" />, path: "/director-dashboard/evaluate" },
+            { id: "ranking", label: "Ranking", icon: <BsArrowLeftRight className="text-xl shrink-0" />, path: "/director-dashboard/ranking" },
+            { id: "roster", label: "Roster", icon: <HiOutlineUser className="text-xl shrink-0" />, path: "/director-dashboard/roster" },
         ],
     },
 ];

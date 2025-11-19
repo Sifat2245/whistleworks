@@ -17,6 +17,8 @@ import CreateNewCamp from "@/page/DirectorDashboard/CreateNewCamp";
 import BuildSchedule from "@/page/DirectorDashboard/BuildSchedule";
 import CreatedCourt from "@/page/DirectorDashboard/CreatedCourt";
 import Ranking from "@/page/DirectorDashboard/Ranking";
+import Roster from "@/page/DirectorDashboard/Roster";
+import Evaluate from "@/page/DirectorDashboard/Evaluate";
 import ActiveCamps from "@/page/RefereeDashboard/ActiveCamps";
 
 const router = createBrowserRouter([
@@ -52,8 +54,16 @@ const router = createBrowserRouter([
         element: <CreatedCourt />,
       },
       {
-        path: "/director-dashboard/ranking",
+        path: "ranking",
         element: <Ranking />,
+      },
+      {
+        path: "Roster",
+        element: <Roster />,
+      },
+      {
+        path: "Evaluate",
+        element: <Evaluate />,
       },
     ],
   },
@@ -69,12 +79,12 @@ const router = createBrowserRouter([
   },
   {
     path: "/referee-dashboard",
-    element: <RefereeDashboard />,
-  },
-  {
-    path: "/referee-dashboard",
     element: <RefereeLayout />,
     children: [
+      {
+        index: true,
+        element: <RefereeDashboard />,
+      },
       {
         path: "active-camps",
         element: <ActiveCamps />,
@@ -107,6 +117,7 @@ const router = createBrowserRouter([
       },
     ],
   },
+ 
   {
     path: "*",
     element: () => <h1>Page Not Found</h1>,
