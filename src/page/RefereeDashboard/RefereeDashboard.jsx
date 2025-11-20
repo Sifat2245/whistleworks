@@ -36,7 +36,7 @@ const RefereeDashboard = () => {
         <DashboardButton
           label="Profile"
           iconSrc="/referee/single-user-icon.svg"
-          path=""
+          path="/referee-dashboard/profile"
         />
       </div>
     </section>

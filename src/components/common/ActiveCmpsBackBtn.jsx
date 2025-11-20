@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { LuMoveLeft } from "react-icons/lu";
 
-export default function ActiveCmpsBackBtn() {
+export default function ActiveCmpsBackBtn({ label }) {
   const navigate = useNavigate();
   return (
     <div className="w-fit flex gap-4 items-center rounded-lg mb-5">
@@ -11,7 +11,7 @@ export default function ActiveCmpsBackBtn() {
         onClick={() => navigate(-1)}
       >
         <LuMoveLeft className="text-xl text-black" />
-        <p className="text-xl">Active Camps</p>
+        <p className="text-xl">{label}</p>
       </button>
     </div>
   );
