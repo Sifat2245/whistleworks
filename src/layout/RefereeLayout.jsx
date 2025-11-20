@@ -1,12 +1,17 @@
-import RefereeDashboard from "@/page/RefereeDashboard/RefereeDashboard";
-
+import DashboardHeader from "@/shared/DashboardHeader";
+import { Outlet } from "react-router-dom";
 
 const RefereeLayout = () => {
-    return (
-        <div>
-            <RefereeDashboard/>
-        </div>
-    );
+  const pathname = window.location.pathname;
+  console.log("Current Pathname:", pathname);
+  return (
+    <div className="w-full">
+      <DashboardHeader />
+      <main className="w-full">
+        <Outlet />
+      </main>
+    </div>
+  );
 };
 
 export default RefereeLayout;
