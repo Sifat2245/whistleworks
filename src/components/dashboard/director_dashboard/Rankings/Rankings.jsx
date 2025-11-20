@@ -5,98 +5,27 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import { BsTrophy } from "react-icons/bs";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 
 const Rankings = () => {
-  const data = useMemo(
-    () => [
-      {
-        rank: 1,
-        referee: "Emily Chen",
-        overall: 9.5,
-        callAccuracy: 7.5,
-        mech: 6.5,
-        fitMob: 8.5,
-        comm: 8.5,
-        consistency: 8.5,
-        gA: 8.5,
-        d1: 4,
-        d2: 4,
-        naia: 7,
-        jc: 7,
-        hs: 5,
-        elem: 2,
-      },
-      {
-        rank: 2,
-        referee: "Emily Chen",
-        overall: 9.5,
-        callAccuracy: 7.5,
-        mech: 6.5,
-        fitMob: 8.5,
-        comm: 8.5,
-        consistency: 8.5,
-        gA: 8.5,
-        d1: 4,
-        d2: 4,
-        naia: 7,
-        jc: 7,
-        hs: 5,
-        elem: 2,
-      },
-      {
-        rank: 3,
-        referee: "Emily Chen",
-        overall: 9.5,
-        callAccuracy: 7.5,
-        mech: 6.5,
-        fitMob: 8.5,
-        comm: 8.5,
-        consistency: 8.5,
-        gA: 8.5,
-        d1: 4,
-        d2: 4,
-        naia: 7,
-        jc: 7,
-        hs: 5,
-        elem: 2,
-      },
-      {
-        rank: 4,
-        referee: "Emily Chen",
-        overall: 9.5,
-        callAccuracy: 7.5,
-        mech: 6.5,
-        fitMob: 8.5,
-        comm: 8.5,
-        consistency: 8.5,
-        gA: 8.5,
-        d1: 4,
-        d2: 4,
-        naia: 7,
-        jc: 7,
-        hs: 5,
-        elem: 2,
-      },
-      {
-        rank: 5,
-        referee: "Emily Chen",
-        overall: 9.5,
-        callAccuracy: 7.5,
-        mech: 6.5,
-        fitMob: 8.5,
-        comm: 8.5,
-        consistency: 8.5,
-        gA: 8.5,
-        d1: 4,
-        d2: 4,
-        naia: 7,
-        jc: 7,
-        hs: 5,
-        elem: 2,
-      },
-    ],
-    []
-  );
+  const navigate = useNavigate();
+
+  const handleRedirect = (referee) => {
+    navigate(`/director-dashboard/ranking/${referee}`);
+  };
+
+  
+  const { data = [] } = useQuery({
+    queryKey: ["rankings"],
+    queryFn: async () => {
+      const res = await axios.get("/rankingData.json");
+      return res.data;
+    },
+  });
+
+  console.log(data);
 
   const columns = useMemo(
     () => [
@@ -116,18 +45,24 @@ const Rankings = () => {
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-linear-to-br from-orange-400 to-pink-400 flex items-center justify-center text-white text-sm font-semibold">
-              EC
+              {row.original.referee
+                ?.split(" ")
+                ?.map((n) => n[0])
+                ?.join("")}
             </div>
-            <span className="font-medium">{row.original.referee}</span>
+            <span
+              onClick={() => handleRedirect(row.original.referee)}
+              className="font-medium hover:underline cursor-pointer"
+            >
+              {row.original.referee}
+            </span>
           </div>
         ),
       },
       {
         accessorKey: "overall",
         header: "Overall",
-        cell: ({ getValue }) => (
-          <span className="font-semibold">{getValue()}</span>
-        ),
+        cell: ({ getValue }) => <span className="font-semibold">{getValue()}</span>,
       },
       {
         accessorKey: "callAccuracy",
@@ -178,8 +113,15 @@ const Rankings = () => {
         header: "ELEM",
       },
     ],
-    []
+    [handleRedirect]
   );
+
+    const stats = [
+    { value: "8.8", label: "Avg Overall Score", color: "text-cyan-500" },
+    { value: "Emily", label: "Top Performer", color: "text-green-500" },
+    { value: "65", label: "Total Games", color: "text-purple-500" },
+    { value: "2", label: "Improving", color: "text-orange-500" },
+  ];
 
   const table = useReactTable({
     data,
@@ -187,16 +129,8 @@ const Rankings = () => {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const stats = [
-    { value: "8.8", label: "Avg Overall Score", color: "text-cyan-500" },
-    { value: "Emily", label: "Top Performer", color: "text-green-500" },
-    { value: "65", label: "Total Games", color: "text-purple-500" },
-    { value: "2", label: "Improving", color: "text-orange-500" },
-  ];
-
   return (
-    <div className="mt-10">
-      {/* Table Container */}
+    <div className="my-10">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-20">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">Complete Rankings</h2>
@@ -206,41 +140,29 @@ const Rankings = () => {
           <table className="w-full">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
-                <tr
-                  key={headerGroup.id}
-                  className="border-b border-gray-200 bg-gray-50"
-                >
+                <tr key={headerGroup.id} className="border-b border-gray-200 bg-gray-50">
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                      className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider"
                     >
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) => (
+              {table.getRowModel().rows?.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b border-gray-200 hover:bg-blue-50 transition-colors"
+                  className="border-b border-gray-200 hover:bg-blue-50 transition-colors text-center"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-4 py-4 text-sm text-gray-700"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                    <td key={cell.id} className="px-4 py-4 text-sm text-gray-700">
+                      {flexRender(cell?.column?.columnDef?.cell, cell.getContext())}
                     </td>
                   ))}
                 </tr>

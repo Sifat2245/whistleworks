@@ -8,6 +8,8 @@ import { MdEmail, MdPhone, MdContentCopy } from 'react-icons/md';
 import { IoCheckboxOutline, IoTrashOutline } from 'react-icons/io5';
 
 const RosterTable = () => {
+  
+
   const data = useMemo(
     () => [
       {
@@ -55,7 +57,7 @@ const RosterTable = () => {
               EC
             </div>
             <div>
-              <div className="font-semibold text-gray-900">{row.original.name}</div>
+              <div className="font-semibold text-gray-900 hover:underline cursor-pointer">{row.original.name}</div>
               <div className="text-sm text-gray-500">{row.original.location}</div>
             </div>
           </div>

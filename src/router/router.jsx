@@ -20,6 +20,7 @@ import Ranking from "@/page/DirectorDashboard/Ranking";
 import Roster from "@/page/DirectorDashboard/Roster";
 import Evaluate from "@/page/DirectorDashboard/Evaluate";
 import ActiveCamps from "@/page/RefereeDashboard/ActiveCamps";
+import RankingReport from "@/page/DirectorDashboard/RankingReport";
 
 const router = createBrowserRouter([
   {
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
       {
         path: "ranking",
         element: <Ranking />,
+      },
+      {
+        path: 'ranking/:referee',
+        element: <RankingReport/>,
       },
       {
         path: "Roster",
