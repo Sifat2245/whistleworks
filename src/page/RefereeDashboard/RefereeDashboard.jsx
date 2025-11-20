@@ -31,7 +31,7 @@ const RefereeDashboard = () => {
         <DashboardButton
           label="Find Camps"
           iconSrc="/referee/group-user-icon.svg"
-          path=""
+          path="/referee-dashboard/find-camps"
         />
         <DashboardButton
           label="Profile"

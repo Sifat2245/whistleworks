@@ -1,5 +1,6 @@
 import { FaUser, FaMapMarkerAlt, FaClock, FaDollarSign } from "react-icons/fa";
 import CommonSubmitBtn from "../common/CommonSubmitBtn";
+import { Image } from "antd";
 
 const CampCard = ({ camp }) => {
   const pathname = window.location.pathname;
@@ -19,10 +20,11 @@ const CampCard = ({ camp }) => {
       {/* Title and Image */}
       <div className="flex justify-between items-start mb-4 gap-10">
         <h2 className="text-lg font-semibold leading-snug">{camp_name}</h2>
-        <img
+        <Image
           src={camp_logo}
           alt="camp"
           className="h-12 w-12 rounded-full object-cover bg-gray-100"
+          preview={false}
         />
       </div>
 

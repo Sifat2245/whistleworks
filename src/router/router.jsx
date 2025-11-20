@@ -22,6 +22,7 @@ import Evaluate from "@/page/DirectorDashboard/Evaluate";
 import ActiveCamps from "@/page/RefereeDashboard/ActiveCamps";
 import Profile from "@/components/common/Profile";
 import PreviousCamps from "@/page/RefereeDashboard/PreviousCamps";
+import FindCamps from "@/page/RefereeDashboard/FindCamps";
 
 const router = createBrowserRouter([
   {
@@ -94,6 +95,10 @@ const router = createBrowserRouter([
       {
         path: "previous-camps",
         element: <PreviousCamps />,
+      },
+      {
+        path: "find-camps",
+        element: <FindCamps />,
       },
       {
         path: "profile",
