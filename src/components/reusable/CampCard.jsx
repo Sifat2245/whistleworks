@@ -61,7 +61,7 @@ const CampCard = ({ camp }) => {
       </div>}
 
       {/* Button */}
-      <CommonSubmitBtn variant="primary" className={"w-full"}>
+      <CommonSubmitBtn variant="primary" className={"w-full"} link={true} path={`/referee-dashboard/camp/${camp.id}?tab=camp-details`}>
         {
           pathname === "/" ? "View Details & Register" : "View Details"
         }
