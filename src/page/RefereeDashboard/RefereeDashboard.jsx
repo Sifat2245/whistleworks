@@ -26,7 +26,7 @@ const RefereeDashboard = () => {
         <DashboardButton
           label="Previous Camps"
           iconSrc="/referee/calender-icon.svg"
-          path=""
+          path="/referee-dashboard/previous-camps"
         />
         <DashboardButton
           label="Find Camps"
