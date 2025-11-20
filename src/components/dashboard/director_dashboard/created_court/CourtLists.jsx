@@ -20,6 +20,7 @@ const timeSlots = [
   { id: 3, time: "07.00 PM" },
   { id: 4, time: "08.00 PM" },
 ];
+0.
 
 const CourtLists = () => {
   const [activeFilter, setActiveFilter] = useState("nov20");
@@ -28,11 +29,18 @@ const CourtLists = () => {
   // is court blocked
   const [isBlocked, setIsBlocked] = useState(false);
 
+  // Note: blocked the court function
+  const handleBlockCourt = () => {
+    setIsBlocked(!isBlocked);
+  }
+
+  // Note: click on the box open the modal
   const handleBoxClick = (court) => {
     setSelectedCourt(court);
     setIsModalOpen(true);
   };
 
+  // Note: close modal function
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedCourt(null);
@@ -121,6 +129,7 @@ const CourtLists = () => {
         isModalOpen={isModalOpen}
         handleCloseModal={handleCloseModal}
         selectedCourt={selectedCourt}
+        handleBlockCourt={handleBlockCourt}
       />
     </div>
   );

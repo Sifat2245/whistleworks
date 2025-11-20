@@ -1,5 +1,6 @@
 import { Modal } from "antd";
 import refereeImage from "@/assets/dashboard/refereeImg.png";
+import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 
 const refereeListData = [
     {
@@ -24,7 +25,7 @@ const refereeListData = [
     }
 ];
 
-const ScheduleAddModal = ({ isModalOpen, handleCloseModal, selectedCourt }) => {
+const ScheduleAddModal = ({ isModalOpen, handleCloseModal, selectedCourt, handleBlockCourt }) => {
     return (
         <div className="w-ful">
             <Modal
@@ -67,6 +68,12 @@ const ScheduleAddModal = ({ isModalOpen, handleCloseModal, selectedCourt }) => {
                         }
                     </div>
 
+                    {/* cancel, no game and update buttons */}
+                    <div className="w-full flex items-center justify-between">
+                        <CommonSubmitBtn variant="secondary">Cancel</CommonSubmitBtn>
+                        <CommonSubmitBtn onClick={handleBlockCourt}>No Game</CommonSubmitBtn>
+                        <CommonSubmitBtn>Update</CommonSubmitBtn>
+                    </div>
                 </div>
             </Modal>
         </div>
