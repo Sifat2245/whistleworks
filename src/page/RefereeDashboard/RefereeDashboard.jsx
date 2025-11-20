@@ -1,4 +1,4 @@
-import DashboardButton from "@/components/dashboard/director_dashboard/refereeDashboard/DashboardButton";
+import DashboardButton from "@/components/dashboard/refereeDashboard/DashboardButton";
 import { Image } from "antd";
 
 const RefereeDashboard = () => {

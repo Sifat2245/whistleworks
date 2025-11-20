@@ -6,10 +6,8 @@ const RefereeLayout = () => {
   console.log("Current Pathname:", pathname);
   return (
     <div className="w-full">
-      <div >
-        <DashboardHeader />
-      </div>
-      <main className="">
+      <DashboardHeader />
+      <main className="w-full">
         <Outlet />
       </main>
     </div>
