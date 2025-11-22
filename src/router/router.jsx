@@ -20,6 +20,10 @@ import Ranking from "@/page/DirectorDashboard/Ranking";
 import Roster from "@/page/DirectorDashboard/Roster";
 import Evaluate from "@/page/DirectorDashboard/Evaluate";
 import ActiveCamps from "@/page/RefereeDashboard/ActiveCamps";
+import Profile from "@/components/common/Profile";
+import PreviousCamps from "@/page/RefereeDashboard/PreviousCamps";
+import FindCamps from "@/page/RefereeDashboard/FindCamps";
+import CampDetails from "@/page/RefereeDashboard/CampDetails";
 
 const router = createBrowserRouter([
   {
@@ -88,6 +92,22 @@ const router = createBrowserRouter([
       {
         path: "active-camps",
         element: <ActiveCamps />,
+      },
+      {
+        path: "camp/:id",
+        element: <CampDetails />,
+      },
+      {
+        path: "previous-camps",
+        element: <PreviousCamps />,
+      },
+      {
+        path: "find-camps",
+        element: <FindCamps />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
       },
     ],
   },
