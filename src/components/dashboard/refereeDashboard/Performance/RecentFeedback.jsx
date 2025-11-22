@@ -6,7 +6,7 @@ export default function RecentFeedback() {
   return (
     <section className="border border-border p-5 rounded-[10px]">
       <h3 className="text-xl font-medium mb-5">Recent Feedback</h3>
-      <div>
+      <div className="h-72 overflow-y-auto">
         {feedbackData.map((feedback) => (
           <div
             key={feedback.id}
@@ -19,11 +19,11 @@ export default function RecentFeedback() {
               />
             </div>
             <div>
-              <p>Excellent Game Management</p>
+              <p>{feedback.title}</p>
               <p className="text-[14px] text-[#717182]">
-                Strong control during high-pressure situations
+                {feedback.description}
               </p>
-              <p className="text-[14px] text-[#717182]">Oct 28, 2025</p>
+              <p className="text-[14px] text-[#717182]">{feedback.date}</p>
             </div>
           </div>
         ))}
