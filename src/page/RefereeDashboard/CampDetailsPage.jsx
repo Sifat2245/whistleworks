@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import CampDetailsTabs from "@/components/dashboard/refereeDashboard/CampDetailsTabs";
 import { Divider } from "antd";
 import CampDetails from "@/components/dashboard/refereeDashboard/CampDetails";
+import MyGames from "@/components/dashboard/refereeDashboard/MyGames";
 
 export default function CampDetailsPage() {
     const [queryParams] = useSearchParams();
@@ -10,7 +11,7 @@ export default function CampDetailsPage() {
     console.log("tab", tab);
   return (
     <section className="w-full mt-7 mb-18">
-      <div className="flex items-center justify-between container px-4">
+      <div className="md:flex items-center justify-between container px-4">
         <ActiveCmpsBackBtn label="Active Camps" />
         <CampDetailsTabs />
       </div>
@@ -19,7 +20,7 @@ export default function CampDetailsPage() {
         {tab === "camp-details" && <CampDetails />}
         {tab === "roster" && <div>Roster comming soon</div>}
         {tab === "performance" && <div>performance coming soon</div>}
-        {tab === "my-games" && <div>My games coming soon</div>}
+        {tab === "my-games" && <MyGames />}
       </div>
     </section>
   );
