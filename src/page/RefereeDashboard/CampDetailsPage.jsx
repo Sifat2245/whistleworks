@@ -5,6 +5,7 @@ import { Divider } from "antd";
 import CampDetails from "@/components/dashboard/refereeDashboard/CampDetails";
 import MyGames from "@/components/dashboard/refereeDashboard/MyGames";
 import Performance from "./Performance";
+import Roster from "./Roster";
 
 export default function CampDetailsPage() {
     const [queryParams] = useSearchParams();
@@ -19,7 +20,7 @@ export default function CampDetailsPage() {
       <Divider className="my-6" />
       <div className="container px-4">
         {tab === "camp-details" && <CampDetails />}
-        {tab === "roster" && <div>Roster comming soon</div>}
+        {tab === "roster" && <Roster />}
         {tab === "performance" && <Performance />}
         {tab === "my-games" && <MyGames />}
       </div>

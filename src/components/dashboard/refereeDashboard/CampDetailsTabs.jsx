@@ -31,7 +31,7 @@ export default function CampDetailsTabs() {
         </span>
       </Link>
       <Link
-        to={`?tab=roster`}
+        to={`?tab=roster&subTab=evaluator`}
         className={`border border-border py-5 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
           tab === "roster" ? "bg-primary" : ""
         }`}
