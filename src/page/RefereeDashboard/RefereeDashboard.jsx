@@ -3,7 +3,7 @@ import { Image } from "antd";
 
 const RefereeDashboard = () => {
   return (
-    <section className="max-w-md mx-auto w-full px-4 min-h-screen flex justify-center flex-col ">
+    <section className="max-w-md mx-auto w-full px-4 flex justify-center flex-col ">
       {/* header div  */}
       <div className="mx-auto w-fit space-y-3.5">
         <Image
@@ -26,17 +26,17 @@ const RefereeDashboard = () => {
         <DashboardButton
           label="Previous Camps"
           iconSrc="/referee/calender-icon.svg"
-          path=""
+          path="/referee-dashboard/previous-camps"
         />
         <DashboardButton
           label="Find Camps"
           iconSrc="/referee/group-user-icon.svg"
-          path=""
+          path="/referee-dashboard/find-camps"
         />
         <DashboardButton
           label="Profile"
           iconSrc="/referee/single-user-icon.svg"
-          path=""
+          path="/referee-dashboard/profile"
         />
       </div>
     </section>

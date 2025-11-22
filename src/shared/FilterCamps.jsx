@@ -87,7 +87,7 @@ const FilterCamps = ({ camps, isLoading }) => {
             </label>
             <Select
               placeholder="Select sport"
-              className="min-w-[180px]"
+              className="min-w-[180px] border border-border p-2! rounded-md"
               value={selectedSport}
               onChange={setSelectedSport}
               allowClear
@@ -107,7 +107,7 @@ const FilterCamps = ({ camps, isLoading }) => {
             </label>
             <Select
               placeholder="Select location"
-              className="min-w-[180px]"
+              className="min-w-[180px] border border-border p-2! rounded-md"
               value={selectedLocation}
               onChange={setSelectedLocation}
               allowClear
@@ -138,7 +138,7 @@ const FilterCamps = ({ camps, isLoading }) => {
             <label className="text-sm text-gray-600 mb-1">Sort by</label>
             <Select
               placeholder="Sort by"
-              className="min-w-[180px]"
+              className="min-w-[180px] border border-border p-2! rounded-md"
               value={selectedSort}
               onChange={setSelectedSort}
               allowClear
