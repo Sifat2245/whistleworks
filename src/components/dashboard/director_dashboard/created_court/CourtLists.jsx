@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TiPlus } from "react-icons/ti";
 import ScheduleAddModal from "./ScheduleAddModal";
+import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 
 const filterIcon = [
   { id: 1, label: "November 20", value: "nov20" },
@@ -203,10 +204,10 @@ const CourtLists = () => {
               return (
                 <div
                   key={court.id}
-                  className={`rounded-lg p-3 min-h-[150px] border flex items-center justify-center transition-all cursor-pointer
+                  className={`rounded-lg p-3 min-h-[150px] flex items-center justify-center transition-all cursor-pointer
                     ${blocked
                       ? "bg-gray-200 cursor-not-allowed opacity-60"
-                      : "shadow-sm hover:shadow-lg"
+                      : "shadow-md hover:shadow-lg"
                     }`
                   }
                   onClick={() => handleBoxClick(court, slot)}
@@ -221,17 +222,11 @@ const CourtLists = () => {
 
       {/* Footer */}
       <div className="flex justify-between my-6">
-        <button className="cursor-pointer bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition-colors">
-          Delete Schedule
-        </button>
+        <CommonSubmitBtn variant="" className={"border border-[#F42222] rounded-lg bg-[#F42222] px-3 py-4 text-white font-medium hover:bg-transparent hover:text-[#333] transition-all duration-300"}>Delete Schedule</CommonSubmitBtn>
 
         <div className="flex gap-4">
-          <button className="cursor-pointer border border-red-500 text-red-500 px-6 py-3 rounded-xl hover:bg-red-50 transition-colors">
-            Clear Schedule
-          </button>
-          <button className="cursor-pointer bg-[#00AEEF] text-white px-6 py-3 rounded-xl hover:bg-[#0099D6] transition-colors">
-            Publish Schedule
-          </button>
+          <CommonSubmitBtn variant="" className={"border border-[#F42222] rounded-lg px-3 py-4 text-red-400"}>Clear Schedule</CommonSubmitBtn>
+          <CommonSubmitBtn variant="primary">Publish Schedule</CommonSubmitBtn>
         </div>
       </div>
 
