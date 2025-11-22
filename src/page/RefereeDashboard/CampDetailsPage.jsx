@@ -4,6 +4,7 @@ import CampDetailsTabs from "@/components/dashboard/refereeDashboard/CampDetails
 import { Divider } from "antd";
 import CampDetails from "@/components/dashboard/refereeDashboard/CampDetails";
 import MyGames from "@/components/dashboard/refereeDashboard/MyGames";
+import Performance from "./Performance";
 
 export default function CampDetailsPage() {
     const [queryParams] = useSearchParams();
@@ -19,7 +20,7 @@ export default function CampDetailsPage() {
       <div className="container px-4">
         {tab === "camp-details" && <CampDetails />}
         {tab === "roster" && <div>Roster comming soon</div>}
-        {tab === "performance" && <div>performance coming soon</div>}
+        {tab === "performance" && <Performance />}
         {tab === "my-games" && <MyGames />}
       </div>
     </section>
