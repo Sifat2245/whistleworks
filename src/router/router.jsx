@@ -24,7 +24,7 @@ import RankingReport from "@/page/DirectorDashboard/RankingReport";
 import Profile from "@/components/common/Profile";
 import PreviousCamps from "@/page/RefereeDashboard/PreviousCamps";
 import FindCamps from "@/page/RefereeDashboard/FindCamps";
-import CampDetails from "@/page/RefereeDashboard/CampDetails";
+import CampDetailsPage from "@/page/RefereeDashboard/CampDetailsPage";
 
 const router = createBrowserRouter([
   {
@@ -100,7 +100,7 @@ const router = createBrowserRouter([
       },
       {
         path: "camp/:id",
-        element: <CampDetails />,
+        element: <CampDetailsPage />,
       },
       {
         path: "previous-camps",
