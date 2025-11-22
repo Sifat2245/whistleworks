@@ -36,7 +36,8 @@ xl: 1280px
 }
 
 ::-webkit-scrollbar {
-  width: 8px; /* Width of the scrollbar */
+  width: 8px;
+  height: 7px; /* Width of the scrollbar */
 }
 ::-webkit-scrollbar-track {
   background: white; /* Light grey background */
