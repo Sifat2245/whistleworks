@@ -10,7 +10,6 @@ import Roster from "./Roster";
 export default function CampDetailsPage() {
     const [queryParams] = useSearchParams();
     const tab = queryParams.get("tab");
-    console.log("tab", tab);
   return (
     <section className="w-full mt-7 mb-18">
       <div className="md:flex items-center justify-between container px-4">
