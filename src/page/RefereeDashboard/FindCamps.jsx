@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 export default function FindCamps() {
-  const { data: camps, isLoading } = useQuery({
+  const { data: camps = [], isLoading } = useQuery({
     queryKey: ["camps"],
     queryFn: async () => {
       const response = await axios.get("/camps.json");
