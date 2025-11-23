@@ -10,7 +10,7 @@ export default function CampDetailsTabs() {
     const tab = queryParams.get("tab");
     console.log("tab", tab);
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 overflow-x-auto pb-4 md:pb-0">
       <Link
         to={`?tab=camp-details`}
         className={`border border-border py-5 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
@@ -23,7 +23,7 @@ export default function CampDetailsTabs() {
           className={`${tab === "camp-details" && "text-white"} size-5`}
         />
         <span
-          className={`text-base font-medium ${
+          className={`text-base font-medium whitespace-nowrap ${
             tab === "camp-details" && "text-white"
           }`}
         >
@@ -31,7 +31,7 @@ export default function CampDetailsTabs() {
         </span>
       </Link>
       <Link
-        to={`?tab=roster`}
+        to={`?tab=roster&subTab=evaluator`}
         className={`border border-border py-5 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
           tab === "roster" ? "bg-primary" : ""
         }`}
@@ -80,7 +80,7 @@ export default function CampDetailsTabs() {
           className={`${tab === "my-games" && "text-white"} size-5`}
         />
         <span
-          className={`text-base font-medium ${
+          className={`text-base font-medium whitespace-nowrap ${
             tab === "my-games" && "text-white"
           }`}
         >
