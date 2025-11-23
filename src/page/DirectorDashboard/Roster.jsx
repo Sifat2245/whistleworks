@@ -65,7 +65,7 @@ const Roster = () => {
       </div>
 
       <div className="mt-8">
-            <RosterTable/>
+        <RosterTable />
       </div>
     </div>
   );
