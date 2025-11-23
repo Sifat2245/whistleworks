@@ -29,8 +29,10 @@ const DashboardHeader = () => {
                         </div>
                     </Popover>
 
-                    <button className="cursor-pointer">
+                    <button className="cursor-pointer relative">
                         <IoNotificationsOutline className="text-xl" />
+
+                        <span className="absolute flex items-center justify-center -top-3 -right-2.5 size-5 bg-primary text-white rounded-lg border-2 border-white text-xs">2</span>
                     </button>
                 </div>
             </div>
