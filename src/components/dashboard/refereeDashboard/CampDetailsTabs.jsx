@@ -8,7 +8,6 @@ import { Link, useSearchParams } from "react-router-dom";
 export default function CampDetailsTabs() {
     const [queryParams] = useSearchParams();
     const tab = queryParams.get("tab");
-    console.log("tab", tab);
   return (
     <div className="flex items-center gap-4 overflow-x-auto pb-4 md:pb-0">
       <Link

@@ -1,24 +1,27 @@
-import Icon from "@/components/common/Icon";
 import RosterTabs from "@/components/dashboard/refereeDashboard/roster/RosterTabs";
-import singleUser from "/referee/single-user-icon.svg";
+import { useSearchParams } from "react-router-dom";
+import Evaluator from "@/components/dashboard/refereeDashboard/roster/Evaluator";
 
 export default function Roster() {
+  const [searchParams] = useSearchParams();
+  const subTab = searchParams.get("subTab");
+  console.log("Current subTab:", subTab);
   return (
     <section>
       <div className="flex justify-end mb-5">
         <RosterTabs />
       </div>
-      <div className="border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between border border-border p-5 rounded-[10px]">
-            <div>
-                <h3 className="text-xl font-medium mb-2.5">Camp Roster</h3>
-                <p className="text-[#666666]">5 Referees</p>
-            </div>
-            <div className="bg-primary p-3.5 rounded-full">
-                <Icon src={singleUser} className="size-5 text-white" />
-            </div>
+      {subTab === "evaluator" && <Evaluator />}
+      {subTab === "referee" && (
+        <div className="border border-border rounded-xl p-5 text-[#666666] min-h-[calc(100vh-400px)] flex items-center justify-center text-3xl font-semibold">
+          Coming Soon
         </div>
-      </div>
+      )}
+      {subTab === "crews" && (
+        <div className="border border-border rounded-xl p-5 text-[#666666] min-h-[calc(100vh-400px)] flex items-center justify-center text-3xl font-semibold">
+          Coming Soon
+        </div>
+      )}
     </section>
   );
 }

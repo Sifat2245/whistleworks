@@ -63,8 +63,8 @@ const router = createBrowserRouter([
         element: <Ranking />,
       },
       {
-        path: 'ranking/:referee',
-        element: <RankingReport/>,
+        path: "ranking/:referee",
+        element: <RankingReport />,
       },
       {
         path: "Roster",
@@ -83,6 +83,26 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <EvolatorDashboard />,
+      },
+      {
+        path: "active-camps",
+        element: <ActiveCamps />,
+      },
+      {
+        path: "camp/:id",
+        element: <CampDetailsPage />,
+      },
+      {
+        path: "previous-camps",
+        element: <PreviousCamps />,
+      },
+      {
+        path: "find-camps",
+        element: <FindCamps />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
       },
     ],
   },
@@ -142,7 +162,7 @@ const router = createBrowserRouter([
       },
     ],
   },
- 
+
   {
     path: "*",
     element: () => <h1>Page Not Found</h1>,

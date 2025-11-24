@@ -8,6 +8,7 @@ import book from "@/assets/svg/book.svg";
 import ActiveCmpsBackBtn from "./ActiveCmpsBackBtn";
 
 export default function Profile() {
+  const pathname = window.location.pathname;
   return (
     <section className="container w-full px-4 mx-auto mt-10 mb-18">
         <ActiveCmpsBackBtn label="Profile" />
@@ -24,7 +25,7 @@ export default function Profile() {
           <div>
             <p className="text-[30px] font-medium mb-3">John Anderson</p>
             <button className="text-base font-medium text-primary bg-[#E6F7FD] py-2.5 px-9 rounded-md mb-6">
-              Referee
+              {pathname.includes("evolator-dashboard") ? "Evaluator" : "Referee"}
             </button>
             <CommonContactInfo
               icon={location}

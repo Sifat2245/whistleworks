@@ -3,7 +3,6 @@ import { Link, useSearchParams } from "react-router-dom";
 export default function RosterTabs() {
     const [queryParams] = useSearchParams();
     const subTab = queryParams.get("subTab");
-    console.log("subTab", subTab);
   return (
     <div className="bg-[#F5F5F5] p-3 rounded-2xl w-fit flex items-center gap-3">
       <Link

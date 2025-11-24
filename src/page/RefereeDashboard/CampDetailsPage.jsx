@@ -6,16 +6,18 @@ import CampDetails from "@/components/dashboard/refereeDashboard/CampDetails";
 import MyGames from "@/components/dashboard/refereeDashboard/MyGames";
 import Performance from "./Performance";
 import Roster from "./Roster";
+import EvolatorCampTabs from "@/components/dashboard/evaluatorDashboard/ActiveCamps/EvolatorCampTabs";
+import RankingReport from "../EvolatorDashboard/RankingReport";
 
 export default function CampDetailsPage() {
+  const pathname = window.location.pathname;
     const [queryParams] = useSearchParams();
     const tab = queryParams.get("tab");
-    console.log("tab", tab);
   return (
     <section className="w-full mt-7 mb-18">
       <div className="md:flex items-center justify-between container px-4">
         <ActiveCmpsBackBtn label="Active Camps" />
-        <CampDetailsTabs />
+        {pathname.includes("evolator-dashboard") ? <EvolatorCampTabs /> : <CampDetailsTabs />}
       </div>
       <Divider className="my-6" />
       <div className="container px-4">
@@ -23,6 +25,9 @@ export default function CampDetailsPage() {
         {tab === "roster" && <Roster />}
         {tab === "performance" && <Performance />}
         {tab === "my-games" && <MyGames />}
+        {tab === "ranking-report" && <RankingReport />}
+        {tab === "evaluate" && <div> Evaluate Report Content</div>}
+        {tab === "schedule" && <div>Schedule Content</div>}
       </div>
     </section>
   );
