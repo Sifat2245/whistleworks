@@ -25,6 +25,7 @@ import Profile from "@/components/common/Profile";
 import PreviousCamps from "@/page/RefereeDashboard/PreviousCamps";
 import FindCamps from "@/page/RefereeDashboard/FindCamps";
 import CampDetailsPage from "@/page/RefereeDashboard/CampDetailsPage";
+import EvolatorFindCamp from "@/page/EvolatorDashboard/EvolatorFindCamp";
 
 const router = createBrowserRouter([
   {
@@ -98,7 +99,7 @@ const router = createBrowserRouter([
       },
       {
         path: "find-camps",
-        element: <FindCamps />,
+        element: <EvolatorFindCamp />,
       },
       {
         path: "profile",
