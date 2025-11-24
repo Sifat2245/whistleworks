@@ -36,7 +36,7 @@ export default function RankingReportTable() {
       width: 100,
       sorter: (a, b) => a.overall - b.overall,
       render: (text) => (
-        <span className="font-semibold text-[14px] text-green-700">{text}</span>
+        <span className="font-semibold text-[14px] text-primary">{text}</span>
       ),
     },
     {
@@ -117,18 +117,18 @@ export default function RankingReportTable() {
 
   const customTheme = {
     token: {
-      colorPrimary: "#14b8a6", // Tailwind cyan-500
-      colorSuccess: "#10b981", // Tailwind emerald-500
+      colorPrimary: "#14b8a6",
+      colorSuccess: "#10b981",
       colorBgContainer: "#ffffff",
       borderRadius: 8,
     },
     components: {
       Table: {
-        headerBg: "#f8fafc", // Tailwind slate-50 for header background
+        headerBg: "#f8fafc",
         headerColor: "#1e293b",
         headerBorderRadius: 8,
         borderColor: "#e2e8f0",
-        rowHoverBg: "#00aeef1a", // Light cyan hover effect
+        rowHoverBg: "#00aeef1a",
         cellPaddingBlock: 12,
         cellPaddingInline: 16,
       },

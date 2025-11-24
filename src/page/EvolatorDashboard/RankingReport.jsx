@@ -1,6 +1,7 @@
 import Icon from "@/components/common/Icon";
 import setting from "@/assets/svg/setting.svg";
 import RankingReportTable from "@/components/dashboard/evaluatorDashboard/rankingReport/RankingReportTable";
+import RankingReportCard from "@/components/dashboard/evaluatorDashboard/rankingReport/RankingReportCard";
 
 export default function RankingReport() {
   return (
@@ -17,6 +18,28 @@ export default function RankingReport() {
         Performance rankings based on evaluation scores
       </p>
       <RankingReportTable />
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <RankingReportCard
+          colorClass="text-primary"
+          title="Avg Overall Score"
+          value="8.8"
+        />
+        <RankingReportCard
+          colorClass="text-[#00A63E]"
+          title="Top Performer"
+          value="Emily"
+        />
+        <RankingReportCard
+          colorClass="text-[#9810FA]"
+          title="Total Games"
+          value="65"
+        />
+        <RankingReportCard
+          colorClass="text-[#F54900]"
+          title="Improving"
+          value="2"
+        />
+      </div>
     </section>
   );
 }

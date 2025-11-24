@@ -8,6 +8,7 @@ import Performance from "./Performance";
 import Roster from "./Roster";
 import EvolatorCampTabs from "@/components/dashboard/evaluatorDashboard/ActiveCamps/EvolatorCampTabs";
 import RankingReport from "../EvolatorDashboard/RankingReport";
+import Schedule from "../EvolatorDashboard/Schedule";
 
 export default function CampDetailsPage() {
   const pathname = window.location.pathname;
@@ -27,7 +28,7 @@ export default function CampDetailsPage() {
         {tab === "my-games" && <MyGames />}
         {tab === "ranking-report" && <RankingReport />}
         {tab === "evaluate" && <div> Evaluate Report Content</div>}
-        {tab === "schedule" && <div>Schedule Content</div>}
+        {tab === "schedule" && <Schedule />}
       </div>
     </section>
   );
