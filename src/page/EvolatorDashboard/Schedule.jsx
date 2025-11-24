@@ -5,8 +5,8 @@ import { CiFilter, CiSearch } from "react-icons/ci";
 export default function Schedule() {
   return (
     <section>
-      <div className="flex justify-between items-start mb-6 pt-4">
-        <div>
+      <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-6 pt-4 gap-4">
+        <div className="text-center">
           <h1 className="text-2xl font-medium">Games Overview</h1>
           <p className="text-[14px] mt-1.5 text-[#666666]">
             {gameData.length} of {gameData.length} games
@@ -14,12 +14,12 @@ export default function Schedule() {
         </div>
 
         {/* Search and Filter Section */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 w-full md:w-1/2 md:justify-end">
           {/* Ant Design Input. Note: using simple Input for direct Ant Design styling */}
           <Input
             placeholder="Search games..."
             prefix={<CiSearch className="size-5 text-[#666666]" />} // Gray icon
-            className="w-48! sm:w-64! md:w-80! h-10 rounded-lg border-border placeholder:text-[#666666]! hover:border-primary! hover:outline-primary! focus:border-primary! focus:outline-primary! focus:ring-0!"
+            className="md:w-80! h-10 rounded-lg border-border placeholder:text-[#666666]! hover:border-primary! hover:outline-primary! focus:border-primary! focus:outline-primary! focus:ring-0!"
             // size="large"
             style={{ borderRadius: "8px" }}
           />
@@ -31,13 +31,13 @@ export default function Schedule() {
         </div>
       </div>
       {/* Games Table/List Card */}
-      <div className="rounded-xl border border-border p-5">
+      <div className="rounded-xl border border-border p-5 overflow-x-auto">
         {/* Header Row (Column Definitions) */}
-        <div className="grid grid-cols-[1.5fr_1fr_1fr_2fr] gap-4 pb-4 items-center justify-items-center border-b border-border">
-          <div className="text-base font-bold">Date & Time</div>
-          <div className="text-base font-bold">Location</div>
-          <div className="text-base font-bold">Court</div>
-          <div className="text-base font-bold">Assigned Referees</div>
+        <div className="grid grid-cols-[1.5fr_1fr_1fr_2fr] md:gap-4 pb-4 items-center justify-items-center md:border-b border-border gap-22 ">
+          <div className="text-base font-bold whitespace-nowrap">Date & Time</div>
+          <div className="text-base font-bold whitespace-nowrap">Location</div>
+          <div className="text-base font-bold whitespace-nowrap">Court</div>
+          <div className="text-base font-bold whitespace-nowrap">Assigned Referees</div>
         </div>
 
         {/* List of Game Rows */}
