@@ -141,7 +141,7 @@ const DailyTimeRange = () => {
                 </div>
 
                 {/* create schedule button */}
-                <CommonSubmitBtn variant="primary" type="submit">Generate Schedule</CommonSubmitBtn>
+                <CommonSubmitBtn variant="primary" type="submit" link={true} path="/director-dashboard/court-list">Generate Schedule</CommonSubmitBtn>
             </div>
         </form>
     );

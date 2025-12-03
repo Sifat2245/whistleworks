@@ -13,6 +13,7 @@ const Header = () => {
     { name: "Features", href: "#" },
     { name: "Testimonials", href: "#" },
     { name: "About Us", href: "#" },
+    { name: "Evaluator", href: "evolator-dashboard", isEvaluator: true },
   ];
 
   return (
@@ -26,13 +27,13 @@ const Header = () => {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex space-x-8">
-          {links.map((link) => (
+          {links?.map((link) => (
             <a
               key={link.name}
               href={link.href}
-              className="text-gray-700 hover:text-primary transition font-medium"
+              className={`text-gray-700 hover:text-primary transition font-medium ${link?.isEvaluator && "text-blue-500!"}`}
             >
-              {link.name}
+              {link?.name}
             </a>
           ))}
         </nav>
