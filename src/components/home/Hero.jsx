@@ -34,7 +34,7 @@ const Hero = () => {
         animate="visible"
       >
         <motion.h1
-          className="text-4xl sm:text-6xl font-extrabold leading-tight max-w-6xl mx-auto"
+          className="text-3xl sm:text-6xl font-extrabold leading-tight max-w-6xl mx-auto"
           variants={itemVariants}
         >
           Professional <span className="text-primary">Referee Camp</span> Management Made Simple
@@ -64,5 +64,4 @@ const Hero = () => {
     </section>
   );
 };
-
 export default Hero;
