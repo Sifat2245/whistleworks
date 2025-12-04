@@ -149,10 +149,12 @@ const EvaluationForm = () => {
         register_as="highest_level"
         control={control}
         options={[
-          { label: "Local Level", value: "local" },
-          { label: "Regional Level", value: "regional" },
-          { label: "National Level", value: "national" },
-          { label: "Elite Level", value: "elite" },
+          { label: "NCAA D1", value: "NCAA_D1" },
+          { label: "NCAA D2", value: "NCAA_D2" },
+          { label: "NAIA", value: "NAIA" },
+          { label: "JUCO", value: "JUCO" },
+          { label: "HS", value: "HS" },
+          { label: "JH/ELEM", value: "JH/ELEM" },
         ]}
         validationRules={{ required: "Required" }}
         errors={errors}
