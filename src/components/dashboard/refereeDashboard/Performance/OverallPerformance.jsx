@@ -9,7 +9,7 @@ export default function OverallPerformance() {
         <Icon src={carveArrow} className="size-7 text-white" />
       </div>
       <p className="text-[30px] font-medium text-white mt-4 mb-2">
-        90<span className="text-xl">/100</span>
+        9.5<span className="text-xl">/10</span>
       </p>
       <p className="text-white">Above average • Top 15%</p>
     </div>
