@@ -4,9 +4,13 @@ import CommonSectionTitle from "@/components/dashboard/director_dashboard/Common
 import RosterTable from "@/components/dashboard/director_dashboard/Roster/RosterTable";
 import { useState } from "react";
 import { FiSearch } from "react-icons/fi";
+import ActiveEvaluate from "./ActiveEvaluate";
+import { useNavigate } from "react-router-dom";
 
 const Roster = () => {
+  // eslint-disable-next-line no-unused-vars
   const [active, setActive] = useState("active-evaluate");
+  const navigate = useNavigate();
 
   const btnClasses = (name) =>
     `px-4 py-2 cursor-pointer rounded-md ${active === name ? "bg-[#00AEEF] text-white" : "bg-transparent text-black"
@@ -18,9 +22,35 @@ const Roster = () => {
         <BackBtn />
 
         <div className="bg-border p-2 flex gap-2">
+          {/* Evaluator button */}
           <button
             className={btnClasses("active-evaluate")}
-            onClick={() => setActive("active-evaluate")}
+            onClick={() => navigate("/director-dashboard/active-evaluate")}
+          >
+            Evaluator
+          </button>
+
+          {/* Referees button */}
+          <button
+            className={btnClasses("Referees")}
+            onClick={() => navigate("/director-dashboard/roster")}
+          >
+            Referees
+          </button>
+
+          {/* Crews button */}
+          <button
+            className={btnClasses("Crews")}
+            onClick={() => navigate("/director-dashboard/roster")}
+          >
+            Crews
+          </button>
+        </div>
+
+        {/* <div className="bg-border p-2 flex gap-2">
+          <button
+            className={btnClasses("Evaluator")}
+            onClick={() => setActive("Evaluator")}
           >
             Evaluator
           </button>
@@ -36,7 +66,7 @@ const Roster = () => {
           >
             Crews
           </button>
-        </div>
+        </div> */}
 
         {/* announcement btn */}
         <CommonSubmitBtn type="button" variant="primary">
@@ -64,10 +94,12 @@ const Roster = () => {
       </div>
 
       <div className="mt-8">
-        <RosterTable />
+        {active === "active-evaluate" && <RosterTable category="active-evaluate" />}
+        {active === "Evaluator" && <ActiveEvaluate />}
+        {active === "Referees" && <RosterTable category="referees" />}
+        {active === "Crews" && <RosterTable category="crews" />}
       </div>
     </div>
   );
 };
-
 export default Roster;
