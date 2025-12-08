@@ -26,6 +26,7 @@ import PreviousCamps from "@/page/RefereeDashboard/PreviousCamps";
 import FindCamps from "@/page/RefereeDashboard/FindCamps";
 import CampDetailsPage from "@/page/RefereeDashboard/CampDetailsPage";
 import EvolatorFindCamp from "@/page/EvolatorDashboard/EvolatorFindCamp";
+import ActiveEvaluate from "@/page/DirectorDashboard/ActiveEvaluate";
 
 const router = createBrowserRouter([
   {
@@ -68,12 +69,16 @@ const router = createBrowserRouter([
         element: <RankingReport />,
       },
       {
-        path: "Roster",
+        path: "roster",
         element: <Roster />,
       },
       {
-        path: "Evaluate",
+        path: "evaluate",
         element: <Evaluate />,
+      },
+      {
+        path: "active-evaluate",
+        element: <ActiveEvaluate />,
       },
     ],
   },

@@ -6,11 +6,10 @@ import { useState } from "react";
 import { FiSearch } from "react-icons/fi";
 
 const Roster = () => {
-  const [active, setActive] = useState("Evaluator"); // default active
+  const [active, setActive] = useState("active-evaluate");
 
   const btnClasses = (name) =>
-    `px-4 py-2 cursor-pointer rounded-md ${
-      active === name ? "bg-[#00AEEF] text-white" : "bg-transparent text-black"
+    `px-4 py-2 cursor-pointer rounded-md ${active === name ? "bg-[#00AEEF] text-white" : "bg-transparent text-black"
     }`;
 
   return (
@@ -18,10 +17,10 @@ const Roster = () => {
       <div className="flex justify-between items-center mb-4">
         <BackBtn />
 
-        <div className="bg-[#E8E8E8] p-2 flex gap-2">
+        <div className="bg-border p-2 flex gap-2">
           <button
-            className={btnClasses("Evaluator")}
-            onClick={() => setActive("Evaluator")}
+            className={btnClasses("active-evaluate")}
+            onClick={() => setActive("active-evaluate")}
           >
             Evaluator
           </button>
