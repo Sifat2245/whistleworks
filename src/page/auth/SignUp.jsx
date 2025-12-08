@@ -135,7 +135,7 @@ const SignUp = () => {
           control={control}
           errors={errors}
           options={[
-            { label: "Director", value: "director" },
+            { label: "Camp Director", value: "director" },
             { label: "Referee", value: "referee" },
             { label: "Evaluator", value: "evaluator" },
           ]}
