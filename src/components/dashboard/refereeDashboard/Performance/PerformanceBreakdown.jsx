@@ -13,7 +13,7 @@ export default function PerformanceBreakdown() {
     <section className="my-5 border border-border p-5 rounded-[10px]">
       <h3 className="text-xl font-medium mb-4">Performance Breakdown</h3>
       <div>
-        {evaluationData.map((item, idx) => (
+        {evaluationData?.map((item, idx) => (
           <div key={idx} className="mb-3">
             <div className="flex items-center justify-between">
               <span className="">{item.label}</span>
@@ -47,9 +47,9 @@ const evaluationData = [
 
   // Levels
   { label: "NCAA DI", value: 6 },
-  { label: "NCAA D2", value: 5.5 },
-  { label: "NAIA", value: 4.3 },
-  { label: "JUCO", value: 8.4 },
-  { label: "HS,", value: 6.1 },
-  { label: "JH/ELEM", value: 3.7 },
+  { label: "NCAA D2", value: 5 },
+  { label: "NAIA", value: 4 },
+  { label: "JUCO", value: 8 },
+  { label: "HS,", value: 6 },
+  { label: "JH/ELEM", value: 3 },
 ];
