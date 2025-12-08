@@ -1,6 +1,7 @@
 import RosterTabs from "@/components/dashboard/refereeDashboard/roster/RosterTabs";
 import { useSearchParams } from "react-router-dom";
 import Evaluator from "@/components/dashboard/refereeDashboard/roster/Evaluator";
+import EvaluatorRefereeList from "../EvolatorDashboard/EvaluatorRefereeList";
 
 export default function Roster() {
   const [searchParams] = useSearchParams();
@@ -13,8 +14,8 @@ export default function Roster() {
       </div>
       {subTab === "evaluator" && <Evaluator />}
       {subTab === "referee" && (
-        <div className="border border-border rounded-xl p-5 text-[#666666] min-h-[calc(100vh-400px)] flex items-center justify-center text-3xl font-semibold">
-          Coming Soon
+        <div className="border border-border rounded-xl p-5 text-[#666666] min-h-[calc(100vh-400px)]">
+          <EvaluatorRefereeList />
         </div>
       )}
       {subTab === "crews" && (
@@ -24,4 +25,4 @@ export default function Roster() {
       )}
     </section>
   );
-}
+};

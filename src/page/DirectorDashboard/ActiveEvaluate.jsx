@@ -1,6 +1,7 @@
 import evaluatorImage from "@/assets/dashboard/evaluator_image.png";
-import PendingEvaluator from "./PendingEvaluator";
-import ActiveEvalutorList from "./ActiveEvalutorList";
+import ActiveEvalutorList2 from "./ActiveEvalutorList2";
+import BackBtn from "@/components/common/BackBtn";
+import PendingEvaluator2 from "./PendingEvaluator2";
 
 // Note: active evaluator data
 const activeEvaluatorData = [
@@ -54,6 +55,30 @@ const activeEvaluatorData = [
     },
     {
         id: 7,
+        iamge: evaluatorImage,
+        name: "Zobayer",
+        evaluatorMail: "evaluatorl@gmail.com",
+        evaluatorAddress: "",
+        evaluatorNumber: "",
+    },
+    {
+        id: 8,
+        iamge: evaluatorImage,
+        name: "Zobayer",
+        evaluatorMail: "evaluatorl@gmail.com",
+        evaluatorAddress: "",
+        evaluatorNumber: "",
+    },
+    {
+        id: 9,
+        iamge: evaluatorImage,
+        name: "Zobayer",
+        evaluatorMail: "evaluatorl@gmail.com",
+        evaluatorAddress: "",
+        evaluatorNumber: "",
+    },
+    {
+        id: 10,
         iamge: evaluatorImage,
         name: "Zobayer",
         evaluatorMail: "evaluatorl@gmail.com",
@@ -124,8 +149,9 @@ const pendingEvaluatorData = [
 const ActiveEvaluate = () => {
     return (
         <div className="w-full flex flex-col items-start gap-10">
-            <ActiveEvalutorList activeEvaluatorData={activeEvaluatorData} />
-            <PendingEvaluator
+            <BackBtn />
+            <ActiveEvalutorList2 activeEvaluatorData={activeEvaluatorData} />
+            <PendingEvaluator2
                 pendingEvaluatorData={pendingEvaluatorData}
             />
         </div>

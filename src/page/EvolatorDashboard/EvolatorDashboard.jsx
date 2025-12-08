@@ -19,7 +19,7 @@ const EvolatorDashboard = () => {
       {/* button div */}
       <div className="mt-8 space-y-6">
         <DashboardButton
-          label="Active Camps"
+          label="Registered Camps"
           iconSrc="/referee/home-icon.svg"
           path="/evolator-dashboard/active-camps"
         />
