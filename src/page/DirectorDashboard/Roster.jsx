@@ -12,10 +12,10 @@ const Roster = () => {
   const [active, setActive] = useState("active-evaluate");
   const navigate = useNavigate();
 
-  const btnClasses = (name) =>
-    `px-4 py-2 cursor-pointer rounded-md ${active === name ? "bg-[#00AEEF] text-white" : "bg-transparent text-black"
-    }`;
+  const btnClasses = () =>
+    `px-4 py-2 cursor-pointer rounded-md `;
 
+  // Note: main ui component
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
@@ -38,7 +38,6 @@ const Roster = () => {
             Referees
           </button>
 
-          {/* Crews button */}
           <button
             className={btnClasses("Crews")}
             onClick={() => navigate("/director-dashboard/roster")}
