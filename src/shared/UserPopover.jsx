@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 
 const items = [
-    { id: "1", label: "Profile", path: '' },
+    { id: "1", label: "Profile", path: '/evolator-dashboard/profile' },
     { id: "2", label: "Privacy", path: '' },
     { id: "3", label: "Setting", path: '' },
     { id: "4", label: "Logout", isAction: true },

@@ -6,22 +6,34 @@ import email from "@/assets/svg/email.svg";
 import CommonContactInfo from "./CommonContactInfo";
 import book from "@/assets/svg/book.svg";
 import ActiveCmpsBackBtn from "./ActiveCmpsBackBtn";
+import { SlCamera } from "react-icons/sl";
 
 export default function Profile() {
   const pathname = window.location.pathname;
   return (
     <section className="container w-full px-4 mx-auto mt-10 mb-18">
-        <ActiveCmpsBackBtn label="Profile" />
+      <ActiveCmpsBackBtn label="Profile" />
       <div className=" mx-auto space-y-8">
         <div className="border border-border p-5 rounded-[10px] md:flex items-center gap-5">
-          <Image
-            src={profile}
-            alt="Profile"
-            width={184}
-            height={184}
-            preview={false}
-            className="rounded-full"
-          />
+          <div className="relative size-48 rounded-full shrink-0">
+            <Image
+              src={profile}
+              alt="Profile"
+              width={184}
+              height={184}
+              preview={false}
+              className="rounded-full"
+            />
+
+            <label htmlFor="add_image"
+              className="absolute bottom-4 right-3 w-10 h-10 bg-[#00afef7a] backdrop-blur rounded-full flex items-center justify-center cursor-pointer"
+            >
+
+              <SlCamera className="text-white text-xl" />
+
+              <input type="file" name="add_image" id="add_image" className="hidden" />
+            </label>
+          </div>
           <div>
             <p className="text-[30px] font-medium mb-3">John Anderson</p>
             <button className="text-base font-medium text-primary bg-[#E6F7FD] py-2.5 px-9 rounded-md mb-6">
