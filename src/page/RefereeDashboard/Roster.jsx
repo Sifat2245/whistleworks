@@ -14,7 +14,7 @@ export default function Roster() {
       </div>
       {subTab === "evaluator" && <Evaluator />}
       {subTab === "referee" && (
-        <div className="border border-border rounded-xl p-5 text-[#666666] min-h-[calc(100vh-400px)]">
+        <div className="border border-border rounded-xl p-5 min-h-[calc(100vh-400px)]">
           <EvaluatorRefereeList />
         </div>
       )}
