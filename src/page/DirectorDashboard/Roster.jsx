@@ -6,6 +6,7 @@ import { useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import ActiveEvaluate from "./ActiveEvaluate";
 import { useNavigate } from "react-router-dom";
+import ActiveCrews from "./ActiveCrews";
 
 const Roster = () => {
   // eslint-disable-next-line no-unused-vars
@@ -13,7 +14,7 @@ const Roster = () => {
   const navigate = useNavigate();
 
   const btnClasses = () =>
-    `px-4 py-2 cursor-pointer rounded-md `;
+    `px-4 py-2 cursor-pointer rounded-md hover:bg-primary hover:text-white transition-all duration-300`;
 
   // Note: main ui component
   return (
@@ -40,7 +41,7 @@ const Roster = () => {
 
           <button
             className={btnClasses("Crews")}
-            onClick={() => navigate("/director-dashboard/roster")}
+            onClick={() => navigate("/director-dashboard/active-crews")}
           >
             Crews
           </button>
@@ -96,7 +97,7 @@ const Roster = () => {
         {active === "active-evaluate" && <RosterTable category="active-evaluate" />}
         {active === "Evaluator" && <ActiveEvaluate />}
         {active === "Referees" && <RosterTable category="referees" />}
-        {active === "Crews" && <RosterTable category="crews" />}
+        {active === "Crews" && <ActiveCrews />}
       </div>
     </div>
   );

@@ -177,7 +177,7 @@ const SignUp = () => {
           </p>
         )}
 
-        {/* Submit Button */}
+        {/* Submit Button link={true} path="/referee-dashboard" */}
         <CommonSubmitBtn link={true} path="/referee-dashboard" variant="primary" type="submit" className="w-full">
           Sign Up
         </CommonSubmitBtn>
