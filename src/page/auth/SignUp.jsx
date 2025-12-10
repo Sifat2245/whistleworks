@@ -143,6 +143,16 @@ const SignUp = () => {
             required: "Role is required",
           }}
         />
+        {/* Biography */}
+        <CommonInputWrapper
+          label="Biography"
+          type="textarea"
+          placeholder="Enter your biography"
+          register_as="biography"
+          register={register}
+          errors={errors}
+          validationRules={{ required: "Biography is required" }}
+        />
 
         {/* Agree Terms */}
         <div className="flex items-start gap-2 mt-3">

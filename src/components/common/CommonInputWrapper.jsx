@@ -79,7 +79,7 @@ const CommonInputWrapper = ({
           name={name}
           defaultValue={value}
           className={cn(
-            "w-full resize-none min-h-48 px-4 py-5 rounded-lg placeholder-[#5A5C5F] outline-none text-black border border-dark shadow-input bg-[rgba(255,255,255,0.05)]",
+            "w-full resize-none min-h-40 px-4 py-5 rounded-lg placeholder-[#5A5C5F] outline-none text-black border border-gray-300 shadow-input bg-[rgba(255,255,255,0.05)]",
             textareaClass
           )}
           {...register(register_as, validationRules)}
