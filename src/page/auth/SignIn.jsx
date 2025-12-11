@@ -9,8 +9,10 @@ import useAxiosPublic from "@/hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import LoaderV2 from "@/components/common/LoaderV2";
+import { useAuth } from "@/hooks/useAuth";
 
 const SignIn = () => {
+  const { handleLogin } = useAuth();
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const {
@@ -24,16 +26,16 @@ const SignIn = () => {
     mutationKey: ["sign-in"],
     mutationFn: async (data) => {
       const response = await axiosPublic.post(`/login`, data);
-      return response?.data?.user;
+      return response.data;
     },
     onSuccess: (res) => {
       toast.success(res?.message || "Sign in successful");
-      navigate("/director/dashboard");
+      handleLogin(res?.data?.token);
+      navigate("/director-dashboard");
     },
     onError: (err) => {
       toast.error(err?.response?.data?.message || "Sign in failed");
     },
-
   });
 
   const onSubmit = (data) => {
@@ -100,14 +102,13 @@ const SignIn = () => {
           </a>
         </div>
 
-        {/*  */}
+
+        {/* path="/director-dashboard" */}
         <CommonSubmitBtn
           variant="primary"
           type="submit"
           className="w-full"
           disabled={signInMutation.isPending}
-          path="/director-dashboard"
-          link={true}
         >
           {signInMutation.isPending ? <LoaderV2 /> : "Sign In"}
         </CommonSubmitBtn>

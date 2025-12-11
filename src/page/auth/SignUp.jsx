@@ -221,8 +221,8 @@ const SignUp = () => {
         )}
 
         {/* Submit Button link={true} path="/referee-dashboard" */}
-        <CommonSubmitBtn link={true} path="/referee-dashboard" disabled={signUpMutation.isPending} variant="primary" type="submit" className="w-full">
-          {signUpMutation.isPending ? <LoaderV2/> : "Sign Up"}
+        <CommonSubmitBtn disabled={signUpMutation.isPending} variant="primary" type="submit" className="w-full">
+          {signUpMutation.isPending ? <LoaderV2 /> : "Sign Up"}
         </CommonSubmitBtn>
       </form>
 
