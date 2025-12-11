@@ -12,7 +12,7 @@ const Header = () => {
     { name: "Home", href: "#" },
     { name: "Features", href: "#" },
     { name: "Testimonials", href: "#" },
-    { name: "About Us", href: "#" },
+    { name: "About Us", href: "about-us" },
     { name: "Evaluator", href: "evolator-dashboard", isEvaluator: true },
   ];
 

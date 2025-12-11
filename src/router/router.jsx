@@ -28,6 +28,7 @@ import CampDetailsPage from "@/page/RefereeDashboard/CampDetailsPage";
 import EvolatorFindCamp from "@/page/EvolatorDashboard/EvolatorFindCamp";
 import ActiveEvaluate from "@/page/DirectorDashboard/ActiveEvaluate";
 import ActiveCrews from "@/page/DirectorDashboard/ActiveCrews";
+import AboutUs from "@/page/AboutUs";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
         path: "/",
         element: <Home />,
       },
+      {
+        path: "about-us",
+        element: <AboutUs />
+      }
     ],
   },
   {

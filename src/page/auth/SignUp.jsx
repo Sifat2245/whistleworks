@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import LoaderV2 from "@/components/common/LoaderV2";
 
 const SignUp = () => {
   const axiosPublic = useAxiosPublic();
@@ -24,7 +25,7 @@ const SignUp = () => {
   const password = watch("password");
 
   // Note: sign up mutation
-  const sigUpMutation = useMutation({
+  const signUpMutation = useMutation({
     mutationKey: ["sign-up"],
     mutationFn: async (formData) => {
       const response = await axiosPublic.post(`/register`, formData, {
@@ -32,7 +33,7 @@ const SignUp = () => {
           "Content-Type": "multipart/form-data"
         }
       });
-      return response;
+      return response?.data;
     },
     onSuccess: (data) => {
       console.log("Sign up data:-->", data)
@@ -48,7 +49,7 @@ const SignUp = () => {
 
   const onSubmit = (data) => {
     console.log("Sign Up Data:", data);
-    sigUpMutation.mutate(data);
+    signUpMutation.mutate(data);
   };
 
   // Note: main ui component
@@ -220,8 +221,8 @@ const SignUp = () => {
         )}
 
         {/* Submit Button link={true} path="/referee-dashboard" */}
-        <CommonSubmitBtn variant="primary" type="submit" className="w-full">
-          Sign Up
+        <CommonSubmitBtn disabled={signUpMutation.isPending} variant="primary" type="submit" className="w-full">
+          {signUpMutation.isPending ? <LoaderV2/> : "Sign Up"}
         </CommonSubmitBtn>
       </form>
 

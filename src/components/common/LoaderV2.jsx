@@ -1,13 +1,13 @@
-import { waveform } from 'ldrs'
-waveform.register()
+import { lineSpinner } from 'ldrs'
+lineSpinner.register()
 const LoaderV2 = ({ size = 25, stroke = 4, color = "#00C6C8", speed = 1 }) => {
     return (
-        <l-waveform
+        <l-line-spinner
             size={size}
             stroke={stroke}
             speed={speed}
             color={color}
-        ></l-waveform>
+        ></l-line-spinner>
     );
 };
 
