@@ -17,6 +17,7 @@ const SignIn = () => {
     //TODO: sign in api integrate here
   };
 
+  // Note: main ui component
   return (
     <div className="w-full max-w-2xl">
       <div className="text-center space-y-3 mb-8">

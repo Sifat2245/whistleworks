@@ -37,15 +37,14 @@ const SignUp = () => {
     onSuccess: (data) => {
       console.log("Sign up data:-->", data)
       toast.success(data?.message || "Sign up successful");
-      sessionStorage.setItem("verify_email", data?.email);
-      sessionStorage.setItem("testing_purpose_otp", data?.otp);
+      sessionStorage.setItem("verify_email", data?.data?.email);
+      sessionStorage.setItem("testing_purpose_otp", data?.data?.otp);
       navigate("/auth/verify-otp");
     },
     onError: (error) => {
       toast.error(error?.response?.data?.message || "Sign up failed");
-      console.log(error);
     },
-  })
+  });
 
   const onSubmit = (data) => {
     console.log("Sign Up Data:", data);
@@ -54,7 +53,7 @@ const SignUp = () => {
 
   // Note: main ui component
   return (
-    <div className="w-full max-w-2xl max-h-screen overflow-y-auto py-24 hide-scrollbar">
+    <div className="w-full max-w-2xl max-h-screen overflow-y-auto lg:py-24 hide-scrollbar">
       {/* Header */}
       <div className="text-center space-y-3 mb-8">
         <CommonTitle text="Create an Account" />
@@ -174,6 +173,7 @@ const SignUp = () => {
           validationRules={{
             required: "Role is required",
           }}
+        // wrapperClass="p-0"
         />
         {/* Biography */}
         <CommonInputWrapper
