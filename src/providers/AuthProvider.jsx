@@ -90,10 +90,10 @@ const AuthProvider = ({ children }) => {
             if (!accessToken) return null;
             try {
                 // so something
-                const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/me`, {
+                const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/user-details`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 })
-                return response.data?.data || null
+                return response.data?.data?.user || null
             } catch (error) {
                 // do something
                 console.error("Error fetching user data:", error)
@@ -110,6 +110,7 @@ const AuthProvider = ({ children }) => {
         staleTime: 0,
         cacheTime: 0,
     });
+    const userRole = userData?.role;
 
     // note: export all 
     return (
@@ -119,6 +120,7 @@ const AuthProvider = ({ children }) => {
             handleLogin,
             handleLogout,
             accessToken,
+            userRole,
             isLoading: !!accessToken && (isFetching || userData === undefined)
         }}>
             {children}

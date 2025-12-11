@@ -4,17 +4,41 @@ import CommonTitle from "@/components/common/CommonTitle";
 import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import SocialLogin from "./SocialLogin";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
+import { useMutation } from "@tanstack/react-query";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import LoaderV2 from "@/components/common/LoaderV2";
 
 const SignIn = () => {
+  const axiosPublic = useAxiosPublic();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
 
+  // Note: sign in mutation
+  const signInMutation = useMutation({
+    mutationKey: ["sign-in"],
+    mutationFn: async (data) => {
+      const response = await axiosPublic.post(`/login`, data);
+      return response?.data?.user;
+    },
+    onSuccess: (res) => {
+      toast.success(res?.message || "Sign in successful");
+      navigate("/director/dashboard");
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Sign in failed");
+    },
+
+  });
+
   const onSubmit = (data) => {
     console.log("Sign In Data:", data);
-    //TODO: sign in api integrate here
+    signInMutation.mutate(data);
   };
 
   // Note: main ui component
@@ -76,14 +100,16 @@ const SignIn = () => {
           </a>
         </div>
 
+        {/*  */}
         <CommonSubmitBtn
-          link={true}
-          path="/director-dashboard"
           variant="primary"
           type="submit"
           className="w-full"
+          disabled={signInMutation.isPending}
+          path="/director-dashboard"
+          link={true}
         >
-          Sign In
+          {signInMutation.isPending ? <LoaderV2 /> : "Sign In"}
         </CommonSubmitBtn>
       </form>
 
