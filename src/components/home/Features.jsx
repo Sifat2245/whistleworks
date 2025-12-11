@@ -44,27 +44,28 @@ const Features = () => {
     },
   ];
 
+  // Note:Main ui component
   return (
-    <div className="container  pt-16">
+    <div className="container lg:pt-16 md:pt-10 pt-6">
       <div className="text-center">
         <CommonTitle text="Powerful Features" />
         <CommonText
           text="Everything you need to manage referees, schedules, and evaluations in one modern platform"
-          className={"w-1/2 mx-auto text-neutral-500 mt-5"}
+          className={"md:w-1/2 mx-auto text-neutral-500 mt-5"}
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-12 mb-16">
-        {features.map((feature, index) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:gap-8 lg:gap-6 md:gap-5 gap-4 lg:mt-12 md:mt-10 mt-8 md:mb-16 mb-10">
+        {features?.map((feature, index) => (
           <div
             key={index}
-            className="flex flex-col items-start p-6 bg-white rounded-lg shadow-lg/5 border border-neutral-200 hover:border-primary duration-300"
+            className="flex flex-col items-start lg:p-6  p-4 bg-white rounded-lg shadow-lg/5 border border-neutral-200 hover:border-primary duration-300"
           >
-            <div className="p-4 rounded-full bg-primary mb-4">
+            <div className="lg:p-4 p-3 rounded-full bg-primary mb-4">
               <img
                 src={feature.icon}
                 alt={feature.title}
-                className="h-8 w-8 object-contain"
+                className="lg:h-8 h-5 lg:w-8 w-5 object-contain"
               />
             </div>
             <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>

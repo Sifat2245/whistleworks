@@ -66,9 +66,11 @@ const FilterCamps = ({ camps, isLoading }) => {
       </div>
     );
   }
+
+  // Note: main ui component
   return (
     <div className="container">
-      <div className="border border-black/5 rounded-2xl p-6 bg-white shadow-sm">
+      <div className="border border-black/5 rounded-2xl p-4 md:p-6 bg-white shadow-sm">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
           <img src={filterIcon} alt="filter icon" className="h-6 w-6" />

@@ -12,21 +12,22 @@ const Header = () => {
     { name: "Home", href: "#" },
     { name: "Features", href: "#" },
     { name: "Testimonials", href: "#" },
-    { name: "About Us", href: "#" },
+    { name: "About Us", href: "about-us" },
     { name: "Evaluator", href: "evolator-dashboard", isEvaluator: true },
   ];
 
+  // Note: main ui component
   return (
     <header className="bg-white shadow-md fixed top-0 left-0 w-full z-50">
       <div className="container py-5 flex justify-between items-center">
         {/* Logo */}
-        <Link to={"/"} className="flex items-center text-primary">
-          <Logo className={"h-9 w-14"} />
-          <h1 className="text-2xl font-semibold">WHISTLE WORKS</h1>
+        <Link to={"/"} className="flex items-center text-primary shrink-0">
+          <Logo className={"h-9 w-14 shrink-0"} />
+          <h1 className="xl:text-2xl text-xl font-semibold">WHISTLE WORKS</h1>
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex space-x-8">
+        <nav className="hidden lg:flex xl:space-x-8 space-x-6">
           {links?.map((link) => (
             <a
               key={link.name}
@@ -39,7 +40,7 @@ const Header = () => {
         </nav>
 
         {/* Right Buttons */}
-        <div className="hidden md:flex space-x-3">
+        <div className="hidden lg:flex space-x-3">
           <Link to={"/auth/signin"}>
             <CommonSubmitBtn variant="secondary" className={""}>
               Login
@@ -54,7 +55,7 @@ const Header = () => {
         </div>
 
         {/* Mobile Hamburger */}
-        <div className="md:hidden flex items-center">
+        <div className="lg:hidden flex items-center">
           <button onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? (
               <FaTimes className="text-2xl text-gray-700" />
@@ -67,7 +68,7 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white shadow-md border-t border-gray-100">
+        <div className="lg:hidden bg-white shadow-md border-t border-gray-100">
           <nav className="flex flex-col space-y-4 px-6 py-4">
             {links.map((link) => (
               <a
