@@ -32,22 +32,19 @@ const RoleBasedPrivateRoute = ({ children, allowedRoles = [] }) => {
 
     if (!allowedRoles.includes(userRole)) {
         // Note: More cleaner and simpler code
-        if (!allowedRoles.includes(userRole)) {
-            const redirectMap = {
-                director: "/director-dashboard",
-                evaluator: "/evaluator-dashboard",
-                referee: "/referee-dashboard",
-            };
+        const redirectMap = {
+            director: "/director-dashboard",
+            evaluator: "/evaluator-dashboard",
+            referee: "/referee-dashboard",
+        };
 
-            return (
-                <Navigate
-                    to={redirectMap[userRole] || "/"}
-                    replace
-                />
-            );
-        }
+        return (
+            <Navigate
+                to={redirectMap[userRole] || "/"}
+                replace
+            />
+        );
 
-        
         // Unauthorized → redirect to role dashboard automatically
         // let redirectPath = "/";
 
