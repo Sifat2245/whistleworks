@@ -30,6 +30,7 @@ import ActiveEvaluate from "@/page/DirectorDashboard/ActiveEvaluate";
 import ActiveCrews from "@/page/DirectorDashboard/ActiveCrews";
 import AboutUs from "@/page/AboutUs";
 import RoleBasedPrivateRoute from "@/routes/RoleBasedPrivateRoute";
+import ResetPasswordOtp from "@/page/auth/ResetPasswordOtp";
 
 const router = createBrowserRouter([
   {
@@ -185,12 +186,16 @@ const router = createBrowserRouter([
         element: <SignUp />,
       },
       {
+        path: "verify-otp",
+        element: <VerifyOtp />,
+      },
+      {
         path: "forget-password",
         element: <ForgetPassword />,
       },
       {
-        path: "verify-otp",
-        element: <VerifyOtp />,
+        path: "reset-password-otp",
+        element: <ResetPasswordOtp />
       },
       {
         path: "reset-password",

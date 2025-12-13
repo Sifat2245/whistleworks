@@ -44,7 +44,7 @@ const ForgetPassword = () => {
           }}
         />
 
-        <CommonSubmitBtn variant="primary" type="submit" className="w-full">
+        <CommonSubmitBtn link={true} path="/auth/reset-password-otp" variant="primary" type="submit" className="w-full">
           Reset Password
         </CommonSubmitBtn>
       </form>
