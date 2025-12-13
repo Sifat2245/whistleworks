@@ -29,6 +29,7 @@ import EvolatorFindCamp from "@/page/EvolatorDashboard/EvolatorFindCamp";
 import ActiveEvaluate from "@/page/DirectorDashboard/ActiveEvaluate";
 import ActiveCrews from "@/page/DirectorDashboard/ActiveCrews";
 import AboutUs from "@/page/AboutUs";
+import DirectorPrivateRoute from "@/routes/DirectorPrivateRoute";
 
 const router = createBrowserRouter([
   {
@@ -52,7 +53,9 @@ const router = createBrowserRouter([
       {
         index: true,
         path: "/director-dashboard",
-        element: <Dashboard />,
+        element: <DirectorPrivateRoute>
+          <Dashboard />
+        </DirectorPrivateRoute>
       },
       {
         path: "create-new-camp",

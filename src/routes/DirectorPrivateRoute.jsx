@@ -2,7 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import ScreenLoading from "@/components/common/ScreenLoading";
 
-const DirectorPrivateRoute = ({ children }) => {
+const CompanyPrivateRoutes = ({ children }) => {
   const location = useLocation();
   const { userData, accessToken, isLoading } = useAuth();
   // First check if we're still loading authentication state
@@ -25,9 +25,9 @@ const DirectorPrivateRoute = ({ children }) => {
     return <ScreenLoading />;
   }
 
-  // Check company role
-  const isCompany = userData?.role === "company";
-  if (!isCompany) {
+  // Note: check director role
+  const isDirector = userData?.role === "director";
+  if (!isDirector) {
     // Redirect to login or some "unauthorized" page
     return (
       <Navigate
@@ -38,19 +38,19 @@ const DirectorPrivateRoute = ({ children }) => {
     );
   }
   // Check if company profile is complete
-  const isProfileComplete = userData?.company_profile_complete;
-  if (!isProfileComplete) {
-    // Redirect to company setup page
-    return (
-      <Navigate
-        to="/company-account/setup"
-        state={{ from: location }}
-        replace
-      />
-    );
-  }
+  // const isProfileComplete = userData?.company_profile_complete;
+  // if (!isProfileComplete) {
+  //   // Redirect to company setup page
+  //   return (
+  //     <Navigate
+  //       to="/company-account/setup"
+  //       state={{ from: location }}
+  //       replace
+  //     />
+  //   );
+  // }
   // Finally, render the protected content for authenticated companies with complete profiles
   return children;
 };
 
-export default DirectorPrivateRoute;
+export default CompanyPrivateRoutes;

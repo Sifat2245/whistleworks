@@ -4,8 +4,12 @@ import { Link } from "react-router-dom";
 import userImage from "@/assets/dashboard/userImage.png"
 import { IoNotificationsOutline } from "react-icons/io5";
 import UserPopover from "./UserPopover";
+import { useAuth } from "@/hooks/useAuth";
 
 const DashboardHeader = () => {
+    const { userData } = useAuth();
+
+    // Note: main ui component
     return (
         <header className="bg-white shadow-md sticky top-0 left-0 w-full z-50">
             <div className="w-full container py-5 flex justify-between items-center">
@@ -23,7 +27,7 @@ const DashboardHeader = () => {
                     >
                         <div className="flex items-center gap-4">
                             <div className="size-10 shrink-0 ring-2  ring-[#E5E4E6] rounded-full cursor-pointer">
-                                <img src={userImage} alt="" className="w-full h-full object-cover rounded-full" />
+                                <img src={userData?.avatar || userImage} alt="" className="w-full h-full object-cover rounded-full" />
                             </div>
                             <p className="text-black font-medium text-base">{name || "Xadu"}</p>
                         </div>

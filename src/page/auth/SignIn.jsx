@@ -12,7 +12,7 @@ import LoaderV2 from "@/components/common/LoaderV2";
 import { useAuth } from "@/hooks/useAuth";
 
 const SignIn = () => {
-  const { handleLogin } = useAuth();
+  const { handleLogin, userRefetch } = useAuth();
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const {
@@ -21,17 +21,45 @@ const SignIn = () => {
     formState: { errors },
   } = useForm();
 
+
+  // Note: redirect function
+   const redirectBasedOnRole = (userRole) => {
+    // If role is null or undefined, redirect to account creation
+    if (!userRole) {
+      navigate("/");
+      return;
+    }
+    // Note: director
+    if (userRole === "director") {
+      navigate("/director-dashboard");
+      return;
+    }
+    // Note: evaluator
+    if (userRole === "evaluator") {
+      navigate("/evaluator-dashboard");
+      return;
+    }
+    // Note: referee
+    if (userRole === "referee") {
+      navigate("/referee-dashboard");
+      return;
+    }
+  };
+
   // Note: sign in mutation
   const signInMutation = useMutation({
     mutationKey: ["sign-in"],
     mutationFn: async (data) => {
       const response = await axiosPublic.post(`/login`, data);
-      return response.data;
+      return response?.data;
     },
     onSuccess: (res) => {
       toast.success(res?.message || "Sign in successful");
       handleLogin(res?.data?.token);
-      navigate("/director-dashboard");
+      userRefetch();
+      setTimeout(() => {
+        redirectBasedOnRole(res?.data?.user?.role)
+      }, 1000);
     },
     onError: (err) => {
       toast.error(err?.response?.data?.message || "Sign in failed");

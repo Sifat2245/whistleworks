@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 const items = [
     { id: "1", label: "Profile", path: '/evolator-dashboard/profile' },
@@ -8,7 +9,7 @@ const items = [
 ];
 
 const UserPopover = () => {
-    const navigate = useNavigate();
+    const { handleLogout } = useAuth();
 
     const baseClass =
         "w-full text-center py-2 rounded-lg flex items-center justify-center text-[rgba(48,48,48,0.80)]! text-base! font-medium hover:bg-gray-100! hover:font-semibold transition-all! duration-300!";
@@ -20,7 +21,7 @@ const UserPopover = () => {
                 item.isAction ? (
                     <button
                         key={item.id}
-                        onClick={() => navigate(-1)}
+                        onClick={handleLogout}
                         className={`${baseClass} cursor-pointer hover:bg-gray-100 text-red-400!`}
                     >
                         {item.label}

@@ -1,3 +1,4 @@
+import ScreenLoading from "@/components/common/ScreenLoading";
 import { AuthContext } from "@/context";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -55,7 +56,7 @@ const AuthProvider = ({ children }) => {
                 const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/logout`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
-                return response?.data;
+                return response;
             } catch (error) {
                 toast.error(error?.message || "Failed to logout. Please try again.");
                 return null;
@@ -84,7 +85,7 @@ const AuthProvider = ({ children }) => {
     };
 
     // note: fetch user data with react-query
-    const { data: userData, refetch: userRefetch, isFetching } = useQuery({
+    const { data: userData, refetch: userRefetch, isFetching, isLoading } = useQuery({
         queryKey: ["userData"],
         queryFn: async () => {
             if (!accessToken) return null;
@@ -93,7 +94,7 @@ const AuthProvider = ({ children }) => {
                 const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/user-details`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 })
-                return response.data?.data?.user || null
+                return response.data?.data || null
             } catch (error) {
                 // do something
                 console.error("Error fetching user data:", error)
@@ -110,8 +111,9 @@ const AuthProvider = ({ children }) => {
         staleTime: 0,
         cacheTime: 0,
     });
-    const userRole = userData?.role;
     console.log("User Data-->", userData);
+
+    if (isLoading) return <ScreenLoading />
 
     // note: export all 
     return (
@@ -121,7 +123,6 @@ const AuthProvider = ({ children }) => {
             handleLogin,
             handleLogout,
             accessToken,
-            userRole,
             isLoading: !!accessToken && (isFetching || userData === undefined)
         }}>
             {children}
