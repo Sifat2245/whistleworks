@@ -168,8 +168,8 @@ const SignUp = () => {
           errors={errors}
           options={[
             { label: "Camp Director", value: 4 },
-            { label: "Referee", value: 5 },
-            { label: "Evaluator", value: 6 },
+            { label: "Referee", value: 6 },
+            { label: "Evaluator", value: 5 },
           ]}
           validationRules={{
             required: "Role is required",

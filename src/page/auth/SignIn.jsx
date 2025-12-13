@@ -24,6 +24,7 @@ const SignIn = () => {
 
   // Note: redirect function
    const redirectBasedOnRole = (userRole) => {
+    console.log("User role", userRole)
     // If role is null or undefined, redirect to account creation
     if (!userRole) {
       navigate("/");

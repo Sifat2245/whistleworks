@@ -30,6 +30,8 @@ import ActiveEvaluate from "@/page/DirectorDashboard/ActiveEvaluate";
 import ActiveCrews from "@/page/DirectorDashboard/ActiveCrews";
 import AboutUs from "@/page/AboutUs";
 import DirectorPrivateRoute from "@/routes/DirectorPrivateRoute";
+import RefereePrivateRoute from "@/routes/RefereePrivateRoute";
+import EvaluatorPrivateRoute from "@/routes/EvaluatorPrivateRoute";
 
 const router = createBrowserRouter([
   {
@@ -46,16 +48,19 @@ const router = createBrowserRouter([
       }
     ],
   },
+  // 
   {
     path: "/director-dashboard",
-    element: <DirectorLayout />,
+    element: (
+      <DirectorPrivateRoute>
+        <DirectorLayout />
+      </DirectorPrivateRoute>
+    ),
     children: [
       {
         index: true,
         path: "/director-dashboard",
-        element: <DirectorPrivateRoute>
-          <Dashboard />
-        </DirectorPrivateRoute>
+        element: <Dashboard />
       },
       {
         path: "create-new-camp",
@@ -95,9 +100,14 @@ const router = createBrowserRouter([
       }
     ],
   },
+
   {
-    path: "evolator-dashboard",
-    element: <EvolatorLayout />,
+    path: "/evaluator-dashboard",
+    element: (
+      <EvaluatorPrivateRoute>
+        <EvolatorLayout />
+      </EvaluatorPrivateRoute>
+    ),
     children: [
       {
         index: true,
@@ -127,10 +137,15 @@ const router = createBrowserRouter([
   },
   {
     path: "/referee-dashboard",
-    element: <RefereeLayout />,
+    element: (
+      <RefereePrivateRoute>
+        <RefereeLayout />
+      </RefereePrivateRoute>
+    ),
     children: [
       {
         index: true,
+        path: "",
         element: <RefereeDashboard />,
       },
       {
