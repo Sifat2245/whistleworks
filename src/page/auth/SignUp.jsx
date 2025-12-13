@@ -48,7 +48,6 @@ const SignUp = () => {
   });
 
   const onSubmit = (data) => {
-    console.log("Sign Up Data:", data);
     signUpMutation.mutate(data);
   };
 
