@@ -95,6 +95,10 @@ const router = createBrowserRouter([
       {
         path: "active-crews",
         element: <ActiveCrews />
+      },
+      {
+        path: "profile",
+        element: <Profile />,
       }
     ],
   },

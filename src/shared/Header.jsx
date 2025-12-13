@@ -18,8 +18,7 @@ const Header = () => {
     { name: "Home", href: "#" },
     { name: "Features", href: "#" },
     { name: "Testimonials", href: "#" },
-    { name: "About Us", href: "about-us" },
-    { name: "Evaluator", href: "evolator-dashboard", isEvaluator: true },
+    { name: "About Us", href: "about-us" }
   ];
 
   // Note: main ui component
@@ -42,7 +41,7 @@ const Header = () => {
                 <a
                   key={link.name}
                   href={link.href}
-                  className={`text-gray-700 hover:text-primary transition font-medium ${link?.isEvaluator && "text-blue-500!"}`}
+                  className={`text-gray-700 hover:text-primary transition font-medium}`}
                 >
                   {link?.name}
                 </a>
