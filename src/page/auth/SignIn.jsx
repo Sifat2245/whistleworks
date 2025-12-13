@@ -21,7 +21,6 @@ const SignIn = () => {
     formState: { errors },
   } = useForm();
 
-
   // Note: redirect function
    const redirectBasedOnRole = (userRole) => {
     console.log("User role", userRole)

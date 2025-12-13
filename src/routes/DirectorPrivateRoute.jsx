@@ -36,20 +36,7 @@ const CompanyPrivateRoutes = ({ children }) => {
         replace
       />
     );
-  }
-  // Check if company profile is complete
-  // const isProfileComplete = userData?.company_profile_complete;
-  // if (!isProfileComplete) {
-  //   // Redirect to company setup page
-  //   return (
-  //     <Navigate
-  //       to="/company-account/setup"
-  //       state={{ from: location }}
-  //       replace
-  //     />
-  //   );
-  // }
-  // Finally, render the protected content for authenticated companies with complete profiles
+  };
   return children;
 };
 

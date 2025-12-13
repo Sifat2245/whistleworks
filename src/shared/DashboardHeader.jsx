@@ -29,7 +29,7 @@ const DashboardHeader = () => {
                             <div className="size-10 shrink-0 ring-2  ring-[#E5E4E6] rounded-full cursor-pointer">
                                 <img src={userData?.avatar || userImage} alt="" className="w-full h-full object-cover rounded-full" />
                             </div>
-                            <p className="text-black font-medium text-base">{name || "Xadu"}</p>
+                            <p className="text-black font-medium text-base">{userData?.first_name || "Xadu"}</p>
                         </div>
                     </Popover>
 

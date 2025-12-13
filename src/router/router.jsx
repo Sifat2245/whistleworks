@@ -29,9 +29,7 @@ import EvolatorFindCamp from "@/page/EvolatorDashboard/EvolatorFindCamp";
 import ActiveEvaluate from "@/page/DirectorDashboard/ActiveEvaluate";
 import ActiveCrews from "@/page/DirectorDashboard/ActiveCrews";
 import AboutUs from "@/page/AboutUs";
-import DirectorPrivateRoute from "@/routes/DirectorPrivateRoute";
-import RefereePrivateRoute from "@/routes/RefereePrivateRoute";
-import EvaluatorPrivateRoute from "@/routes/EvaluatorPrivateRoute";
+import RoleBasedPrivateRoute from "@/routes/RoleBasedPrivateRoute";
 
 const router = createBrowserRouter([
   {
@@ -52,9 +50,9 @@ const router = createBrowserRouter([
   {
     path: "/director-dashboard",
     element: (
-      <DirectorPrivateRoute>
+      <RoleBasedPrivateRoute allowedRoles={["director"]}>
         <DirectorLayout />
-      </DirectorPrivateRoute>
+      </RoleBasedPrivateRoute>
     ),
     children: [
       {
@@ -104,9 +102,9 @@ const router = createBrowserRouter([
   {
     path: "/evaluator-dashboard",
     element: (
-      <EvaluatorPrivateRoute>
+      <RoleBasedPrivateRoute allowedRoles={["evaluator"]}>
         <EvolatorLayout />
-      </EvaluatorPrivateRoute>
+      </RoleBasedPrivateRoute>
     ),
     children: [
       {
@@ -138,9 +136,9 @@ const router = createBrowserRouter([
   {
     path: "/referee-dashboard",
     element: (
-      <RefereePrivateRoute>
+      <RoleBasedPrivateRoute allowedRoles={["referee"]}>
         <RefereeLayout />
-      </RefereePrivateRoute>
+      </RoleBasedPrivateRoute>
     ),
     children: [
       {

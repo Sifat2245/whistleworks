@@ -174,7 +174,6 @@ const SignUp = () => {
           validationRules={{
             required: "Role is required",
           }}
-        // wrapperClass="p-0"
         />
         {/* Biography */}
         <CommonInputWrapper
