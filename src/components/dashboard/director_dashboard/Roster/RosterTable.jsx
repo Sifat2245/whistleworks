@@ -156,7 +156,7 @@ const RosterTable = () => {
                   className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-6 py-4">
+                    <td key={cell.id} className="md:px-6 px-3 py-4">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -168,7 +168,7 @@ const RosterTable = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
         {stats.map((stat, index) => (
           <div
             key={index}
