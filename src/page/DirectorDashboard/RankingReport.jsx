@@ -52,13 +52,13 @@ const RankingReport = () => {
   });
 
   return (
-    <div className="w-full p-6">
+    <div className="w-full">
       <BackBtn />
 
       {/* Header */}
       <div className="flex items-center gap-4 mt-6">
-        <div className="w-16 h-16 rounded-full bg-linear-to-br from-orange-400 to-pink-400 
-        flex items-center justify-center text-white text-2xl font-bold">
+        <div className="xl:w-16 md:w-11 w-8 xl:h-16 md:h-11 h-8 rounded-full bg-linear-to-br from-orange-400 to-pink-400 
+        flex items-center justify-center text-white md:text-xl lg:text-2xl font-bold">
           {referee?.split(" ")?.map((n) => n[0]).join("")}
         </div>
         <h1 className="text-2xl font-bold">{referee}</h1>
