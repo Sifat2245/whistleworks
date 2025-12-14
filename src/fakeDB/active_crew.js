@@ -118,3 +118,21 @@ export const crewGroups = [
     match: "Qualifiers",
   },
 ];
+
+
+
+// select options list
+// const spostListOptions = [
+//     {
+//         id: 1,
+//         label: "Soccer"
+//     },
+//     {
+//         id: 2,
+//         label: "Basketball"
+//     },
+//     {
+//         id: 3,
+//         label: "Volleyball"
+//     },
+// ]
