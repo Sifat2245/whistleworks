@@ -15,18 +15,18 @@ const DashboardHeader = () => {
             <div className="w-full container py-5 flex justify-between items-center">
                 {/* Logo */}
                 <Link to={"/"} className="flex items-center text-primary">
-                    <Logo className={"h-9 w-14"} />
-                    <h1 className="text-2xl font-semibold">WHISTLE WORKS</h1>
+                    <Logo className={"size-8 sm:size-12 shrink-0"} />
+                    <h1 className="text-base sm:text-xl xl:text-2xl font-semibold">WHISTLE WORKS</h1>
                 </Link>
 
                 {/* User popover */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center md:gap-4 gap-1.5">
                     <Popover
                         className="header-popover" placement="bottomRight" trigger={"click"}
                         content={<UserPopover />}
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="size-10 shrink-0 ring-2  ring-[#E5E4E6] rounded-full cursor-pointer">
+                        <div className="flex items-center md:gap-4 gap-1.5">
+                            <div className="md:size-10 size-7 shrink-0 ring-2  ring-[#E5E4E6] rounded-full cursor-pointer">
                                 <img src={userData?.avatar || userImage} alt="" className="w-full h-full object-cover rounded-full" />
                             </div>
                             <p className="text-black font-medium text-base">{userData?.first_name || "Xadu"}</p>

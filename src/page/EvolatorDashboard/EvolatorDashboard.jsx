@@ -21,26 +21,25 @@ const EvolatorDashboard = () => {
         <DashboardButton
           label="Registered Camps"
           iconSrc="/referee/home-icon.svg"
-          path="/evolator-dashboard/active-camps"
+          path="/evaluator-dashboard/active-camps"
         />
         <DashboardButton
           label="Previous Camps"
           iconSrc="/referee/calender-icon.svg"
-          path="/evolator-dashboard/previous-camps"
+          path="/evaluator-dashboard/previous-camps"
         />
         <DashboardButton
           label="Find Camps"
           iconSrc="/referee/group-user-icon.svg"
-          path="/evolator-dashboard/find-camps"
+          path="/evaluator-dashboard/find-camps"
         />
         <DashboardButton
           label="Profile"
           iconSrc="/referee/single-user-icon.svg"
-          path="/evolator-dashboard/profile"
+          path="/evaluator-dashboard/profile"
         />
       </div>
     </section>
   );
 };
-
 export default EvolatorDashboard;
