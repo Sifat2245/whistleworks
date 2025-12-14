@@ -52,7 +52,7 @@ const MyCampusCart = ({ league }) => {
                 </div>
             </div>
 
-            {/* Actions grid - Responsive columns */}
+            {/* action buttons */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 mt-4 sm:mt-5 md:mt-6">
                 {league?.actions?.map((action) => (
                     <Link
