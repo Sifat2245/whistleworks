@@ -43,7 +43,7 @@ const leaguesData = [
 
 const MyCampus = () => {
     return (
-        <div className="w-full border border-[#E8E8E8] rounded-xl p-5 mt-10 gap-5 grid grid-cols-1">
+        <div className="w-full border border-[#E8E8E8] rounded-xl md:p-5 p-3 mt-10 gap-5 grid grid-cols-1">
             <h4 className="text-2xl font-medium text-[#333]">MY Camps</h4>
             {leaguesData?.map((league) => {
                 return (

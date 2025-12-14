@@ -4,9 +4,9 @@ import MyCampus from "./MyCampus";
 
 const DirectorHome = () => {
     return (
-        <div className="w-full container">
+        <div className="w-full">
             {/* top header */}
-            <div className="w-full flex items-center justify-between">
+            <div className="w-full md:flex items-center justify-between space-y-2 md:space-y-0">
                 <CommonSectionTitle
                     text="Director Dashboard"
                     subText="Manage your camps and schedules"
