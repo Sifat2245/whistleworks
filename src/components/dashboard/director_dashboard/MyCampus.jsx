@@ -1,19 +1,10 @@
 import MyCampusCart from "./MyCampusCart";
-import { useQuery } from "@tanstack/react-query";
-import useAxiosSecure from "@/hooks/useAxiosSecure";
 import MyCampCartSkeleton from "./MyCampCartSkeleton";
+import { useGetMyCamp } from "@/hooks/get-my-camp-list";
 
 const MyCampus = () => {
-    const axiosSecure = useAxiosSecure();
-
-    // Note: get all campus
-    const { data: getMyCamp, isLoading: campCartLoading } = useQuery({
-        queryKey: ["my-campus"],
-        queryFn: async () => {
-            const response = await axiosSecure.get(`/v1/director/camp/list`);
-            return response?.data?.data?.camp_list || [];
-        }
-    });
+    const { getMyCamp, campCartLoading } = useGetMyCamp();
+    console.log(getMyCamp)
 
     return (
         <div className="w-full border border-[#E8E8E8] rounded-xl md:p-5 p-3 mt-10">
