@@ -1,10 +1,18 @@
 import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
+import LoaderV2 from "@/components/common/LoaderV2";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { formatDate } from "@/utils/formatDate";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { RiDeleteBinLine } from "react-icons/ri";
+import { useNavigate, useParams } from "react-router-dom";
 
 const DailyTimeRange = ({ getDateRange }) => {
+    const axiosSecure = useAxiosSecure();
+    const navigate = useNavigate();
+    const { id } = useParams();
     const { start_date, end_date, dates = [] } = getDateRange || {};
 
     // Note: react hook form
@@ -14,11 +22,36 @@ const DailyTimeRange = ({ getDateRange }) => {
         formState: { errors },
     } = useForm();
 
-    const onSubmit = (data) => {
-        console.log("Sign Up Data:", data);
-        // TODO: Integrate sign-up API here
-    }
+    // Note: create schedule mutation
+    const createScheduleMutation = useMutation({
+        mutationKey: ["create-schedule"],
+        mutationFn: async (data) => {
+            const response = await axiosSecure.post(`/v1/camp/${id}/schedule/create`, data);
+            return response?.data;
+        },
+        onSuccess: (data) => {
+            toast.success(data?.message || "Schedule created successfully.");
+            navigate("/director-dashboard/court-list")
+        },
+        onError: (err) => {
+            console.log(err)
+            toast.error(err?.response?.data?.message || "Please field the all input field properly");
+        }
+    });
 
+    // Note: onSubmit
+    const onSubmit = (data) => {
+        const body = {
+            game_duration: Number(data.game_duration),
+            time_ranges: data.time_ranges,
+            locations: data.locations
+        };
+        console.log("Final Body:", body);
+        createScheduleMutation.mutate(body);
+    };
+
+
+    // Note: main ui component
     return (
         <>
             <div className="my-10 w-full flex flex-col gap-5">
@@ -33,7 +66,7 @@ const DailyTimeRange = ({ getDateRange }) => {
 
                 {/* time schedule */}
                 <div className="flex flex-col gap-2 sm:gap-3 bg-[rgba(245,245,245,0.50)] rounded-xl sm:rounded-2xl">
-                    {dates?.map((range) => {
+                    {dates?.map((range, index) => {
                         return (
                             <div
                                 key={range.id}
@@ -49,26 +82,25 @@ const DailyTimeRange = ({ getDateRange }) => {
                                 {/* Time inputs */}
                                 <div className="w-full flex flex-col sm:flex-row items-start sm:items-center gap-3">
                                     <div className="flex items-center gap-2 sm:gap-3">
-                                        {/* start time */}
+
                                         <CommonInputWrapper
                                             type="time"
-                                            placeholder="Start Time"
-                                            className="w-full text-sm sm:text-base"
-                                            name="startTime"
                                             register={register}
-                                            register_as="time"
-                                            errors={errors}
+                                            register_as={`time_ranges.${index}.start_time`}
                                         />
+
                                         <p className="text-[#333] font-medium text-sm sm:text-base px-1 sm:px-2">To</p>
-                                        {/* end time */}
+
                                         <CommonInputWrapper
                                             type="time"
-                                            placeholder="End Time"
-                                            className="w-full text-sm sm:text-base"
-                                            name="endTime"
                                             register={register}
-                                            register_as="time"
-                                            errors={errors}
+                                            register_as={`time_ranges.${index}.end_time`}
+                                        />
+                                        {/* Hidden date field */}
+                                        <input
+                                            type="hidden"
+                                            value={range.date}
+                                            {...register(`time_ranges.${index}.date`)}
                                         />
                                     </div>
                                 </div>
@@ -87,9 +119,9 @@ const DailyTimeRange = ({ getDateRange }) => {
                             type="number"
                             placeholder="Game Duration (minutes)"
                             className="w-full text-sm sm:text-base"
-                            name="gameDuration"
+                            name="game_duration"
                             register={register}
-                            register_as="gameDuration"
+                            register_as="game_duration"
                             errors={errors}
                         />
                     </div>
@@ -113,22 +145,18 @@ const DailyTimeRange = ({ getDateRange }) => {
                         {/* location name */}
                         <CommonInputWrapper
                             type="text"
-                            placeholder="Location Name"
-                            className="w-full text-sm sm:text-base"
-                            name="location"
+                            name="locations[0].location_name"
                             register={register}
-                            register_as="location"
-                            errors={errors}
+                            register_as="locations.0.location_name"
+                            placeholder="Location Name"
                         />
-                        {/* court number */}
+                        {/* Number of court */}
                         <CommonInputWrapper
                             type="number"
-                            placeholder="Number of Courts"
-                            className="w-full text-sm sm:text-base"
-                            name="courtName"
+                            name="locations[0].court_count"
                             register={register}
-                            register_as="courtName"
-                            errors={errors}
+                            register_as="locations.0.court_count"
+                            placeholder="Number of Courts"
                         />
                     </div>
                 </div>
@@ -143,7 +171,7 @@ const DailyTimeRange = ({ getDateRange }) => {
                         >
                             <RiDeleteBinLine className="text-lg sm:text-xl text-red-500" />
                         </button>
-                        <CommonSubmitBtn variant="primary" className="w-full sm:w-auto justify-center">
+                        <CommonSubmitBtn type="button" variant="primary" className="w-full sm:w-auto justify-center">
                             Select Location
                         </CommonSubmitBtn>
                     </div>
@@ -152,10 +180,9 @@ const DailyTimeRange = ({ getDateRange }) => {
                     <CommonSubmitBtn
                         variant="primary"
                         type="submit"
-
                         className="w-full sm:w-auto justify-center"
                     >
-                        Generate Schedule
+                        {createScheduleMutation?.isPending ? <LoaderV2 /> : "Generate Schedule"}
                     </CommonSubmitBtn>
                 </div>
             </form>
