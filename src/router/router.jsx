@@ -66,7 +66,7 @@ const router = createBrowserRouter([
         element: <CreateNewCamp />,
       },
       {
-        path: "build-schedule",
+        path: "build-schedule/:id",
         element: <BuildSchedule />,
       },
       {
@@ -78,15 +78,15 @@ const router = createBrowserRouter([
         element: <Ranking />,
       },
       {
-        path: "ranking/:referee",
+        path: "ranking/:id",
         element: <RankingReport />,
       },
       {
-        path: "roster",
+        path: "roster/:id",
         element: <Roster />,
       },
       {
-        path: "evaluate",
+        path: "evaluate/:id",
         element: <Evaluate />,
       },
       {

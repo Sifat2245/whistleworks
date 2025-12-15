@@ -1,6 +1,32 @@
+/* eslint-disable no-unused-vars */
+import { BsArrowLeftRight } from "react-icons/bs";
+import { CiCalendar } from "react-icons/ci";
+import { HiOutlineUser } from "react-icons/hi2";
+import { PiSunglassesLight } from "react-icons/pi";
 import { Link } from "react-router-dom";
 
+const actions = [
+    { id: "schedule", label: "Schedule", icon: <CiCalendar className="text-xl shrink-0" />, path: "/director-dashboard/build-schedule" },
+    { id: "evaluate", label: "Evaluate", icon: <PiSunglassesLight className="text-xl shrink-0" />, path: "/director-dashboard/evaluate" },
+    { id: "ranking", label: "Ranking", icon: <BsArrowLeftRight className="text-xl shrink-0" />, path: "/director-dashboard/ranking" },
+    { id: "roster", label: "Roster", icon: <HiOutlineUser className="text-xl shrink-0" />, path: "/director-dashboard/roster" },
+]
+
 const MyCampusCart = ({ league }) => {
+    const {
+        camp_id,
+        camp_logo,
+        camp_name,
+        location,
+        status,
+        total_referees,
+        total_courts,
+        director_id,
+        sports_type,
+        sports_type_id,
+    } = league || {};
+
+    // Note: main ui component
     return (
         <div className="border border-[#E8E8E8] rounded-lg p-3 md:p-5 lg:p-6 w-full">
 
@@ -8,27 +34,27 @@ const MyCampusCart = ({ league }) => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
                 <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto">
                     {/* image */}
-                    <div className="size-8 md:size-10 shrink-0" >
+                    <div className="size-8 md:size-10 shrink-0 rounded-full" >
                         <img
-                            src={league?.locationIcon}
+                            src={camp_logo || ""}
                             alt={league?.name || "Location icon"}
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-cover rounded-full"
                         />
                     </div>
 
                     {/* location and name */}
-                    <div className="w-full min-w-0"> {/* Added min-w-0 for text truncation */}
+                    <div className="w-full min-w-0">
                         <h2 className="font-medium text-base sm:text-lg md:text-xl text-[#333] truncate">
-                            {league?.name}
+                            {camp_name || "N/F"}
                         </h2>
                         <p className="text-gray-500 text-sm sm:text-base truncate">
-                            {league?.location}
+                            {location || "N/A"}
                         </p>
                     </div>
                 </div>
 
                 <span className="px-3 py-1 bg-blue-100 text-primary font-medium rounded-md text-sm sm:text-base md:text-lg w-fit self-start sm:self-auto">
-                    {league?.status}
+                    {status || "N/F"}
                 </span>
             </div>
 
@@ -36,7 +62,7 @@ const MyCampusCart = ({ league }) => {
             <div className="flex flex-col sm:flex-row items-center justify-around mt-4 sm:mt-5 md:mt-6 gap-4 sm:gap-0">
                 <div className="text-center w-full sm:w-auto">
                     <p className="text-[#00AEEF] text-xl sm:text-2xl md:text-3xl font-medium">
-                        {league?.referees}
+                        {total_referees || "00"}
                     </p>
                     <p className="text-[#666] text-sm sm:text-base">Referees</p>
                 </div>
@@ -46,23 +72,23 @@ const MyCampusCart = ({ league }) => {
 
                 <div className="text-center w-full sm:w-auto">
                     <p className="text-[#00AEEF] text-xl sm:text-2xl md:text-3xl font-medium">
-                        {league?.games}
+                        {total_courts || "00"}
                     </p>
-                    <p className="text-[#666] text-sm sm:text-base">Games</p>
+                    <p className="text-[#666] text-sm sm:text-base">Courts</p>
                 </div>
             </div>
 
             {/* action buttons */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 mt-4 sm:mt-5 md:mt-6">
-                {league?.actions?.map((action) => (
+                {actions?.map((action) => (
                     <Link
-                        to={action.path}
+                        to={`${action.path}/${camp_id}`}
                         key={action.id}
                         className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 cursor-pointer border border-[#E8E8E8] p-2 sm:p-3 rounded-md bg-[#F5F5F5] hover:bg-gray-200 transition-colors duration-200 text-center sm:text-left"
                     >
                         <span className="text-lg sm:text-xl">{action?.icon}</span>
                         <span className="text-xs sm:text-sm md:text-base truncate w-full text-center">
-                            {action?.label}
+                            {action?.label || "N/A"}
                         </span>
                     </Link>
                 ))}
