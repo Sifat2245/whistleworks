@@ -66,9 +66,11 @@ const FilterCamps = ({ camps, isLoading }) => {
       </div>
     );
   }
+
+  // Note: main ui component
   return (
     <div className="container">
-      <div className="border border-black/5 rounded-2xl p-6 bg-white shadow-sm">
+      <div className="border border-black/5 rounded-2xl p-4 md:p-6 bg-white shadow-sm">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
           <img src={filterIcon} alt="filter icon" className="h-6 w-6" />
@@ -79,7 +81,7 @@ const FilterCamps = ({ camps, isLoading }) => {
         </div>
 
         {/* Filters */}
-        <div className="flex justify-center gap-4 md:gap-6 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 justify-center gap-4 md:gap-6 w-full">
           {/* Filter by Sport */}
           <div className="flex flex-col flex-1">
             <label className="text-sm text-gray-600 mb-1">

@@ -1,129 +1,143 @@
+import OtpWrapper from "@/components/auth/OtpWrapper";
+import ResendCode from "@/components/auth/ResendCode";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
-import { useEffect, useRef, useState } from "react";
+import LoaderV2 from "@/components/common/LoaderV2";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
+import { maskEmail } from "@/utils/maskEmail";
+import { useMutation } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const VerifyOtp = () => {
-  const [otp, setOtp] = useState(["", "", "", ""]);
-  const [resendTimer, setResendTimer] = useState(120);
-  const inputsRef = useRef([]);
+  const axiosPublic = useAxiosPublic();
+  const get_email = sessionStorage.getItem("verify_email");
+  const get_otp = sessionStorage.getItem("testing_purpose_otp");
+  const [otp, setOtp] = useState("");
+  const [error, setError] = useState(false);
+  const navigate = useNavigate();
+  const [seconds, setSeconds] = useState(30);
+  const [resendActive, setResendActive] = useState(false);
+  const [testingOtp, setTestingOtp] = useState(get_otp)
 
-  useEffect(() => {
-    if (resendTimer <= 0) {
-      return;
+  // Note: handle otp submit mutaition
+  const handleOtpSubmitMutation = useMutation({
+    mutationKey: ["confirmSignUpOtp"],
+    mutationFn: async (data) => {
+      const response = await axiosPublic.post(`/verify-email`, data);
+      return response?.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "OTP verification successful");
+      sessionStorage.removeItem("verify_email");
+      sessionStorage.removeItem("testing_purpose_otp");
+      setTimeout(() => {
+        // Navigate to signin and replace history
+        navigate("/auth/signin", {
+          replace: true,
+          state: { fromVerification: true }
+        });
+        toast.success("Please Login Your Account.");
+      }, 1500);
     }
-    const timer = setInterval(() => {
-      setResendTimer((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [resendTimer]);
+  });
+  // Note: handle otp submit
+  const handleOtpSubmit = () => {
+    if (otp.length !== 4) return setError(true);
+    handleOtpSubmitMutation.mutate({ otp, email: get_email });
+  }
 
-  const handleChange = (e, index) => {
-    const value = e.target.value;
-    if (!/^[0-9]$/.test(value)) {
-      return;
-    }
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    if (index < 3) {
-      inputsRef.current[index + 1].focus();
-    }
-  };
-
-  const handleBackspace = (e, index) => {
-    if (e.key === "Backspace") {
-      const newOtp = [...otp];
-      if (otp[index] === "") {
-        if (index > 0) {
-          newOtp[index - 1] = "";
-          inputsRef.current[index - 1].focus();
-        }
+  // Note: handle resend otp mutation
+  const handleResendOtpMutation = useMutation({
+    mutationKey: ["resend-otp"],
+    mutationFn: async () => {
+      const response = await axiosPublic.post(`/resend-otp`, { email: get_email });
+      return response?.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "OTP Resend successful. Please check your email.");
+      if (data?.otp) {
+        setTestingOtp(data?.otp.toString())
+        sessionStorage.setItem("testing_purpose_otp", data?.otp.toString())
       } else {
-        newOtp[index] = "";
+        console.log("No otp found in response", data);
       }
-      setOtp(newOtp);
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || "Something went wrong! Please try again.");
     }
-  };
+  });
 
-  const handlePaste = (e) => {
-    const pasteData = e.clipboardData.getData("Text").slice(0, 4);
-    if (!/^\d+$/.test(pasteData)) {
-      return;
-    }
-    const newOtp = pasteData.split("");
-    while (newOtp.length < 4) {
-      newOtp.push("");
-    }
-    setOtp(newOtp);
-    inputsRef.current[Math.min(3, newOtp.length - 1)].focus();
-  };
-
-  const handleSubmit = () => {
-    console.log("Entered OTP:", otp.join(""));
-    // TODO: verify OTP backend integration
+  const OtpChange = (val) => {
+    setOtp(val);
   };
 
   const handleResend = () => {
+    if (!resendActive) return;
+    setSeconds(30);
+    setResendActive(false);
     console.log("Resend OTP clicked");
-    setResendTimer(120);
-    setOtp(["", "", "", ""]);
-    inputsRef.current[0].focus();
+    handleResendOtpMutation.mutate();
   };
 
+  useEffect(() => {
+    let timer;
+    if (seconds > 0) {
+      timer = setInterval(() => setSeconds((prev) => prev - 1), 1000);
+    } else {
+      setResendActive(true);
+    }
+    return () => clearInterval(timer);
+  }, [seconds]);
+
+  // Note: main ui component
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="mb-12">
-        <h1 className="text-2xl font-semibold mb-4 text-center">Verify OTP</h1>
-        <p className="text-center text-sm text-neutral-600">
-          Enter the 4-digit code sent to your email or phone
-        </p>
+
+      <h1 className="text-2xl font-semibold mb-4 text-center">Verify OTP</h1>
+      <p className="text-center text-sm text-neutral-600">
+        Enter the 4-digit code sent to your email or phone
+      </p>
+
+      <div className="space-y-2 my-5 text-neutral-600">
+        <p className="text-center">Please check on your email</p>
+        <p className="text-sm font-medium text-center text-[#333]">{maskEmail(get_email)}</p>
       </div>
 
-      {/* OTP Inputs */}
-      <div className="flex justify-center gap-14 mb-6">
-        {otp.map((digit, index) => (
-          <input
-            key={index}
-            type="text"
-            maxLength={1}
-            value={digit}
-            ref={(el) => (inputsRef.current[index] = el)}
-            onChange={(e) => handleChange(e, index)}
-            onKeyDown={(e) => handleBackspace(e, index)}
-            onPaste={handlePaste}
-            className="w-30 h-24 text-center text-xl border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        ))}
+      <div className="w-full flex flex-col gap-2 items-center mb-4">
+        <p className="text-center text-red-400 font-semibold">This otp shown only for testing purpose. It will be remove the production version</p>
+
+        <p className="w-fit bg-red-300 text-white font-medium py-2 px-4 rounded-sm">Using this OTP: {testingOtp}</p>
       </div>
+
+      <OtpWrapper otp={otp} OtpChange={OtpChange} />
+      {
+        error && (
+          <p className="text-sm text-red-500 text-center mt-2">
+            Please enter a valid 4-digit code
+          </p>
+        )
+      }
 
       {/* Submit */}
       <CommonSubmitBtn
         type="button"
         variant="primary"
-        className="w-full mb-8"
-        onClick={handleSubmit}
+        className="w-full my-8"
+        disabled={handleOtpSubmitMutation.isPending}
+        onClick={handleOtpSubmit}
       >
-        Continue
+        {handleOtpSubmitMutation.isPending ? <LoaderV2 /> : "Continue"}
       </CommonSubmitBtn>
 
       {/* Resend OTP */}
-      <div className="text-center text-sm text-neutral-600">
-        {resendTimer > 0 ? (
-          <span>
-            Resend OTP in {Math.floor(resendTimer / 60)}:
-            {(resendTimer % 60).toString().padStart(2, "0")}
-          </span>
-        ) : (
-          <button
-            className="text-primary font-medium hover:underline"
-            onClick={handleResend}
-          >
-            Resend OTP
-          </button>
-        )}
-      </div>
+      <ResendCode
+        resendActive={resendActive}
+        seconds={seconds}
+        handleResend={handleResend}
+      />
+
     </div>
   );
 };
-
 export default VerifyOtp;

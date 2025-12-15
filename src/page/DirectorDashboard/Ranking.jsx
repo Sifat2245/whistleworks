@@ -22,5 +22,4 @@ const Ranking = () => {
     </div>
   );
 };
-
 export default Ranking;

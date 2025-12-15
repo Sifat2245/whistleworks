@@ -27,7 +27,7 @@ const Reviews = () => {
   ];
 
   return (
-    <div className="container  my-16">
+    <div className="container md:my-16 my-10">
       <div className="text-center">
         <CommonTitle text="What Our Users Say" />
         <CommonText
@@ -36,19 +36,19 @@ const Reviews = () => {
         />
       </div>
 
-      {/* 3 review cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+      {/* review cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 xl:gap-8 lg:gap-6 md:gap-5 gap-4 xl:mt-12 lg:mt-10 md:mt-8 mt-6 ">
         {reviews.map((review, index) => (
           <div
             key={index}
-            className="p-6 bg-white rounded-lg shadow-lg/5 border border-neutral-200 flex flex-col"
+            className="xl:p-6 lg:p-5 md:p-4 p-3 bg-white rounded-lg shadow-lg/5 border border-neutral-200 flex flex-col"
           >
             <p className="text-neutral-500">&quot;{review.feedback}&quot;</p>
             <div className="flex items-center gap-2 mt-6">
               <img
                 src={review.avatar}
                 alt={review.name}
-                className="w-16 h-16 rounded-full mb-4"
+                className="xl:w-16 lg:w-11 w-10 xl:h-16 lg:h-11 h-10 rounded-full mb-4"
               />
               <div>
                 <h3 className="text-lg font-semibold">{review.name}</h3>

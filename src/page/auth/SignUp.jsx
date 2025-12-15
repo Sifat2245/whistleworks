@@ -4,8 +4,17 @@ import CommonText from "@/components/common/CommonText";
 import CommonTitle from "@/components/common/CommonTitle";
 import SocialLogin from "./SocialLogin";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
+import { useMutation } from "@tanstack/react-query";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import LoaderV2 from "@/components/common/LoaderV2";
 
 const SignUp = () => {
+  const axiosPublic = useAxiosPublic();
+  const navigate = useNavigate();
+
+  // Note: react hook form
   const {
     register,
     handleSubmit,
@@ -13,16 +22,38 @@ const SignUp = () => {
     watch,
     formState: { errors },
   } = useForm();
-
   const password = watch("password");
 
+  // Note: sign up mutation
+  const signUpMutation = useMutation({
+    mutationKey: ["sign-up"],
+    mutationFn: async (formData) => {
+      const response = await axiosPublic.post(`/register`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
+      return response?.data;
+    },
+    onSuccess: (data) => {
+      console.log("Sign up data:-->", data)
+      toast.success(data?.message || "Sign up successful");
+      sessionStorage.setItem("verify_email", data?.data?.email);
+      sessionStorage.setItem("testing_purpose_otp", data?.data?.otp);
+      navigate("/auth/verify-otp");
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || "Sign up failed");
+    },
+  });
+
   const onSubmit = (data) => {
-    console.log("Sign Up Data:", data);
-    // TODO: Integrate sign-up API here
+    signUpMutation.mutate(data);
   };
 
+  // Note: main ui component
   return (
-    <div className="w-full max-w-2xl max-h-screen overflow-y-auto py-24 hide-scrollbar">
+    <div className="w-full max-w-2xl max-h-screen overflow-y-auto lg:py-24 hide-scrollbar">
       {/* Header */}
       <div className="text-center space-y-3 mb-8">
         <CommonTitle text="Create an Account" />
@@ -35,7 +66,7 @@ const SignUp = () => {
         <CommonInputWrapper
           label="First Name"
           placeholder="Enter your first name"
-          register_as="firstName"
+          register_as="first_name"
           register={register}
           errors={errors}
           validationRules={{ required: "First name is required" }}
@@ -45,7 +76,7 @@ const SignUp = () => {
         <CommonInputWrapper
           label="Last Name"
           placeholder="Enter your last name"
-          register_as="lastName"
+          register_as="last_name"
           register={register}
           errors={errors}
           validationRules={{ required: "Last name is required" }}
@@ -117,7 +148,7 @@ const SignUp = () => {
           label="Confirm Password"
           type="password"
           placeholder="Re-enter your password"
-          register_as="confirmPassword"
+          register_as="password_confirmation"
           register={register}
           errors={errors}
           validationRules={{
@@ -135,20 +166,30 @@ const SignUp = () => {
           control={control}
           errors={errors}
           options={[
-            { label: "Director", value: "director" },
-            { label: "Referee", value: "referee" },
-            { label: "Evaluator", value: "evaluator" },
+            { label: "Camp Director", value: 4 },
+            { label: "Referee", value: 6 },
+            { label: "Evaluator", value: 5 },
           ]}
           validationRules={{
             required: "Role is required",
           }}
+        />
+        {/* Biography */}
+        <CommonInputWrapper
+          label="Biography"
+          type="textarea"
+          placeholder="Enter your biography"
+          register_as="biography"
+          register={register}
+          errors={errors}
+          validationRules={{ required: "Biography is required" }}
         />
 
         {/* Agree Terms */}
         <div className="flex items-start gap-2 mt-3">
           <input
             type="checkbox"
-            {...register("agreeTerms", {
+            {...register("agree", {
               required: "You must agree to the terms and conditions",
             })}
             className="w-4 h-4 accent-primary mt-1"
@@ -177,9 +218,9 @@ const SignUp = () => {
           </p>
         )}
 
-        {/* Submit Button */}
-        <CommonSubmitBtn link={true} path="/referee-dashboard" variant="primary" type="submit" className="w-full">
-          Sign Up
+        {/* Submit Button link={true} path="/referee-dashboard" */}
+        <CommonSubmitBtn disabled={signUpMutation.isPending} variant="primary" type="submit" className="w-full">
+          {signUpMutation.isPending ? <LoaderV2 /> : "Sign Up"}
         </CommonSubmitBtn>
       </form>
 

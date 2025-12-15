@@ -1,33 +1,36 @@
-import axios from 'axios';
-import { toast } from 'react-hot-toast';
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const useAxiosPublic = () => {
-    const baseURL = `${import.meta.env.VITE_BASE_URL}/api`;  // Ensure /api is always prefixed
+    const baseURL = `${import.meta.env.VITE_BASE_URL}/api`;
     const axiosPublic = axios.create({
         baseURL: baseURL,
         timeout: 30000,
     });
-    // Response Interceptor - handle errors globally and show toast notifications
-    axiosPublic.interceptors.response.use(
-        (response) => response,  // Directly return the response if successful
+    // axios response interceptor
+    axiosPublic.interceptors.response.use((response) => response,
         (error) => {
-            let errorMessage;
+            // skip handling for canceld requests
+            if (axios.isCancel(error)) {
+                // do something
+                return Promise.reject(error)
+            }
+            // server responded with errors status
             if (error.response) {
-                if (error.response.status === 500) {
-                    errorMessage = 'Internal server error, try again';
+                // only show toast for server errors
+                if (error.response.status >= 500) {
+                    const serverMessage = error.response.data?.message;
+                    const errorMessage = serverMessage || "Our server are having issues. Please try again later";
                     toast.error(errorMessage);
                 }
-                console.error('API Error:', error);
-            } else if (error.request) {
-                errorMessage = 'Network issue, try again.';
-                toast.error(errorMessage);
-                console.error('Network Error:', error?.message);
             }
-            return Promise.reject(error);
+            // No response received (network issue)
+            else if (error.request) {
+                toast.error("Network connection issue. Please check your internet.")
+            };
+            return Promise.reject(error)
         }
     );
-
-    return axiosPublic;
+    return axiosPublic
 };
-
-export default useAxiosPublic;
+export default useAxiosPublic

@@ -4,20 +4,54 @@ import CommonTitle from "@/components/common/CommonTitle";
 import CommonText from "@/components/common/CommonText";
 import { FaArrowLeft } from "react-icons/fa6";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
+import toast from "react-hot-toast";
+import LoaderV2 from "@/components/common/LoaderV2";
 
 const ForgetPassword = () => {
+  const axiosPublic = useAxiosPublic();
+  const navigate = useNavigate();
+
+  // Note: react hook form
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
 
+  // Note: Forgot password mutation
+  const forgotPasswordMutation = useMutation({
+    mutationKey: ["forgot-password"],
+    mutationFn: async (formData) => {
+      const response = await axiosPublic.post(`/forgot-password`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
+      return response?.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Please check your email.");
+      sessionStorage.setItem("verify_email", data?.data?.email);
+      sessionStorage.setItem("testing_purpose_otp", data?.data?.otp);
+
+      setTimeout(() => {
+        navigate("/auth/reset-password-otp");
+      }, 1500);
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || "Something went wrong! Please try again.");
+    },
+  });
+
   const onSubmit = (data) => {
     console.log("Forget Password Data:", data);
-    // TODO: integrate forget password API
+    forgotPasswordMutation.mutate(data);
   };
 
+  // Note: main ui component
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Header */}
@@ -44,8 +78,8 @@ const ForgetPassword = () => {
           }}
         />
 
-        <CommonSubmitBtn variant="primary" type="submit" className="w-full">
-          Reset Password
+        <CommonSubmitBtn disabled={forgotPasswordMutation.isPending} variant="primary" type="submit" className="w-full">
+          {forgotPasswordMutation.isPending ? <LoaderV2 /> : "Reset Password"}
         </CommonSubmitBtn>
       </form>
       <Link to={'/auth/signin'} className="flex gap-2 justify-center items-center mt-8 text-primary hover:text-[#0097ce]">

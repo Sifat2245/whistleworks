@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="py-12 border-t border-gray-200">
+    <footer className="lg:py-12 py-8 border-t border-gray-200">
       <div className="container w-full grid grid-cols-1 md:grid-cols-3 gap-4 justify-between">
         {/* Logo + Brand */}
-        <Link to={'/'} className="w-2/3">
+        <Link to={'/'} className="md:w-2/3">
           <div className="flex items-center space-x-3 mb-4">
             <Logo className={"h-14 w-20"} />
             <h1 className="text-xl text-primary font-semibold">

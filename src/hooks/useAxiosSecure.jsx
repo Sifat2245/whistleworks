@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useAuth } from "./useAuth";
 
-const ACCESS_TOKEN_KEY = import.meta.env.VITE_ACCESS_TOKEN_KEY;
+const ACCESS_TOKEN_KEY = import.meta.env.VITE_ACCESS_TOKEN;
 const useAxiosSecure = () => {
     const baseURL = `${import.meta.env.VITE_BASE_URL}/api`;
     const { logout } = useAuth();
@@ -11,10 +11,10 @@ const useAxiosSecure = () => {
         baseURL: baseURL,
         timeout: 30000,
         headers: {
-            Authorization: `Bearer ${accessToken}`
+            Authorization: `Bearer ${accessToken}`  
         }
     });
-    // Handle common error responses
+    // Note: Handle common error responses
     axiosSecure.interceptors.response.use(
         (response) => response,
         (error) => {
@@ -41,5 +41,4 @@ const useAxiosSecure = () => {
 
     return axiosSecure;
 };
-
 export default useAxiosSecure;

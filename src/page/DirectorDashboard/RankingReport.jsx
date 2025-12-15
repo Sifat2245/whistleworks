@@ -21,7 +21,7 @@ const RankingReport = () => {
 
   const refereeData = data?.filter((d) => d.referee === referee);
 
-  // MATCH THE SCREENSHOT COLUMNS
+  // MATCH THE COLUMNS
   const columns = [
     { accessorKey: "date", header: "Date/Time" },
     { accessorKey: "callAccuracy", header: "Call Accuracy" },
@@ -29,6 +29,7 @@ const RankingReport = () => {
     { accessorKey: "consistency", header: "Consistency" },
     { accessorKey: "mech", header: "Court P/Mech" },
     { accessorKey: "fitMob", header: "Fit/Mob" },
+    {accessorKey: "gameAwareness", header: "Game Awareness"},
     {
       accessorKey: "overall",
       header: "Overall",
@@ -40,7 +41,8 @@ const RankingReport = () => {
     },
     { accessorKey: "notes", header: "Notes for Director" },
     { accessorKey: "feedback", header: "Ref Feedback" },
-    { accessorKey: "recommended", header: "Recommended Level, Evaluator" },
+    { accessorKey: "recommended", header: "Recommended Level" },
+    { accessorKey: "evaluator", header: "Evaluator" },
   ];
 
   const table = useReactTable({
@@ -50,14 +52,14 @@ const RankingReport = () => {
   });
 
   return (
-    <div className="w-full p-6">
+    <div className="w-full">
       <BackBtn />
 
       {/* Header */}
       <div className="flex items-center gap-4 mt-6">
-        <div className="w-16 h-16 rounded-full bg-linear-to-br from-orange-400 to-pink-400 
-        flex items-center justify-center text-white text-2xl font-bold">
-          {referee?.split(" ").map((n) => n[0]).join("")}
+        <div className="xl:w-16 md:w-11 w-8 xl:h-16 md:h-11 h-8 rounded-full bg-linear-to-br from-orange-400 to-pink-400 
+        flex items-center justify-center text-white md:text-xl lg:text-2xl font-bold">
+          {referee?.split(" ")?.map((n) => n[0]).join("")}
         </div>
         <h1 className="text-2xl font-bold">{referee}</h1>
       </div>
@@ -69,7 +71,7 @@ const RankingReport = () => {
         <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
           <table className="w-full text-center">
             <thead className="bg-gray-50 border-b border-gray-200">
-              {table.getHeaderGroups().map((headerGroup) => (
+              {table?.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <th
@@ -116,5 +118,4 @@ const RankingReport = () => {
     </div>
   );
 };
-
 export default RankingReport;

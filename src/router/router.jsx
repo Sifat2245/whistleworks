@@ -24,7 +24,13 @@ import RankingReport from "@/page/DirectorDashboard/RankingReport";
 import Profile from "@/components/common/Profile";
 import PreviousCamps from "@/page/RefereeDashboard/PreviousCamps";
 import FindCamps from "@/page/RefereeDashboard/FindCamps";
-import CampDetails from "@/page/RefereeDashboard/CampDetails";
+import CampDetailsPage from "@/page/RefereeDashboard/CampDetailsPage";
+import EvolatorFindCamp from "@/page/EvolatorDashboard/EvolatorFindCamp";
+import ActiveEvaluate from "@/page/DirectorDashboard/ActiveEvaluate";
+import ActiveCrews from "@/page/DirectorDashboard/ActiveCrews";
+import AboutUs from "@/page/AboutUs";
+import RoleBasedPrivateRoute from "@/routes/RoleBasedPrivateRoute";
+import ResetPasswordOtp from "@/page/auth/ResetPasswordOtp";
 
 const router = createBrowserRouter([
   {
@@ -35,23 +41,32 @@ const router = createBrowserRouter([
         path: "/",
         element: <Home />,
       },
+      {
+        path: "about-us",
+        element: <AboutUs />
+      }
     ],
   },
+  // 
   {
     path: "/director-dashboard",
-    element: <DirectorLayout />,
+    element: (
+      <RoleBasedPrivateRoute allowedRoles={["director"]}>
+        <DirectorLayout />
+      </RoleBasedPrivateRoute>
+    ),
     children: [
       {
         index: true,
         path: "/director-dashboard",
-        element: <Dashboard />,
+        element: <Dashboard />
       },
       {
         path: "create-new-camp",
         element: <CreateNewCamp />,
       },
       {
-        path: "build-schedule",
+        path: "build-schedule/:id",
         element: <BuildSchedule />,
       },
       {
@@ -63,35 +78,77 @@ const router = createBrowserRouter([
         element: <Ranking />,
       },
       {
-        path: 'ranking/:referee',
-        element: <RankingReport/>,
+        path: "ranking/:id",
+        element: <RankingReport />,
       },
       {
-        path: "Roster",
+        path: "roster/:id",
         element: <Roster />,
       },
       {
-        path: "Evaluate",
+        path: "evaluate/:id",
         element: <Evaluate />,
       },
+      {
+        path: "active-evaluate",
+        element: <ActiveEvaluate />,
+      },
+      {
+        path: "active-crews",
+        element: <ActiveCrews />
+      },
+      {
+        path: "profile",
+        element: <Profile />,
+      }
     ],
   },
+
   {
-    path: "evolator-dashboard",
-    element: <EvolatorLayout />,
+    path: "/evaluator-dashboard",
+    element: (
+      <RoleBasedPrivateRoute allowedRoles={["evaluator"]}>
+        <EvolatorLayout />
+      </RoleBasedPrivateRoute>
+    ),
     children: [
       {
         index: true,
         element: <EvolatorDashboard />,
       },
+      {
+        path: "active-camps",
+        element: <ActiveCamps />,
+      },
+      {
+        path: "camp/:id",
+        element: <CampDetailsPage />,
+      },
+      {
+        path: "previous-camps",
+        element: <PreviousCamps />,
+      },
+      {
+        path: "find-camps",
+        element: <EvolatorFindCamp />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
+      }
     ],
   },
   {
     path: "/referee-dashboard",
-    element: <RefereeLayout />,
+    element: (
+      <RoleBasedPrivateRoute allowedRoles={["referee"]}>
+        <RefereeLayout />
+      </RoleBasedPrivateRoute>
+    ),
     children: [
       {
         index: true,
+        path: "",
         element: <RefereeDashboard />,
       },
       {
@@ -100,7 +157,7 @@ const router = createBrowserRouter([
       },
       {
         path: "camp/:id",
-        element: <CampDetails />,
+        element: <CampDetailsPage />,
       },
       {
         path: "previous-camps",
@@ -129,12 +186,16 @@ const router = createBrowserRouter([
         element: <SignUp />,
       },
       {
+        path: "verify-otp",
+        element: <VerifyOtp />,
+      },
+      {
         path: "forget-password",
         element: <ForgetPassword />,
       },
       {
-        path: "verify-otp",
-        element: <VerifyOtp />,
+        path: "reset-password-otp",
+        element: <ResetPasswordOtp />
       },
       {
         path: "reset-password",
@@ -142,7 +203,7 @@ const router = createBrowserRouter([
       },
     ],
   },
- 
+
   {
     path: "*",
     element: () => <h1>Page Not Found</h1>,

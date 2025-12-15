@@ -4,13 +4,13 @@ import CommonTitle from "../common/CommonTitle";
 
 const ReadyToTrasform = () => {
   return (
-    <div className="bg-[#E8E8E8] py-12 relative overflow-hidden">
+    <div className="bg-border py-12 relative overflow-hidden">
       <div className="text-center mb-8">
         <CommonTitle text="Ready to Transform Your Operations?" />
         <CommonText
           text="Join hundreds of sports organizations using Whistle Works
 streamline their Referee camp management"
-          className={"w-1/3 mx-auto mt-5 text-neutral-500 text-lg"}
+          className={"md:w-2/3 xl:w-1/3 mx-auto mt-5 text-neutral-500 text-lg"}
         />
       </div>
 
@@ -20,5 +20,4 @@ streamline their Referee camp management"
     </div>
   );
 };
-
 export default ReadyToTrasform;

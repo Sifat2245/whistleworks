@@ -26,5 +26,4 @@ const Evaluate = () => {
     </div>
   );
 };
-
 export default Evaluate;

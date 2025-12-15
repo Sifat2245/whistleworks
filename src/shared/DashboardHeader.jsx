@@ -4,33 +4,39 @@ import { Link } from "react-router-dom";
 import userImage from "@/assets/dashboard/userImage.png"
 import { IoNotificationsOutline } from "react-icons/io5";
 import UserPopover from "./UserPopover";
+import { useAuth } from "@/hooks/useAuth";
 
 const DashboardHeader = () => {
+    const { userData } = useAuth();
+
+    // Note: main ui component
     return (
         <header className="bg-white shadow-md sticky top-0 left-0 w-full z-50">
             <div className="w-full container py-5 flex justify-between items-center">
                 {/* Logo */}
                 <Link to={"/"} className="flex items-center text-primary">
-                    <Logo className={"h-9 w-14"} />
-                    <h1 className="text-2xl font-semibold">WHISTLE WORKS</h1>
+                    <Logo className={"size-8 sm:size-12 shrink-0"} />
+                    <h1 className="text-base sm:text-xl xl:text-2xl font-semibold">WHISTLE WORKS</h1>
                 </Link>
 
                 {/* User popover */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center md:gap-4 gap-1.5">
                     <Popover
                         className="header-popover" placement="bottomRight" trigger={"click"}
                         content={<UserPopover />}
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="size-10 shrink-0 ring-2  ring-[#E5E4E6] rounded-full cursor-pointer">
-                                <img src={userImage} alt="" className="w-full h-full object-cover rounded-full" />
+                        <div className="flex items-center md:gap-4 gap-1.5">
+                            <div className="md:size-10 size-7 shrink-0 ring-2  ring-[#E5E4E6] rounded-full cursor-pointer">
+                                <img src={userData?.avatar || userImage} alt="" className="w-full h-full object-cover rounded-full" />
                             </div>
-                            <p className="text-black font-medium text-base">{name || "Xadu"}</p>
+                            <p className="text-black font-medium text-base">{userData?.first_name || "Xadu"}</p>
                         </div>
                     </Popover>
 
-                    <button className="cursor-pointer">
+                    <button className="cursor-pointer relative">
                         <IoNotificationsOutline className="text-xl" />
+
+                        <span className="absolute flex items-center justify-center -top-3 -right-2.5 size-5 bg-primary text-white rounded-lg border-2 border-white text-xs">2</span>
                     </button>
                 </div>
             </div>

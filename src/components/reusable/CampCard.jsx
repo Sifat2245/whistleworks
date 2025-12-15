@@ -31,24 +31,24 @@ const CampCard = ({ camp }) => {
       {/* Info */}
       <div className="space-y-2 text-gray-700 text-sm">
         <div className="flex items-center gap-2">
-          <FaUser className="text-primary" />
+          <FaUser className="text-primary shrink-0" />
           <span>{coach}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <FaMapMarkerAlt className="text-primary" />
+          <FaMapMarkerAlt className="text-primary shrink-0" />
           <span>{location}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <FaClock className="text-primary" />
+          <FaClock className="text-primary shrink-0" />
           <span>
             {start_date} to {end_date}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <FaDollarSign className="text-primary" />
+          <FaDollarSign className="text-primary shrink-0" />
           <span>Camp Fee: {fee}</span>
         </div>
       </div>
@@ -56,15 +56,23 @@ const CampCard = ({ camp }) => {
       {/* Divider */}
       <hr className="my-4 border-gray-200" />
 
-      {pathname !== "/" && <div className="flex items-center gap-2 mb-4">
-        <span className="text-xl font-medium text-primary">Total : ${total}</span>
-      </div>}
+      {pathname !== "/" && (
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl font-medium text-primary">
+            Total : ${total}
+          </span>
+        </div>
+      )}
 
       {/* Button */}
-      <CommonSubmitBtn variant="primary" className={"w-full"} link={true} path={`/referee-dashboard/camp/${camp.id}?tab=camp-details`}>
-        {
-          pathname === "/" ? "View Details & Register" : "View Details"
-        }
+      <CommonSubmitBtn
+        variant="primary"
+        className={"w-full"}
+        link={true}
+        path={`${pathname.includes("evolator-dashboard") ? "/evolator-dashboard" : "/referee-dashboard"
+          }/camp/${camp.id}?tab=camp-details`}
+      >
+        {pathname === "/" ? "View Details & Register" : "View Details"}
       </CommonSubmitBtn>
     </div>
   );

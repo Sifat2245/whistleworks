@@ -4,19 +4,74 @@ import CommonTitle from "@/components/common/CommonTitle";
 import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import SocialLogin from "./SocialLogin";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
+import { useMutation } from "@tanstack/react-query";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import LoaderV2 from "@/components/common/LoaderV2";
+import { useAuth } from "@/hooks/useAuth";
 
 const SignIn = () => {
+  const { handleLogin, userRefetch } = useAuth();
+  const axiosPublic = useAxiosPublic();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log("Sign In Data:", data);
-    //TODO: sign in api integrate here
+  // Note: redirect function
+   const redirectBasedOnRole = (userRole) => {
+    console.log("User role", userRole)
+    // If role is null or undefined, redirect to account creation
+    if (!userRole) {
+      navigate("/");
+      return;
+    }
+    // Note: director
+    if (userRole === "director") {
+      navigate("/director-dashboard");
+      return;
+    }
+    // Note: evaluator
+    if (userRole === "evaluator") {
+      navigate("/evaluator-dashboard");
+      return;
+    }
+    // Note: referee
+    if (userRole === "referee") {
+      navigate("/referee-dashboard");
+      return;
+    }
   };
 
+  // Note: sign in mutation
+  const signInMutation = useMutation({
+    mutationKey: ["sign-in"],
+    mutationFn: async (data) => {
+      const response = await axiosPublic.post(`/login`, data);
+      return response?.data;
+    },
+    onSuccess: (res) => {
+      toast.success(res?.message || "Sign in successful");
+      handleLogin(res?.data?.token);
+      userRefetch();
+      setTimeout(() => {
+        redirectBasedOnRole(res?.data?.user?.role)
+      }, 1000);
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Sign in failed");
+    },
+  });
+
+  const onSubmit = (data) => {
+    console.log("Sign In Data:", data);
+    signInMutation.mutate(data);
+  };
+
+  // Note: main ui component
   return (
     <div className="w-full max-w-2xl">
       <div className="text-center space-y-3 mb-8">
@@ -75,14 +130,15 @@ const SignIn = () => {
           </a>
         </div>
 
+
+        {/* path="/director-dashboard" */}
         <CommonSubmitBtn
-          link={true}
-          path="/director-dashboard"
           variant="primary"
           type="submit"
           className="w-full"
+          disabled={signInMutation.isPending}
         >
-          Sign In
+          {signInMutation.isPending ? <LoaderV2 /> : "Sign In"}
         </CommonSubmitBtn>
       </form>
 
