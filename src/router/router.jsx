@@ -31,6 +31,9 @@ import ActiveCrews from "@/page/DirectorDashboard/ActiveCrews";
 import AboutUs from "@/page/AboutUs";
 import RoleBasedPrivateRoute from "@/routes/RoleBasedPrivateRoute";
 import ResetPasswordOtp from "@/page/auth/ResetPasswordOtp";
+import CampOverview from "@/page/DirectorDashboard/CampOverview";
+import axiosSecureInstance from "@/hooks/axiosInstace";
+import EditCampPage from "@/page/DirectorDashboard/EditCampPage";
 
 const router = createBrowserRouter([
   {
@@ -43,11 +46,11 @@ const router = createBrowserRouter([
       },
       {
         path: "about-us",
-        element: <AboutUs />
-      }
+        element: <AboutUs />,
+      },
     ],
   },
-  // 
+  //
   {
     path: "/director-dashboard",
     element: (
@@ -59,7 +62,19 @@ const router = createBrowserRouter([
       {
         index: true,
         path: "/director-dashboard",
-        element: <Dashboard />
+        element: <Dashboard />,
+      },
+      {
+        path: "camp-overview/:id",
+        element: <CampOverview />,
+        loader: async ({ params }) =>
+          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
+      },
+      {
+        path: "edit-camp/:id",
+        element: <EditCampPage />,
+        loader: async ({ params }) =>
+          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
       },
       {
         path: "create-new-camp",
@@ -70,8 +85,14 @@ const router = createBrowserRouter([
         element: <BuildSchedule />,
       },
       {
-        path: "court-list",
+        path: "court-list/:id",
         element: <CreatedCourt />,
+        loader: async ({ params }) => {
+          const response = await axiosSecureInstance.get(
+            `/v1/camp/details/${params.id}`
+          );
+          return response;
+        },
       },
       {
         path: "ranking",
@@ -95,12 +116,12 @@ const router = createBrowserRouter([
       },
       {
         path: "active-crews",
-        element: <ActiveCrews />
+        element: <ActiveCrews />,
       },
       {
         path: "profile",
         element: <Profile />,
-      }
+      },
     ],
   },
 
@@ -135,7 +156,7 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <Profile />,
-      }
+      },
     ],
   },
   {
@@ -195,7 +216,7 @@ const router = createBrowserRouter([
       },
       {
         path: "reset-password-otp",
-        element: <ResetPasswordOtp />
+        element: <ResetPasswordOtp />,
       },
       {
         path: "reset-password",

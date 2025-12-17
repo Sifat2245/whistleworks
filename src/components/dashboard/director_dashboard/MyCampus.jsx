@@ -4,7 +4,7 @@ import { useGetMyCamp } from "@/hooks/get-my-camp-list";
 
 const MyCampus = () => {
     const { getMyCamp, campCartLoading } = useGetMyCamp();
-    console.log(getMyCamp)
+    console.log(getMyCamp, "getMyCamp");
 
     return (
         <div className="w-full border border-[#E8E8E8] rounded-xl md:p-5 p-3 mt-10">
