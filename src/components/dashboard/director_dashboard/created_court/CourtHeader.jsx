@@ -1,11 +1,12 @@
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import CommonSectionTitle from "../CommonSectionTitle";
 
-const CourtHeader = () => {
+const CourtHeader = ({campData}) => {
+
     return (
         <div className="w-full flex items-center justify-between mt-5">
             <CommonSectionTitle
-                text="Schedule - Elite Officials Summer Cam 2024"
+                text={`Schedule - ${campData?.camp_name}`}
                 subText="Manage games, locations, and referee assignments"
                 wrapperClass={"w-full"}
             />

@@ -68,17 +68,13 @@ const router = createBrowserRouter([
         path: "camp-overview/:id",
         element: <CampOverview />,
         loader: async ({ params }) =>
-          await axiosSecureInstance.get(
-            `/v1/camp/details/${params.id}`
-          ),
+          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
       },
       {
-        path: 'edit-camp/:id',
-        element: <EditCampPage/>,
+        path: "edit-camp/:id",
+        element: <EditCampPage />,
         loader: async ({ params }) =>
-          await axiosSecureInstance.get(
-            `/v1/camp/details/${params.id}`
-          ),
+          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
       },
       {
         path: "create-new-camp",
@@ -91,6 +87,12 @@ const router = createBrowserRouter([
       {
         path: "court-list/:id",
         element: <CreatedCourt />,
+        loader: async ({ params }) => {
+          const response = await axiosSecureInstance.get(
+            `/v1/camp/details/${params.id}`
+          );
+          return response;
+        },
       },
       {
         path: "ranking",
