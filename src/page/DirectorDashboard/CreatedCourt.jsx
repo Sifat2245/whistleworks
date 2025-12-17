@@ -12,7 +12,7 @@ const CreatedCourt = () => {
 
   const axiosInstance = useAxiosSecure();
 
-  const { data: scheduleData, isLoading } = useQuery({
+  const { data: scheduleData } = useQuery({
     queryKey: ["court-info"],
     queryFn: async () => {
       const response = await axiosInstance.get(`/v1/camp/${campData?.id}/schedule`);
@@ -20,14 +20,13 @@ const CreatedCourt = () => {
     },
   });
 
-  console.log(scheduleData, "court");
-
+  
   return (
     <div className="w-full">
       <BackBtn />
       <CourtHeader campData={campData} />
       <CourtDetails scheduleData={scheduleData} />
-      <CourtLists />
+      <CourtLists campData={campData}/>
     </div>
   );
 };
