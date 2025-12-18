@@ -7,10 +7,14 @@ import singleUser from "/referee/single-user-icon.svg";
 import facility from "@/assets/svg/facility.svg";
 import { useState } from "react";
 import { HiOutlineShieldCheck } from "react-icons/hi2";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function CampDetails() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [api, contextHolder] = notification.useNotification();
+  const { userData } = useAuth();
+
+  const isEvaluator = userData?.role === "evaluator";
 
   const handleOk = (type) => {
     api[type]({
@@ -20,7 +24,7 @@ export default function CampDetails() {
         </span>
       ),
       placement: "topRight",
-      className: "bg-white!" ,
+      className: "bg-white!",
     });
     setIsModalOpen(false);
   };
@@ -122,12 +126,16 @@ export default function CampDetails() {
           </div>
         </div>
         {/* !!================== Check In Button ===============!!*/}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-primary text-white py-4 px-8 rounded-md w-full text-lg font-medium mt-3 cursor-pointer"
-        >
-          Check In
-        </button>
+        {isEvaluator ? (
+          <></>
+        ) : (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary text-white py-4 px-8 rounded-md w-full text-lg font-medium mt-3 cursor-pointer"
+          >
+            Check In
+          </button>
+        )}
       </div>
       <Modal
         title={
