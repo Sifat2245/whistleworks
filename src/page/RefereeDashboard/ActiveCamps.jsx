@@ -31,7 +31,7 @@ export default function ActiveCamps() {
         {camps.length > 0 ? (
           camps.map((camp) => <CampCard key={camp.id} camp={camp} />)
         ) : (
-          <div className="col-span-3 text-center py-12">
+          <div className="col-span-4 text-center py-12">
             <CommonText
               text=" You have not registered for any camps."
               className="text-lg"
