@@ -6,7 +6,7 @@ const CampCard = ({ camp }) => {
   const pathname = window.location.pathname;
   const { userData } = useAuth();
 
-  const userRole = userData?.role?.toLowerCase(); // normalize to lowercase for safety
+  const userRole = userData?.role?.toLowerCase();
 
   // Define navigation paths based on user role
   const getDashboardPath = () => {

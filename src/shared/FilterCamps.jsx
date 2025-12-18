@@ -12,16 +12,15 @@ import useAxiosPublic from "@/hooks/useAxiosPublic";
 
 const { RangePicker } = DatePicker;
 
-const FilterCamps = () => {
-  // Filter states
+const FilterCamps = ({ limit }) => {  // limit prop for homepage (e.g., 4)
   const [selectedSportId, setSelectedSportId] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedDateRange, setSelectedDateRange] = useState(null);
-  const [selectedSort, setSelectedSort] = useState("newest");   
+  const [selectedSort, setSelectedSort] = useState("newest");
 
   const axiosPublic = useAxiosPublic();
 
-  // === Fetch Sports Types ===
+  // Fetch Sports Types
   const {
     data: sportsTypes = [],
     isLoading: sportsLoading,
@@ -33,7 +32,7 @@ const FilterCamps = () => {
     },
   });
 
-  // === Fetch Locations ===
+  // Fetch Locations
   const {
     data: locationList = [],
     isLoading: locationsLoading,
@@ -44,8 +43,9 @@ const FilterCamps = () => {
       return res?.data?.data?.location_list || [];
     },
   });
+
   const filters = {
-    sports_type_id: selectedSportId || undefined, 
+    sports_type_id: selectedSportId || undefined,
     location: selectedLocation || undefined,
     start_date: selectedDateRange?.[0]
       ? dayjs(selectedDateRange[0]).format("YYYY-MM-DD")
@@ -60,9 +60,9 @@ const FilterCamps = () => {
 
   const { camps = [], isLoading: campsLoading } = useCamps(filters);
 
-  console.log(camps, "filtered camps")
+  // Show only limited camps if limit is passed (homepage)
+  const displayedCamps = limit ? camps.slice(0, limit) : camps;
 
-  // Clear all filters
   const handleClearFilters = () => {
     setSelectedSportId(null);
     setSelectedLocation(null);
@@ -90,7 +90,7 @@ const FilterCamps = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {/* Sport Filter - Dynamic */}
+          {/* Sport Filter */}
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Filter by Sport</label>
             <Select
@@ -107,7 +107,7 @@ const FilterCamps = () => {
             />
           </div>
 
-          {/* Location Filter - Dynamic */}
+          {/* Location Filter */}
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Filter by Location</label>
             <Select
@@ -124,7 +124,7 @@ const FilterCamps = () => {
             />
           </div>
 
-          {/* Date Range Filter */}
+          {/* Date Range */}
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Filter by Date Range</label>
             <RangePicker
@@ -135,11 +135,11 @@ const FilterCamps = () => {
             />
           </div>
 
-          {/* Sort Filter */}
+          {/* Sort */}
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Sort by</label>
             <Select
-              placeholder="Oldest First"
+              placeholder="Newest First"
               value={selectedSort}
               onChange={setSelectedSort}
               className="w-full"
@@ -153,15 +153,14 @@ const FilterCamps = () => {
         </div>
       </div>
 
-      {/* Camps List */}
       <div className="mt-12">
         {campsLoading ? (
           <div className="flex justify-center py-20">
             <Spin size="large" />
           </div>
-        ) : camps?.length > 0 ? (
+        ) : displayedCamps.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
-            {camps?.map((camp) => (
+            {displayedCamps.map((camp) => (
               <CampCard key={camp.id} camp={camp} />
             ))}
           </div>

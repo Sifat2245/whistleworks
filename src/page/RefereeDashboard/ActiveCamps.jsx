@@ -1,19 +1,20 @@
 import ActiveCmpsBackBtn from "@/components/common/ActiveCmpsBackBtn";
 import CommonText from "@/components/common/CommonText";
 import CampCard from "@/components/reusable/CampCard";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import { Spin } from "antd";
-import axios from "axios";
 
 export default function ActiveCamps() {
+  const axiosInstance = useAxiosSecure()
   const { data: camps, isLoading } = useQuery({
     queryKey: ["camps"],
     queryFn: async () => {
-      const response = await axios.get("/camps.json");
-      return response.data;
+      const response = await axiosInstance.get("/v1/referee/camp/my-checkins");
+      return response?.data?.data?.checkin_camps;
     },
   });
-  console.log(camps);
+  // console.log(camps, 'active camps');
 
   if (isLoading) {
     return (
@@ -32,7 +33,7 @@ export default function ActiveCamps() {
         ) : (
           <div className="col-span-3 text-center py-12">
             <CommonText
-              text=" No camps found matching your filters."
+              text=" You have not registered for any camps."
               className="text-lg"
             />
           </div>

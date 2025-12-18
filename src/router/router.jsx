@@ -137,10 +137,10 @@ const router = createBrowserRouter([
         index: true,
         element: <EvolatorDashboard />,
       },
-      {
-        path: "active-camps",
-        element: <ActiveCamps />,
-      },
+      // {
+      //   path: "active-camps",
+      //   element: <ActiveCamps />,
+      // },
       {
         path: "camp/:id",
         element: <CampDetailsPage />,
