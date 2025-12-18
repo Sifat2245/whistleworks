@@ -1,5 +1,4 @@
-import { Image, Modal, notification } from "antd";
-import profile from "@/assets/dashboard/profile.png";
+import { Image, Modal, notification, Spin } from "antd";
 import Icon from "@/components/common/Icon";
 import location from "@/assets/svg/location.svg";
 import calender from "/referee/calender-icon.svg";
@@ -7,155 +6,262 @@ import singleUser from "/referee/single-user-icon.svg";
 import facility from "@/assets/svg/facility.svg";
 import { useState } from "react";
 import { HiOutlineShieldCheck } from "react-icons/hi2";
+import { useAuth } from "@/hooks/useAuth";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
 
-export default function CampDetails() {
+export default function CampDetails({ campData }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [api, contextHolder] = notification.useNotification();
 
-  const handleOk = (type) => {
-    api[type]({
-      description: (
-        <span>
-          You have successfully checked in to the camp. Enjoy your training!
-        </span>
-      ),
-      placement: "topRight",
-      className: "bg-white!" ,
+  const { userData } = useAuth();
+  const axiosSecure = useAxiosSecure();
+
+  const isEvaluator = userData?.role === "evaluator";
+
+  // Destructure camp data
+  const {
+    id: campId,
+    camp_name = "Untitled Camp",
+    camp_logo,
+    location: campLocation = "Location not specified",
+    start_date,
+    end_date,
+    camp_details = "No description available.",
+    sports_type_name = "Unknown Sport",
+    price = "N/A",
+  } = campData || {};
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
-    setIsModalOpen(false);
   };
+
+  const handleCheckIn = async () => {
+    setLoading(true);
+
+    try {
+      const response = await axiosSecure.post(
+        `/v1/referee/camp/${campId}/checkin`
+      );
+
+      const { success, message, data } = response.data;
+
+      if (success && data?.payment_required && data?.checkout_url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.checkout_url;
+      } else {
+        // Already paid or free camp
+        api.success({
+          message: "Check-in Successful!",
+          description:
+            message ||
+            "You have successfully checked in to the camp. Enjoy your training!",
+          placement: "topRight",
+        });
+        setIsModalOpen(false);
+      }
+    } catch (error) {
+      // Robust error message extraction
+      const fallback = "Check-in failed. Please try again.";
+
+      const getErrorString = (obj) => {
+        if (typeof obj === "string") return obj;
+        if (obj && typeof obj === "object") {
+          return (
+            obj.message ||
+            obj.details ||
+            obj.error ||
+            obj.description ||
+            JSON.stringify(obj)
+          );
+        }
+        return fallback;
+      };
+
+      const errorMsg =
+        getErrorString(error.response?.data?.message) ||
+        getErrorString(error.response?.data) ||
+        fallback;
+
+      api.error({
+        message: "Check-in Failed",
+        description: errorMsg,
+        placement: "topRight",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCancel = () => {
     setIsModalOpen(false);
   };
 
   return (
     <div>
-      <div className="bg-red-400">{contextHolder}</div>
+      {contextHolder}
+
       <div className="space-y-3 mt-10">
-        {/* !!====================== Overview ========================!! */}
+        {/* Overview */}
         <div className="border border-border p-5 rounded-[10px]">
           <h3 className="text-xl font-medium mb-5">Overview</h3>
+
           <div className="flex items-center gap-1.5 mb-4">
             <Image
-              src={profile}
-              alt="Camp Overview"
+              src={camp_logo || "https://via.placeholder.com/36?text=Camp"}
+              alt={camp_name}
               width={36}
               height={36}
               preview={false}
-              className="rounded-full"
+              className="rounded-full object-cover"
+              fallback="https://via.placeholder.com/36?text=Camp"
             />
-            <p className="text-[14px] font-normal">Emily Chen</p>
+            <p className="text-[14px] font-normal">{camp_name}</p>
           </div>
+
           <div className="flex gap-2 mb-3">
             <Icon src={location} className="size-5" />
             <div>
               <p className="text-[#666666]">Location</p>
-              <p className="text-lg">Los Angeles, CA</p>
+              <p className="text-lg">{campLocation}</p>
             </div>
           </div>
+
           <div className="flex gap-2 mb-3">
             <Icon src={calender} className="size-5 text-primary" />
             <div>
               <p className="text-[#666666]">Dates</p>
-              <p className="text-lg">Nov 1-7, 2025</p>
+              <p className="text-lg">
+                {formatDate(start_date)} - {formatDate(end_date)}
+              </p>
             </div>
           </div>
+
           <div className="flex gap-2 mb-3">
             <Icon src={singleUser} className="size-5 text-primary" />
             <div>
               <p className="text-[#666666]">Sport</p>
-              <p className="text-lg">soccer</p>
+              <p className="text-lg capitalize">{sports_type_name}</p>
             </div>
           </div>
+
+          {price !== "N/A" && (
+            <div className="flex gap-2 mb-3">
+              <Icon src={singleUser} className="size-5 text-primary" />
+              <div>
+                <p className="text-[#666666]">Camp Fee</p>
+                <p className="text-lg">${parseFloat(price).toFixed(2)}</p>
+              </div>
+            </div>
+          )}
         </div>
-        {/* !!====================== camp description ========================!! */}
+
+        {/* Camp Description */}
         <div className="border border-border p-5 rounded-[10px]">
           <h3 className="text-xl font-medium mb-5">Camp Description</h3>
-          <p className="max-w-lg text-[#666666]">
-            This intensive training camp focuses on advanced officiating
-            techniques, rule interpretations, and game management skills.
-            Participants will engage in classroom sessions, on-field practice,
-            and receive personalized feedback from experienced instructors.
+          <p className="max-w-lg text-[#666666] leading-relaxed">
+            {camp_details}
           </p>
         </div>
-        {/* !!================== Venue Information ===============!!*/}
+
+        {/* Venue Information */}
         <div className="border border-border p-5 rounded-[10px]">
           <h3 className="text-xl font-medium mb-5">Venue Information</h3>
           <div className="flex gap-2 mb-3">
             <Icon src={facility} className="size-5 text-primary" />
             <div>
               <p className="text-[#666666]">Facility</p>
-              <p className="text-lg">Elite Sports Training Center</p>
+              <p className="text-lg">{campLocation}</p>
             </div>
           </div>
           <div className="bg-[#F5F5F5] px-3 py-2.5 rounded-md">
             <p className="text-[14px] text-[#666666]">Address</p>
-            <p className="text-lg">1234 Championship Drive</p>
-            <p className="text-lg">Los Angeles, CA</p>
+            <p className="text-lg">{campLocation}</p>
           </div>
         </div>
-        {/* !!================== Daily Schedule ===============!!*/}
+
+        {/* Camp Dates */}
         <div className="border border-border p-5 rounded-[10px]">
-          <h3 className="text-xl font-medium mb-5">Daily Schedule</h3>
+          <h3 className="text-xl font-medium mb-5">Camp Dates</h3>
           <div className="space-y-3">
-            <div className="flex gap-2 bg-[#F5F5F5] px-3 py-2.5 rounded-md">
-              <Icon src={location} className="size-5" />
-              <div>
-                <p className="text-lg font-normal">Location</p>
-                <p className="text-[14px] text-[#666666]">Los Angeles, CA</p>
-              </div>
-            </div>
             <div className="flex gap-2 bg-[#F5F5F5] px-3 py-2.5 rounded-md">
               <Icon src={calender} className="size-5 text-primary" />
               <div>
-                <p className="text-lg font-normal">Dates</p>
-                <p className="text-[14px] text-[#666666]">Nov 1-7, 2025</p>
+                <p className="text-lg font-normal">Duration</p>
+                <p className="text-[14px] text-[#666666]">
+                  {formatDate(start_date)} to {formatDate(end_date)}
+                </p>
               </div>
             </div>
             <div className="flex gap-2 bg-[#F5F5F5] px-3 py-2.5 rounded-md">
               <Icon src={singleUser} className="size-5 text-primary" />
               <div>
                 <p className="text-lg font-normal">Sport</p>
-                <p className="text-[14px] text-[#666666]">Soccer</p>
+                <p className="text-[14px] text-[#666666] capitalize">
+                  {sports_type_name}
+                </p>
               </div>
             </div>
           </div>
         </div>
-        {/* !!================== Check In Button ===============!!*/}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-primary text-white py-4 px-8 rounded-md w-full text-lg font-medium mt-3 cursor-pointer"
-        >
-          Check In
-        </button>
+
+        {/* Check In Button - Only for referees */}
+        {!isEvaluator && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary text-white py-4 px-8 rounded-md w-full text-lg font-medium mt-6 cursor-pointer hover:opacity-90 transition"
+          >
+            Check In
+          </button>
+        )}
       </div>
+
+      {/* Check-in Confirmation Modal */}
       <Modal
         title={
-          <h3 className="text-xl font-semibold! mb-10">
+          <h3 className="text-xl font-semibold mb-10">
             Camp Check In Confirmation
           </h3>
         }
-        closable={{ "aria-label": "Custom Close Button" }}
         open={isModalOpen}
-        onOk={() => handleOk("success")}
+        onOk={handleCheckIn}
         onCancel={handleCancel}
+        confirmLoading={loading}
         cancelText="Go Back"
-        okText="Confirm"
-        centered={true}
-        width={400}
+        okText={loading ? "Processing..." : "Confirm Check In"}
+        centered
+        width={420}
         okButtonProps={{
+          disabled: loading,
           className:
-            "bg-primary! text-white! rounded-md! px-6! py-5! text-lg! font-medium!",
+            "bg-primary text-white rounded-md px-6 py-5 text-lg font-medium",
         }}
         cancelButtonProps={{
           className:
-            "text-lg! font-medium! px-6! py-5! rounded-md! hover:text-primary! hover:border-primary!",
+            "text-lg font-medium px-6 py-5 rounded-md hover:text-primary hover:border-primary",
         }}
       >
-        <HiOutlineShieldCheck className="text-3xl text-primary flex items-center w-full mb-10" />
-        <p className="text-lg mb-8">
-          I have physically arrived at camp and am ready ready to go.
-        </p>
+        <div className="flex flex-col items-center text-center">
+          {loading ? (
+            <Spin size="large" className="my-8" />
+          ) : (
+            <HiOutlineShieldCheck className="text-5xl text-primary mb-6" />
+          )}
+          <p className="text-lg mb-8 text-gray-700">
+            I have physically arrived at camp and am ready to begin training.
+          </p>
+          {price !== "N/A" && parseFloat(price) > 0 && (
+            <p className="text-sm text-gray-500">
+              Note: You will be redirected to Stripe to complete payment if
+              required.
+            </p>
+          )}
+        </div>
       </Modal>
     </div>
   );

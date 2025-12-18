@@ -19,20 +19,20 @@ const EvolatorDashboard = () => {
       {/* button div */}
       <div className="mt-8 space-y-6">
         <DashboardButton
-          label="Registered Camps"
+          label="Active Camps"
           iconSrc="/referee/home-icon.svg"
-          path="/evaluator-dashboard/active-camps"
+          path="/evaluator-dashboard/find-camps"
         />
         <DashboardButton
           label="Previous Camps"
           iconSrc="/referee/calender-icon.svg"
           path="/evaluator-dashboard/previous-camps"
         />
-        <DashboardButton
+        {/* <DashboardButton
           label="Find Camps"
           iconSrc="/referee/group-user-icon.svg"
           path="/evaluator-dashboard/find-camps"
-        />
+        /> */}
         <DashboardButton
           label="Profile"
           iconSrc="/referee/single-user-icon.svg"

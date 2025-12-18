@@ -1,8 +1,19 @@
 import heroBg from "@/assets/hero-bg.png";
 import CommonSubmitBtn from "../common/CommonSubmitBtn";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 const Hero = () => {
+  const { userData } = useAuth();
+  const userRole = userData?.role;
+
+  const dashboardPath =
+    {
+      director: "/director-dashboard",
+      evaluator: "/evaluator-dashboard",
+      referee: "/referee-dashboard",
+    }[userRole] || "/";
+
   // Framer Motion variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -58,19 +69,32 @@ const Hero = () => {
           className="flex flex-col xs:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center items-center w-full max-w-xs xs:max-w-sm sm:max-w-md mx-auto"
           variants={itemVariants}
         >
-          <CommonSubmitBtn
+          {/* <CommonSubmitBtn
             variant="primary"
             className="w-full xs:w-auto min-w-40 sm:min-w-[180px] text-sm sm:text-base"
           >
             Start Free Trial
-          </CommonSubmitBtn>
+          </CommonSubmitBtn> */}
 
-          <CommonSubmitBtn
-            variant="secondary"
-            className="w-full xs:w-auto min-w-40 sm:min-w-[180px] text-sm sm:text-base"
-          >
-            Login
-          </CommonSubmitBtn>
+          {userData ? (
+            <CommonSubmitBtn
+              link={true}
+              path={dashboardPath}
+              variant="secondary"
+              className="w-full xs:w-auto min-w-40 sm:min-w-[180px] text-sm sm:text-base"
+            >
+              Dashboard
+            </CommonSubmitBtn>
+          ) : (
+            <CommonSubmitBtn
+              variant="secondary"
+              link={true}
+              path="/auth/signin"
+              className="w-full xs:w-auto min-w-40 sm:min-w-[180px] text-sm sm:text-base"
+            >
+              Login
+            </CommonSubmitBtn>
+          )}
         </motion.div>
       </motion.div>
     </section>

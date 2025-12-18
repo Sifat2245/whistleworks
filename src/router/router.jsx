@@ -137,13 +137,15 @@ const router = createBrowserRouter([
         index: true,
         element: <EvolatorDashboard />,
       },
-      {
-        path: "active-camps",
-        element: <ActiveCamps />,
-      },
+      // {
+      //   path: "active-camps",
+      //   element: <ActiveCamps />,
+      // },
       {
         path: "camp/:id",
         element: <CampDetailsPage />,
+        loader: async ({ params }) =>
+          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
       },
       {
         path: "previous-camps",
@@ -179,6 +181,8 @@ const router = createBrowserRouter([
       {
         path: "camp/:id",
         element: <CampDetailsPage />,
+        loader: async ({ params }) =>
+          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
       },
       {
         path: "previous-camps",
