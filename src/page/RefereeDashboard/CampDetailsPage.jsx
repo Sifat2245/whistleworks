@@ -1,5 +1,5 @@
 import ActiveCmpsBackBtn from "@/components/common/ActiveCmpsBackBtn";
-import { useSearchParams } from "react-router-dom"; // Note: You're using React Router v6? If Next.js, use next/navigation instead
+import { useLoaderData, useSearchParams } from "react-router-dom"; // Note: You're using React Router v6? If Next.js, use next/navigation instead
 import CampDetailsTabs from "@/components/dashboard/refereeDashboard/CampDetailsTabs";
 import EvolatorCampTabs from "@/components/dashboard/evaluatorDashboard/ActiveCamps/EvolatorCampTabs";
 import { Divider, Result } from "antd";
@@ -14,6 +14,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function CampDetailsPage() {
   const [searchParams] = useSearchParams();
+  const data = useLoaderData();
+  const campData = data?.data?.data
+  
   const tab = searchParams.get("tab") || "camp-details"; 
   const { userData } = useAuth();
   const userRole = userData?.role?.toLowerCase();
@@ -59,7 +62,7 @@ export default function CampDetailsPage() {
         ) : (
           <>
             {/* Common Tabs - Both Roles */}
-            {tab === "camp-details" && <CampDetails />}
+            {tab === "camp-details" && <CampDetails campData={campData} />}
             {tab === "roster" && <Roster />}
 
             {/* Evaluator Only Tabs */}
