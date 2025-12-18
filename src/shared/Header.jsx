@@ -90,11 +90,11 @@ const Header = () => {
               </CommonSubmitBtn>
             </Link>
 
-            <Link to={"/auth/signup"}>
+            {/* <Link to={"/auth/signup"}>
               <CommonSubmitBtn variant="primary" className={""}>
                 Get Started
               </CommonSubmitBtn>
-            </Link>
+            </Link> */}
           </div>
         )}
 

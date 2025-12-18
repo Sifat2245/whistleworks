@@ -1,149 +1,148 @@
 "use client";
-import { Select, DatePicker, Spin } from "antd";
+import { Select, DatePicker, Spin, Button } from "antd";
 import filterIcon from "@/assets/svg/mage_filter.png";
 import CommonText from "@/components/common/CommonText";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import CampCard from "@/components/reusable/CampCard";
+import { ReloadOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import { useCamps } from "@/hooks/getAllCamps";
+import { useQuery } from "@tanstack/react-query";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
 
 const { RangePicker } = DatePicker;
 
-const FilterCamps = ({ camps, isLoading }) => {
-  const [selectedSport, setSelectedSport] = useState(null);
+const FilterCamps = () => {
+  // Filter states
+  const [selectedSportId, setSelectedSportId] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedDateRange, setSelectedDateRange] = useState(null);
-  const [selectedSort, setSelectedSort] = useState(null);
+  const [selectedSort, setSelectedSort] = useState("newest");   
 
-  const filterCamps = useMemo(() => {
-    let filtered = [...camps];
+  const axiosPublic = useAxiosPublic();
 
-    if (selectedSport) {
-      filtered = filtered.filter(
-        (camp) =>
-          camp?.sport_type?.toLowerCase() === selectedSport.toLowerCase()
-      );
-    }
+  // === Fetch Sports Types ===
+  const {
+    data: sportsTypes = [],
+    isLoading: sportsLoading,
+  } = useQuery({
+    queryKey: ["sports-types"],
+    queryFn: async () => {
+      const res = await axiosPublic.get("/v1/camp/sports-type");
+      return res?.data?.data || [];
+    },
+  });
 
-    if (selectedLocation) {
-      filtered = filtered.filter(
-        (camp) =>
-          camp?.location?.toLowerCase() === selectedLocation.toLowerCase()
-      );
-    }
+  // === Fetch Locations ===
+  const {
+    data: locationList = [],
+    isLoading: locationsLoading,
+  } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => {
+      const res = await axiosPublic.get("/v1/camp/locations");
+      return res?.data?.data?.location_list || [];
+    },
+  });
+  const filters = {
+    sports_type_id: selectedSportId || undefined, 
+    location: selectedLocation || undefined,
+    start_date: selectedDateRange?.[0]
+      ? dayjs(selectedDateRange[0]).format("YYYY-MM-DD")
+      : undefined,
+    end_date: selectedDateRange?.[1]
+      ? dayjs(selectedDateRange[1]).format("YYYY-MM-DD")
+      : undefined,
+    sort: selectedSort,
+    page: 1,
+    per_page: 20,
+  };
 
-    if (selectedDateRange && selectedDateRange.length === 2) {
-      const [startDate, endDate] = selectedDateRange;
-      filtered = filtered.filter((camp) => {
-        const campStart = new Date(camp.start_date);
-        const campEnd = new Date(camp.end_date);
-        return campStart.toDate() >= startDate && campEnd <= endDate.toDate();
-      });
-    }
+  const { camps = [], isLoading: campsLoading } = useCamps(filters);
 
-    if (selectedSort === "newest") {
-      filtered = filtered.sort(
-        (a, b) => new Date(b.start_date) - new Date(a.start_date)
-      );
-    } else if (selectedSort === "oldest") {
-      filtered = filtered.sort(
-        (a, b) => new Date(a.start_date) - new Date(b.start_date)
-      );
-    } else if (selectedSort === "upcoming") {
-      const today = new Date();
-      filtered = filtered
-        .filter((camp) => new Date(camp.start_date) >= today)
-        .sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
-    }
+  console.log(camps, "filtered camps")
 
-    return filtered;
-  }, [selectedSport, selectedLocation, selectedDateRange, camps, selectedSort]);
+  // Clear all filters
+  const handleClearFilters = () => {
+    setSelectedSportId(null);
+    setSelectedLocation(null);
+    setSelectedDateRange(null);
+    setSelectedSort("newest");
+  };
 
-  //   console.log("camps", camps);
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  // Note: main ui component
   return (
-    <div className="container">
+    <div className="container mx-auto px-4 py-8">
+      {/* Filter Panel */}
       <div className="border border-black/5 rounded-2xl p-4 md:p-6 bg-white shadow-sm">
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-6">
-          <img src={filterIcon} alt="filter icon" className="h-6 w-6" />
-          <CommonText
-            text="Filter & Sort Camps"
-            className="font-semibold text-lg"
-          />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <img src={filterIcon} alt="filter icon" className="h-6 w-6" />
+            <CommonText text="Filter & Sort Camps" className="font-semibold text-lg" />
+          </div>
+          <Button
+            type="text"
+            icon={<ReloadOutlined />}
+            onClick={handleClearFilters}
+            className="flex items-center gap-1 text-gray-600 hover:text-blue-600"
+          >
+            Clear Filters
+          </Button>
         </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 justify-center gap-4 md:gap-6 w-full">
-          {/* Filter by Sport */}
-          <div className="flex flex-col flex-1">
-            <label className="text-sm text-gray-600 mb-1">
-              Filter by Sport
-            </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {/* Sport Filter - Dynamic */}
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Filter by Sport</label>
             <Select
-              placeholder="Select sport"
-              className="min-w-[180px] border border-border p-2! rounded-md"
-              value={selectedSport}
-              onChange={setSelectedSport}
+              placeholder={sportsLoading ? "Loading sports..." : "All Sports"}
+              value={selectedSportId}
+              onChange={setSelectedSportId}
               allowClear
-              options={[
-                { value: "football", label: "Football" },
-                { value: "basketball", label: "Basketball" },
-                { value: "tennis", label: "Tennis" },
-                { value: "swimming", label: "Swimming" },
-              ]}
+              loading={sportsLoading}
+              className="w-full"
+              options={sportsTypes.map((sport) => ({
+                value: sport.id,
+                label: sport.sports_name,
+              }))}
             />
           </div>
 
-          {/* Filter by Location */}
-          <div className="flex flex-col flex-1">
-            <label className="text-sm text-gray-600 mb-1">
-              Filter by Location
-            </label>
+          {/* Location Filter - Dynamic */}
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Filter by Location</label>
             <Select
-              placeholder="Select location"
-              className="min-w-[180px] border border-border p-2! rounded-md"
+              placeholder={locationsLoading ? "Loading locations..." : "All Locations"}
               value={selectedLocation}
               onChange={setSelectedLocation}
               allowClear
-              options={[
-                { value: "new-york", label: "New York" },
-                { value: "london", label: "London" },
-                { value: "sydney", label: "Sydney" },
-                { value: "toronto", label: "Toronto" },
-              ]}
+              loading={locationsLoading}
+              className="w-full"
+              options={locationList.map((loc) => ({
+                value: loc,
+                label: loc,
+              }))}
             />
           </div>
 
-          {/* Filter by Date Range */}
-          <div className="flex flex-col flex-1">
-            <label className="text-sm text-gray-600 mb-1">
-              Filter by Date Range
-            </label>
+          {/* Date Range Filter */}
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Filter by Date Range</label>
             <RangePicker
               value={selectedDateRange}
               onChange={setSelectedDateRange}
               allowClear
-              className="min-w-[220px]"
+              className="w-full"
             />
           </div>
 
-          {/* Sort by Newest First */}
-          <div className="flex flex-col flex-1">
+          {/* Sort Filter */}
+          <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Sort by</label>
             <Select
-              placeholder="Sort by"
-              className="min-w-[180px] border border-border p-2! rounded-md"
+              placeholder="Oldest First"
               value={selectedSort}
               onChange={setSelectedSort}
-              allowClear
+              className="w-full"
               options={[
                 { value: "newest", label: "Newest First" },
                 { value: "oldest", label: "Oldest First" },
@@ -153,15 +152,24 @@ const FilterCamps = ({ camps, isLoading }) => {
           </div>
         </div>
       </div>
-      {/* render card by filtering */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
-        {filterCamps.length > 0 ? (
-          filterCamps.map((camp) => <CampCard key={camp.id} camp={camp} />)
+
+      {/* Camps List */}
+      <div className="mt-12">
+        {campsLoading ? (
+          <div className="flex justify-center py-20">
+            <Spin size="large" />
+          </div>
+        ) : camps?.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
+            {camps?.map((camp) => (
+              <CampCard key={camp.id} camp={camp} />
+            ))}
+          </div>
         ) : (
-          <div className="col-span-3 text-center py-12">
+          <div className="text-center py-20">
             <CommonText
-              text=" No camps found matching your filters."
-              className="text-lg"
+              text="No camps found matching your filters."
+              className="text-lg text-gray-600"
             />
           </div>
         )}
@@ -169,4 +177,5 @@ const FilterCamps = ({ camps, isLoading }) => {
     </div>
   );
 };
+
 export default FilterCamps;
