@@ -14,7 +14,7 @@ export default function ActiveCamps() {
       return response?.data?.data?.checkin_camps;
     },
   });
-  // console.log(camps, 'active camps');
+  console.log(camps, 'active camps');
 
   if (isLoading) {
     return (
@@ -29,7 +29,7 @@ export default function ActiveCamps() {
       <ActiveCmpsBackBtn label="Active Camps" />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
         {camps.length > 0 ? (
-          camps?.map((camp) => <CampCard key={camp.id} camp={camp} />)
+          camps?.map((item) => <CampCard key={item.id} camp={item.camp} />)
         ) : (
           <div className="col-span-4 text-center py-12">
             <CommonText

@@ -268,6 +268,7 @@ const CourtLists = ({ campData }) => {
         selectedTimeSlot={selectedTimeSlot}
         handleBlockCourt={handleBlockCourt}
         handleRefereeUpdate={handleRefereeUpdate}
+        campId={campData?.id}
         existingReferees={
           selectedCourt && selectedTimeSlot
             ? getCourtReferees(selectedCourt.court_number, selectedTimeSlot.time_24h)
