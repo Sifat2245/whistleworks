@@ -10,7 +10,7 @@ const CourtLists = ({ campData }) => {
   const [activeFilter, setActiveFilter] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
-  // Fetch available dates first (no date param) to get the list
+  // Note: Fetch available dates first (no date param) to get the list
   const { data: initialData, isLoading: loadingInitial } = useQuery({
     queryKey: ["available-dates", campData?.id],
     queryFn: async () => {
@@ -24,7 +24,7 @@ const CourtLists = ({ campData }) => {
 
   const availableDates = initialData?.available_dates || [];
 
-  // Set first date as default when availableDates loads
+  // Note: Set first date as default when availableDates loads
   useEffect(() => {
     if (availableDates.length > 0 && !selectedDate) {
       const firstDate = availableDates[0];
@@ -33,7 +33,7 @@ const CourtLists = ({ campData }) => {
     }
   }, [availableDates, selectedDate]);
 
-  // Fetch schedule for the selected date
+  // Note: Fetch schedule for the selected date
   const { data, isLoading } = useQuery({
     queryKey: ["court-info", campData?.id, selectedDate],
     queryFn: async () => {
@@ -44,6 +44,7 @@ const CourtLists = ({ campData }) => {
     },
     enabled: !!campData?.id && !!selectedDate,
   });
+  console.log("Fetch schedule:--->", data)
 
   const courtHeaders = data?.court_headers || [];
   const timeSlots = data?.time_slots || [];
@@ -51,7 +52,6 @@ const CourtLists = ({ campData }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
-
   const [courtSchedules, setCourtSchedules] = useState({});
 
   const getCourtTimeKey = (courtNumber, time24h) => `${courtNumber}_${time24h}`;
@@ -66,6 +66,7 @@ const CourtLists = ({ campData }) => {
     return courtSchedules[key]?.referees || [];
   };
 
+  // Note: handled click on the date button
   const handleDateClick = (item) => {
     setActiveFilter(item.formatted);
     setSelectedDate(item.date.split("T")[0]); // Extract YYYY-MM-DD
@@ -86,17 +87,19 @@ const CourtLists = ({ campData }) => {
     setSelectedTimeSlot(null);
   };
 
-  const handleRefereeUpdate = (selectedReferees) => {
-    if (selectedCourt && selectedTimeSlot) {
-      const key = getCourtTimeKey(selectedCourt.court_number, selectedTimeSlot.time_24h);
-      setCourtSchedules((prev) => ({
-        ...prev,
-        [key]: { referees: selectedReferees, isBlocked: false },
-      }));
-    }
-    handleCloseModal();
+  // Note: referee update handler
+  const handleAssignSuccess = (slotId, assignedReferees) => {
+    setCourtSchedules((prev) => ({
+      ...prev,
+      [slotId]: {
+        referees: assignedReferees,
+        isBlocked: false,
+      },
+    }));
   };
 
+
+  // Note: block court handler
   const handleBlockCourt = () => {
     if (selectedCourt && selectedTimeSlot) {
       const key = getCourtTimeKey(selectedCourt.court_number, selectedTimeSlot.time_24h);
@@ -165,7 +168,7 @@ const CourtLists = ({ campData }) => {
     return <div className="text-center py-12 text-gray-600">Loading schedule...</div>;
   }
 
-  if (availableDates.length === 0) {
+  if (availableDates?.length === 0) {
     return <div className="text-center py-12 text-gray-500">No available dates.</div>;
   }
 
@@ -173,18 +176,18 @@ const CourtLists = ({ campData }) => {
     <div className="w-full mt-6 mb-16">
       {/* Date Filter Buttons */}
       <div className="flex gap-4 mb-8 overflow-x-auto pb-6">
-        {availableDates.map((item) => (
+        {availableDates?.map((item) => (
           <button
-            key={item.formatted}
+            key={item?.formatted}
             onClick={() => handleDateClick(item)}
             className={`border border-[#00AEEF] px-8 py-4 rounded-xl whitespace-nowrap transition-all font-medium
-              ${activeFilter === item.formatted
+              ${activeFilter === item?.formatted
                 ? "bg-[#00AEEF] text-white shadow-lg"
                 : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
           >
             <div className="text-center">
-              <div className="font-semibold">{item.formatted}</div>
+              <div className="font-semibold">{item?.formatted}</div>
             </div>
           </button>
         ))}
@@ -212,7 +215,7 @@ const CourtLists = ({ campData }) => {
             </div>
 
             {/* Body */}
-            {timeSlots.map((slot) => (
+            {timeSlots?.map((slot) => (
               <div
                 key={slot.time_24h}
                 className="flex gap-6 border-b border-gray-200 hover:bg-gray-50 transition-colors"
@@ -267,13 +270,16 @@ const CourtLists = ({ campData }) => {
         selectedCourt={selectedCourt}
         selectedTimeSlot={selectedTimeSlot}
         handleBlockCourt={handleBlockCourt}
-        handleRefereeUpdate={handleRefereeUpdate}
         campId={campData?.id}
         existingReferees={
           selectedCourt && selectedTimeSlot
-            ? getCourtReferees(selectedCourt.court_number, selectedTimeSlot.time_24h)
+            ? getCourtReferees(
+              selectedCourt.court_number,
+              selectedTimeSlot.time_24h
+            )
             : []
         }
+        onAssignSuccess={handleAssignSuccess}
       />
     </div>
   );
