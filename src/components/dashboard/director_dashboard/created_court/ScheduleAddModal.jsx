@@ -22,7 +22,7 @@ const ScheduleAddModal = ({
     queryKey: ["referee-list"],
     queryFn: async () => {
       const response = await axiosInstance.get(
-        `/v1/camp/${campId}/all-checked-in-referees`
+        `/v1/director/court-assign/camp/${campId}/available-referees`
       );
       return response?.data?.data?.referees;
     },
