@@ -8,52 +8,65 @@ import book from "@/assets/svg/book.svg";
 import ActiveCmpsBackBtn from "./ActiveCmpsBackBtn";
 import { SlCamera } from "react-icons/sl";
 import { useAuth } from "@/hooks/useAuth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import toast from "react-hot-toast";
-import { useState } from "react";
 
 export default function Profile() {
   const axiosInstance = useAxiosSecure();
-  const [avatarFile, setAvatarFile] = useState(null);
   const { userData } = useAuth();
+  const queryClient = useQueryClient()
 
   // Note: profile image update mutation
-  const updateProfileAvatar = useMutation({
-    mutationKey: ["update-avatar"],
-    mutationFn: async (formData) => {
-      const response = await axiosInstance.post(`/update-avatar`, formData, {
-        headers: {
-          "Content-Type": "mulitpart/form-data"
-        }
-      })
-      return response?.data
-    },
-    onSuccess: (data) => {
-      toast.success(data?.message || "Profile update successfully!")
-      console.log("first")
-    },
-    onError: (err) => {
-      console.log("first");
-      toast.error(err?.response?.data?.message || "Something went wrong!");
-    }
-  })
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setAvatarFile(file);
+  const changeProfileImageMutation = useMutation({
+    mutationKey: ['change-avatar'],
+    mutationFn: async (file) => {
       const formData = new FormData();
       formData.append("avatar", file);
-      updateProfileAvatar.mutate(formData);
+
+      const response = await axiosInstance.post(`/update-avatar`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      })
+      return response?.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Profile update successfully!");
+      queryClient.invalidateQueries({ queryKey: ["userData"], exact: true })
+      // userRefetch();
+    },
+    onError: (error) => {
+      const errorMessage = error?.response?.data?.message || "Profile image change failed. ";
+      toast.error(errorMessage);
     }
+  });
+
+  const handleFileChange = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.target.files[0];
+    if (!file) return toast.error("Something went wrong!");
+
+    // Note: validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    };
+    // Note: validate file size 5MB limit
+    if (!file.size > 5 * 1024 * 1024) {
+      toast.error("Image should be less than 5MB");
+      return;
+    }
+    changeProfileImageMutation.mutate(file);
   };
 
   // Note: main ui component
   return (
     <section className="container w-full px-4 mx-auto mt-10 mb-18">
       <ActiveCmpsBackBtn label="Profile" />
-      <div className=" mx-auto space-y-8">
+      <div className="mx-auto space-y-8">
+        {/* image and name */}
         <div className="border border-border p-5 rounded-[10px] md:flex items-center gap-5">
           <div className="relative size-48 rounded-full shrink-0">
             <Image
@@ -77,7 +90,9 @@ export default function Profile() {
                 name="avatar"
                 id="avatar"
                 className="hidden"
-                onSubmit={handleFileChange}
+                accept="image/*"
+                onChange={handleFileChange}
+                disabled={changeProfileImageMutation.isPending}
               />
             </label>
           </div>
@@ -93,6 +108,18 @@ export default function Profile() {
             />
           </div>
         </div>
+
+        {/* edit profile info button
+        <div className="w-full flex justify-end items-end">
+          <Link
+            to="/profile/1"
+            className="bg-primary py-2 px-5 rounded-md text-white"
+          >
+            Edit Profile Info
+          </Link>
+        </div> */}
+
+        {/* Contact information */}
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
           <div className="border border-border p-5 rounded-[10px] space-y-7">
             <h4 className="text-xl font-medium">Contact Information</h4>
