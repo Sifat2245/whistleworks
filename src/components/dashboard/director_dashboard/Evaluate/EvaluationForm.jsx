@@ -27,7 +27,6 @@ const EvaluationForm = ({ camp_id }) => {
       </div>
     )
   }));
-  // console.log("Registerd referees:--->", getRegisterReferess)
 
   // Note: react hook form
   const {

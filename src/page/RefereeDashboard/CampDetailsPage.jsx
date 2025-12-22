@@ -64,7 +64,7 @@ export default function CampDetailsPage() {
           <>
             {/* Common Tabs - Both Roles */}
             {tab === "camp-details" && <CampDetails campData={campData} />}
-            {tab === "roster" && <Roster />}
+            {tab === "roster" && <Roster camp_id={id}/>}
 
             {/* Evaluator Only Tabs */}
             {isEvaluator && tab === "ranking-report" && <RankingReport />}

@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import Evaluator from "@/components/dashboard/refereeDashboard/roster/Evaluator";
 import EvaluatorRefereeList from "../EvolatorDashboard/EvaluatorRefereeList";
 
-export default function Roster() {
+export default function Roster({ camp_id }) {
   const [searchParams] = useSearchParams();
   const subTab = searchParams.get("subTab");
   console.log("Current subTab:", subTab);
@@ -15,7 +15,7 @@ export default function Roster() {
       {subTab === "evaluator" && <Evaluator />}
       {subTab === "referee" && (
         <div className="border border-border rounded-xl p-5 min-h-[calc(100vh-400px)]">
-          <EvaluatorRefereeList />
+          <EvaluatorRefereeList camp_id={camp_id} />
         </div>
       )}
       {subTab === "crews" && (
