@@ -166,9 +166,9 @@ const SignUp = () => {
           control={control}
           errors={errors}
           options={[
-            { label: "Camp Director", value: 4 },
-            { label: "Referee", value: 6 },
-            { label: "Evaluator", value: 5 },
+            { label: "Camp Director", value: 2 },
+            { label: "Evaluator", value: 3 },
+            { label: "Referee", value: 4 },
           ]}
           validationRules={{
             required: "Role is required",
