@@ -1,9 +1,8 @@
 import Icon from "@/components/common/Icon";
 import setting from "@/assets/svg/setting.svg";
 import RankingReportTable from "@/components/dashboard/evaluatorDashboard/rankingReport/RankingReportTable";
-import RankingReportCard from "@/components/dashboard/evaluatorDashboard/rankingReport/RankingReportCard";
 
-export default function RankingReport() {
+export default function RankingReport({ camp_id }) {
   return (
     <section>
       <div className="flex justify-end">
@@ -17,8 +16,8 @@ export default function RankingReport() {
       <p className="text-[#666666] mb-5">
         Performance rankings based on evaluation scores
       </p>
-      <RankingReportTable />
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <RankingReportTable camp_id={camp_id} />
+      {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <RankingReportCard
           colorClass="text-primary"
           title="Avg Overall Score"
@@ -39,7 +38,7 @@ export default function RankingReport() {
           title="Improving"
           value="2"
         />
-      </div>
+      </div> */}
     </section>
   );
 }
