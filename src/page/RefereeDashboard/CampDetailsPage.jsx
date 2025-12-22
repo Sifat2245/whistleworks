@@ -1,5 +1,5 @@
 import ActiveCmpsBackBtn from "@/components/common/ActiveCmpsBackBtn";
-import { useLoaderData, useSearchParams } from "react-router-dom"; // Note: You're using React Router v6? If Next.js, use next/navigation instead
+import { useLoaderData, useParams, useSearchParams } from "react-router-dom"; // Note: You're using React Router v6? If Next.js, use next/navigation instead
 import CampDetailsTabs from "@/components/dashboard/refereeDashboard/CampDetailsTabs";
 import EvolatorCampTabs from "@/components/dashboard/evaluatorDashboard/ActiveCamps/EvolatorCampTabs";
 import { Divider, Result } from "antd";
@@ -13,11 +13,12 @@ import Evaluate from "../DirectorDashboard/Evaluate"; // Note: This is from Dire
 import { useAuth } from "@/hooks/useAuth";
 
 export default function CampDetailsPage() {
+  const { id } = useParams();
   const [searchParams] = useSearchParams();
   const data = useLoaderData();
   const campData = data?.data?.data
-  
-  const tab = searchParams.get("tab") || "camp-details"; 
+
+  const tab = searchParams.get("tab") || "camp-details";
   const { userData } = useAuth();
   const userRole = userData?.role?.toLowerCase();
 
@@ -67,7 +68,7 @@ export default function CampDetailsPage() {
 
             {/* Evaluator Only Tabs */}
             {isEvaluator && tab === "ranking-report" && <RankingReport />}
-            {isEvaluator && tab === "evaluate" && <Evaluate />}
+            {isEvaluator && tab === "evaluate" && <Evaluate camp_id={id}/>}
             {isEvaluator && tab === "schedule" && <Schedule />}
 
             {/* Referee Only Tabs */}

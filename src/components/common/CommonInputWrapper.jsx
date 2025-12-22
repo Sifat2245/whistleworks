@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars */
 import ErrorText from "@/components/common/ErrorText";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { FaEyeSlash, FaEye } from "react-icons/fa6";
 import { Select } from "antd";
 import { Controller } from "react-hook-form";
 import { cn } from "@/lib/utils";
+
 const CommonInputWrapper = ({
   wrapperClass,
   inputClass,
@@ -28,7 +29,8 @@ const CommonInputWrapper = ({
 }) => {
   const [show, setShow] = useState(false);
   const errorMessage = errors[register_as]?.message;
-  // Function to normalize the value to always return primitive values
+
+  // Note: normalize value for RHF + AntD
   const normalizeValue = (val) => {
     if (selectMode === "multiple" || selectMode === "tags") {
       if (Array.isArray(val)) {
@@ -40,8 +42,16 @@ const CommonInputWrapper = ({
     }
     return typeof val === "object" ? val?.value : val;
   };
-  // Normalize the initial value
+
   const normalizedValue = normalizeValue(value);
+
+  // Note: detect JSX label (image case)
+  const hasJSXLabel = useMemo(() => {
+    return options?.some(
+      (opt) => typeof opt?.label === "object"
+    );
+  }, [options]);
+
   return (
     <div
       className={cn(
@@ -59,12 +69,14 @@ const CommonInputWrapper = ({
         </label>
       )}
 
-      {/* Eye Icon for Password */}
+      {/* Password toggle */}
       {type === "password" && (
         <button
           type="button"
-          onClick={() => setShow((prevState) => !prevState)}
-          className={`absolute cursor-pointer right-5 top-[50%] text-neutral-500 transform ${errorMessage ? "translate-y-[-46%]" : "translate-y-[50%]"
+          onClick={() => setShow((prev) => !prev)}
+          className={`absolute cursor-pointer right-5 top-[50%] text-neutral-500 transform ${errorMessage
+            ? "translate-y-[-46%]"
+            : "translate-y-[50%]"
             }`}
         >
           {show ? <FaEye /> : <FaEyeSlash />}
@@ -102,23 +114,22 @@ const CommonInputWrapper = ({
                 mode={selectMode !== "single" ? selectMode : undefined}
                 placeholder={placeholder}
                 options={options}
-                optionFilterProp="label"
                 value={
                   normalizeValue(field.value) === "" ||
                     normalizeValue(field.value)?.length === 0
                     ? undefined
                     : normalizeValue(field.value)
                 }
-                onChange={(selectedValue, option) => {
-                  if (selectMode === "multiple" || selectMode === "tags") {
-                    field.onChange(selectedValue);
-                  } else {
-                    field.onChange(option?.value || selectedValue);
-                  }
+                onChange={(selectedValue) => {
+                  field.onChange(selectedValue);
                 }}
-                className="w-full bg-transparent placeholder-neutral-600 h-[49px]"
+                // Note: only use optionFilterProp when label is string
+                {...(!hasJSXLabel && {
+                  optionFilterProp: "label",
+                })}
                 showSearch
                 allowClear
+                className="w-full bg-transparent placeholder-neutral-600 h-[49px]"
               />
             )}
           />
@@ -138,7 +149,7 @@ const CommonInputWrapper = ({
           {...register(register_as, validationRules)}
         />
       )}
-      {/* Error Message */}
+      {/* Error */}
       {errorMessage && <ErrorText error={errorMessage} />}
     </div>
   );

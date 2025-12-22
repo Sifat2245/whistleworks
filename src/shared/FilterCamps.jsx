@@ -12,7 +12,7 @@ import useAxiosPublic from "@/hooks/useAxiosPublic";
 
 const { RangePicker } = DatePicker;
 
-const FilterCamps = ({ limit }) => {  // limit prop for homepage (e.g., 4)
+const FilterCamps = ({ limit }) => {
   const [selectedSportId, setSelectedSportId] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedDateRange, setSelectedDateRange] = useState(null);
@@ -20,7 +20,7 @@ const FilterCamps = ({ limit }) => {  // limit prop for homepage (e.g., 4)
 
   const axiosPublic = useAxiosPublic();
 
-  // Fetch Sports Types
+  // Note: Fetch Sports Types
   const {
     data: sportsTypes = [],
     isLoading: sportsLoading,
@@ -32,7 +32,7 @@ const FilterCamps = ({ limit }) => {  // limit prop for homepage (e.g., 4)
     },
   });
 
-  // Fetch Locations
+  // Note: Fetch Locations
   const {
     data: locationList = [],
     isLoading: locationsLoading,
@@ -44,6 +44,7 @@ const FilterCamps = ({ limit }) => {  // limit prop for homepage (e.g., 4)
     },
   });
 
+  // Note: filter alls
   const filters = {
     sports_type_id: selectedSportId || undefined,
     location: selectedLocation || undefined,
@@ -62,6 +63,7 @@ const FilterCamps = ({ limit }) => {  // limit prop for homepage (e.g., 4)
 
   // Show only limited camps if limit is passed (homepage)
   const displayedCamps = limit ? camps.slice(0, limit) : camps;
+  console.log("Displayed Camp--->", displayedCamps);
 
   const handleClearFilters = () => {
     setSelectedSportId(null);
@@ -76,7 +78,7 @@ const FilterCamps = ({ limit }) => {  // limit prop for homepage (e.g., 4)
       <div className="border border-black/5 rounded-2xl p-4 md:p-6 bg-white shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <img src={filterIcon} alt="filter icon" className="h-6 w-6" />
+            <img src={filterIcon || null} alt="filter icon" className="h-6 w-6" />
             <CommonText text="Filter & Sort Camps" className="font-semibold text-lg" />
           </div>
           <Button
@@ -158,9 +160,9 @@ const FilterCamps = ({ limit }) => {  // limit prop for homepage (e.g., 4)
           <div className="flex justify-center py-20">
             <Spin size="large" />
           </div>
-        ) : displayedCamps.length > 0 ? (
+        ) : displayedCamps?.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
-            {displayedCamps.map((camp) => (
+            {displayedCamps?.map((camp) => (
               <CampCard key={camp.id} camp={camp} />
             ))}
           </div>

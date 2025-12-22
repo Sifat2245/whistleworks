@@ -1,6 +1,7 @@
 import { FaUser, FaMapMarkerAlt, FaClock, FaDollarSign } from "react-icons/fa";
 import CommonSubmitBtn from "../common/CommonSubmitBtn";
 import { useAuth } from "@/hooks/useAuth";
+import dummyImage from "@/assets/dummyCardImg.png"
 
 const CampCard = ({ camp }) => {
   const pathname = window.location.pathname;
@@ -8,7 +9,7 @@ const CampCard = ({ camp }) => {
 
   const userRole = userData?.role?.toLowerCase();
 
-  // Define navigation paths based on user role
+  // Note: Define navigation paths based on user role
   const getDashboardPath = () => {
     if (userRole === "director") {
       return `/director-dashboard/camp-overview/${camp?.id}`;
@@ -46,6 +47,7 @@ const CampCard = ({ camp }) => {
   const coachName = sport?.sports_name || "Various Coaches";
   const displayPrice = price ? `$${parseFloat(price).toFixed(2)}` : "Free";
 
+  // Note: main ui component
   return (
     <div className="border border-gray-300 hover:border-primary rounded-xl p-5 w-full max-w-[380px] bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
       {/* Title and Logo */}
@@ -54,11 +56,11 @@ const CampCard = ({ camp }) => {
           {camp_name || "Untitled Camp"}
         </h2>
         <img
-          src={camp_logo || "https://via.placeholder.com/72?text=Camp"}
+          src={camp_logo || dummyImage}
           alt={camp_name || "Camp logo"}
           className="h-18 w-18 rounded-full object-cover bg-gray-100 shrink-0"
           onError={(e) => {
-            e.target.src = "https://via.placeholder.com/72?text=Camp";
+            e.target.src = dummyImage;
           }}
         />
       </div>

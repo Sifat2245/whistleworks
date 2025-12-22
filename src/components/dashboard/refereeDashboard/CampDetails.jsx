@@ -8,6 +8,7 @@ import { useState } from "react";
 import { HiOutlineShieldCheck } from "react-icons/hi2";
 import { useAuth } from "@/hooks/useAuth";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
+import dummyImage from "@/assets/dummyCardImg.png"
 
 export default function CampDetails({ campData }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,7 +20,7 @@ export default function CampDetails({ campData }) {
 
   const isEvaluator = userData?.role === "evaluator";
 
-  // Destructure camp data
+  // Note: Destructure camp data
   const {
     id: campId,
     camp_name = "Untitled Camp",
@@ -113,13 +114,13 @@ export default function CampDetails({ campData }) {
 
           <div className="flex items-center gap-1.5 mb-4">
             <Image
-              src={camp_logo || "https://via.placeholder.com/36?text=Camp"}
+              src={camp_logo || dummyImage}
               alt={camp_name}
               width={36}
               height={36}
               preview={false}
               className="rounded-full object-cover"
-              fallback="https://via.placeholder.com/36?text=Camp"
+              fallback={dummyImage}
             />
             <p className="text-[14px] font-normal">{camp_name}</p>
           </div>

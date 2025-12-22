@@ -28,7 +28,7 @@ export default function ActiveCamps() {
     <section className="container w-full px-4 mx-auto mt-5">
       <ActiveCmpsBackBtn label="Active Camps" />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
-        {camps.length > 0 ? (
+        {camps?.length > 0 ? (
           camps?.map((item) => <CampCard key={item.id} camp={item.camp} />)
         ) : (
           <div className="col-span-4 text-center py-12">
