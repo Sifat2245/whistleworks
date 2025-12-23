@@ -36,6 +36,8 @@ export default function RankingReportTable({ camp_id }) {
       );
       return response?.data?.data;
     },
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true
   });
 
   // Note: Apply filters

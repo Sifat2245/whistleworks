@@ -2,11 +2,9 @@ import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
 import useRegisteredReferees from "@/hooks/get-registered-referees";
-import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useMutation } from "@tanstack/react-query";
+import useSubmitEvaluation from "@/hooks/submit-evaluation-hook";
 import { Avatar } from "antd";
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
 
 const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `${i + 1}`,
@@ -14,16 +12,17 @@ const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
 }));
 
 const EvaluationForm = ({ camp_id }) => {
-  const axiosInstace = useAxiosSecure();
+
   const { getRegisterReferess } = useRegisteredReferees(camp_id);
+  const { submitEvaluation, isSubmitting } = useSubmitEvaluation({ camp_id });
 
   // Note: convert referee name and id to label and value
   const covertedRefOptions = getRegisterReferess?.map(ref => ({
     value: String(ref?.referee_id),
     label: (
       <div className="w-full flex items-center gap-2">
-        <Avatar src={ref.avatar} size={32} />
-        <span>{ref.name}</span>
+        <Avatar src={ref?.avatar} size={32} />
+        <span>{ref?.name}</span>
       </div>
     )
   }));
@@ -37,50 +36,8 @@ const EvaluationForm = ({ camp_id }) => {
   } = useForm();
 
   // Note: Evaluation handler mutation
-  const giveEvaluationMutation = useMutation({
-    mutationKey: ["give-evaluation"],
-    mutationFn: async (formData) => {
-      const response = await axiosInstace.post(
-        "/referee/evaluation/store",
-        formData
-      );
-      return response?.data;
-    },
-    onSuccess: (data) => {
-      toast.success(data?.message || "Evaluation created successfully");
-    },
-    onError: (err) => {
-      toast.error(err?.response?.data?.message || "Something went wrong!");
-    },
-  });
-
-  // Note: evaluation submit
   const onSubmit = (data) => {
-    const formData = new FormData();
-
-    formData.append("referee_id", data.referee_id);
-    formData.append("camp_id", camp_id);
-    formData.append("call_accuracy", Number(data.call_accuracy));
-    formData.append("communication_skills", Number(data.communication_skills));
-    formData.append("consistency_of_calls", Number(data.consistency_of_calls));
-    formData.append("court_position_mechanics", Number(data.court_position_mechanics));
-    formData.append("fitness_mobility", Number(data.fitness_mobility));
-    formData.append("game_awareness", Number(data.game_awareness));
-
-    if (data.private_comments) {
-      formData.append("private_comments", data.private_comments);
-    }
-
-    if (data.referee_feedback) {
-      formData.append("referee_feedback", data.referee_feedback);
-    }
-
-    formData.append(
-      "recommended_highest_level",
-      data.recommended_highest_level
-    );
-    formData.append("status", "submitted");
-    giveEvaluationMutation.mutate(formData);
+    submitEvaluation(data);
   };
 
   // Note: main ui component
@@ -222,8 +179,8 @@ const EvaluationForm = ({ camp_id }) => {
         errors={errors}
       />
 
-      <CommonSubmitBtn variant="primary" className="mt-2" disabled={giveEvaluationMutation.isPending}>
-        {giveEvaluationMutation.isPending ? <LoaderV2 /> : "Submit Evaluation"}
+      <CommonSubmitBtn variant="primary" className="mt-2" disabled={isSubmitting.isPending}>
+        {isSubmitting ? <LoaderV2 /> : "Submit Evaluation"}
       </CommonSubmitBtn>
     </form>
   );

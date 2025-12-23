@@ -34,27 +34,38 @@ const DailyTimeRange = ({ getDateRange }) => {
     },
     onSuccess: (data) => {
       toast.success(data?.message || "Schedule created successfully.");
-      navigate("/director-dashboard/court-list");
+      navigate("/director-dashboard");
     },
     onError: (err) => {
       console.log(err);
       toast.error(
         err?.response?.data?.message ||
-          "Please field the all input field properly"
+        "Please field the all input field properly"
       );
     },
   });
 
   // Note: onSubmit
   const onSubmit = (data) => {
+    const filteredTimeRanges = (data.time_ranges || []).filter(
+      (range) => range?.start_time && range?.end_time
+    );
+
+    if (filteredTimeRanges.length === 0) {
+      toast.error("Please provide at least one valid time range");
+      return;
+    }
+
     const body = {
       game_duration: Number(data.game_duration),
-      time_ranges: data.time_ranges,
+      time_ranges: filteredTimeRanges,
       locations: data.locations,
     };
+
     console.log("Final Body:", body);
     createScheduleMutation.mutate(body);
   };
+
 
   // Note: main ui component
   return (
@@ -95,6 +106,7 @@ const DailyTimeRange = ({ getDateRange }) => {
                       type="time"
                       register={register}
                       register_as={`time_ranges.${index}.start_time`}
+                      // validationRules={{ required: "Start time is required" }}
                     />
 
                     <p className="text-[#333] font-medium text-sm sm:text-base px-1 sm:px-2">
@@ -105,6 +117,7 @@ const DailyTimeRange = ({ getDateRange }) => {
                       type="time"
                       register={register}
                       register_as={`time_ranges.${index}.end_time`}
+                      // validationRules={{ required: "End time is required" }}
                     />
                     {/* Hidden date field */}
                     <input

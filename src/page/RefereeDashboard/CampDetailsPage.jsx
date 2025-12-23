@@ -9,8 +9,9 @@ import Performance from "./Performance";
 import Roster from "./Roster";
 import RankingReport from "../EvolatorDashboard/RankingReport";
 import Schedule from "../EvolatorDashboard/Schedule";
-import Evaluate from "../DirectorDashboard/Evaluate"; // Note: This is from DirectorDashboard — is that correct?
+// import Evaluate from "../DirectorDashboard/Evaluate"; // Note: This is from DirectorDashboard — is that correct?
 import { useAuth } from "@/hooks/useAuth";
+import EvaluateV2 from "../EvolatorDashboard/EvaluateV2";
 
 export default function CampDetailsPage() {
   const { id } = useParams();
@@ -68,7 +69,7 @@ export default function CampDetailsPage() {
 
             {/* Evaluator Only Tabs */}
             {isEvaluator && tab === "ranking-report" && <RankingReport camp_id={id} />}
-            {isEvaluator && tab === "evaluate" && <Evaluate camp_id={id} />}
+            {isEvaluator && tab === "evaluate" && <EvaluateV2 camp_id={id} />}
             {isEvaluator && tab === "schedule" && <Schedule />}
 
             {/* Referee Only Tabs */}
