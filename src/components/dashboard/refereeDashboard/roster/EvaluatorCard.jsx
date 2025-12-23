@@ -1,14 +1,15 @@
-import { Image } from "antd";
-import location from "@/assets/svg/location.svg";
-import email from "@/assets/svg/email.svg";
-import phone from "@/assets/svg/phone.svg";
-import Icon from "@/components/common/Icon";
+// import { Image } from "antd";
+// import location from "@/assets/svg/location.svg";
+// import email from "@/assets/svg/email.svg";
+// import phone from "@/assets/svg/phone.svg";
+// import Icon from "@/components/common/Icon";
 
-export default function EvaluatorCard({ evaluator }) {
-  console.log("evaluator", evaluator);
+export default function EvaluatorCard({ roaster }) {
+  console.log("evaluator", roaster);
   return (
     <div className="border border-border p-5 rounded-[10px] mb-3 flex gap-5 last:mb-0">
-      <Image
+      dkljafjdk
+      {/* <Image
         src={evaluator.image}
         alt={evaluator.name}
         className="size-15! rounded-full"
@@ -27,7 +28,7 @@ export default function EvaluatorCard({ evaluator }) {
           <Icon src={phone} className="size-4 inline-block mr-2" />
           {evaluator.phone}
         </p>
-      </div>
+      </div> */}
     </div>
   );
 }

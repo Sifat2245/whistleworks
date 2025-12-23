@@ -12,7 +12,7 @@ export default function Roster({ camp_id }) {
       <div className="flex justify-end mb-5">
         <RosterTabs />
       </div>
-      {subTab === "evaluator" && <Evaluator />}
+      {subTab === "evaluator" && <Evaluator camp_id={camp_id} />}
       {subTab === "referee" && (
         <div className="border border-border rounded-xl p-5 min-h-[calc(100vh-400px)]">
           <EvaluatorRefereeList camp_id={camp_id} />

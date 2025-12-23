@@ -2,25 +2,32 @@ import Icon from "@/components/common/Icon";
 import singleUser from "/referee/single-user-icon.svg";
 import EvaluatorCard from "./EvaluatorCard";
 import profile from "@/assets/dashboard/profile.png";
+import useGetRoaseter from "@/hooks/get-roaster";
 
-export default function Evaluator() {
+export default function Evaluator({ camp_id }) {
+  const { roasterData, isLoading } = useGetRoaseter(camp_id)
+  
+  console.log("Roaster data :---->", roasterData)
+  console.log(camp_id);
+
+  // Note: main ui component
   return (
-      <section className="border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between border border-border p-5 rounded-[10px] mb-6">
-          <div>
-            <h3 className="text-xl font-medium mb-2.5">Camp Roster</h3>
-            <p className="text-[#666666]">5 Referees</p>
-          </div>
-          <div className="bg-primary p-3.5 rounded-full">
-            <Icon src={singleUser} className="size-5 text-white" />
-          </div>
-        </div>
+    <section className="border border-border rounded-xl p-5">
+      <div className="flex items-center justify-between border border-border p-5 rounded-[10px] mb-6">
         <div>
-          {evaluators.map((evaluator) => (
-            <EvaluatorCard key={evaluator.id} evaluator={evaluator} />
-          ))}
+          <h3 className="text-xl font-medium mb-2.5">Camp Roster</h3>
+          <p className="text-[#666666]">5 Referees</p>
         </div>
-      </section>
+        <div className="bg-primary p-3.5 rounded-full">
+          <Icon src={singleUser} className="size-5 text-white" />
+        </div>
+      </div>
+      <div>
+        {evaluators?.map((allRoaster) => (
+          <EvaluatorCard key={allRoaster.id} roaster={allRoaster} />
+        ))}
+      </div>
+    </section>
   );
 }
 
