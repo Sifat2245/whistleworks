@@ -3,12 +3,12 @@ import useAxiosSecure from "./useAxiosSecure";
 const useGetRoaseter = (camp_id) => {
   const axiosInstance = useAxiosSecure();
   const { data: roasterData, isLoading } = useQuery({
-    queryKey: ["roaster-dat", camp_id],
+    queryKey: ["roaster-data", camp_id],
     queryFn: async () => {
       const respone = await axiosInstance.get(
         `/roster/camp/details/${camp_id}`
       );
-      return respone?.data || [];
+      return respone?.data?.data?.camp || {};
     },
   });
 
