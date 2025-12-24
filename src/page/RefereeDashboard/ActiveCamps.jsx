@@ -10,8 +10,8 @@ export default function ActiveCamps() {
   const { data: camps, isLoading } = useQuery({
     queryKey: ["camps"],
     queryFn: async () => {
-      const response = await axiosInstance.get("/v1/referee/camp/my-checkins");
-      return response?.data?.data?.checkin_camps;
+      const response = await axiosInstance.get("/v1/referee/camp/my-registrations");
+      return response?.data?.data?.registrations || [];
     },
   });
   console.log(camps, 'active camps');

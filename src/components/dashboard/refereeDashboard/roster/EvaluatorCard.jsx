@@ -1,51 +1,43 @@
-import { Image } from "antd";
-import location from "@/assets/svg/location.svg";
-import email from "@/assets/svg/email.svg";
-import phone from "@/assets/svg/phone.svg";
-import Icon from "@/components/common/Icon";
+import { Card, Avatar } from "antd";
 import profile from "@/assets/dashboard/profile.png";
 
 const EvaluatorCard = ({ evaluator }) => {
   return (
-    <div className="border border-border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition">
-      {/* Avatar + Name */}
-      <div className="flex items-center gap-4 mb-4 shrink-0">
-        <Image
+    <Card
+      hoverable
+      className="group relative overflow-hidden rounded-xl border border-black/10 shadow-sm transition-all duration-300"
+    >
+      {/* CENTER GRADIENT OVERLAY */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 
+        bg-[radial-gradient(circle_at_center,rgba(0,175,239,0.35),rgba(0,175,239,0.10),transparent_70%)]"
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center text-center gap-3">
+        <Avatar
+          size={80}
           src={evaluator?.avatar || profile}
-          alt={evaluator?.name}
-          width={56}
-          height={56}
-          preview={false}
-          className="rounded-full object-cover shrink-0"
         />
-        <div>
-          <h3 className="text-base font-semibold leading-tight">
+
+        <div className="space-y-1">
+          <h3 className="text-lg font-medium text-black">
             {evaluator?.name}
           </h3>
-          <p className="text-sm text-muted-foreground">
-            Evaluator
+
+          <p className="text-sm text-gray-500">
+            <span className="font-medium text-[#444]">Email:</span>{" "}
+            {evaluator?.email || "N/A"}
+          </p>
+
+          <p className="text-sm text-gray-500">
+            <span className="font-medium text-[#444]">Phone:</span>{" "}
+            {evaluator?.phone || "N/A"}
           </p>
         </div>
       </div>
-
-      {/* Info */}
-      <div className="space-y-2 text-sm text-[#666666]">
-        <p className="flex items-start gap-2">
-          <Icon src={location} className="size-4 shrink-0 mt-0.5" />
-          <span>{evaluator?.address || "N/A"}</span>
-        </p>
-
-        <p className="flex items-start gap-2">
-          <Icon src={email} className="size-4 shrink-0 mt-0.5" />
-          <span className="break-all">{evaluator?.email}</span>
-        </p>
-
-        <p className="flex items-start gap-2">
-          <Icon src={phone} className="size-4 shrink-0 mt-0.5" />
-          <span>{evaluator?.phone}</span>
-        </p>
-      </div>
-    </div>
+    </Card>
   );
-}
+};
+
 export default EvaluatorCard;

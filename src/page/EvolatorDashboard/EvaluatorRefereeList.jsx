@@ -33,29 +33,11 @@ const EvaluatorRefereeList = ({ camp_id }) => {
                         <Card
                             key={ref.id}
                             hoverable
-                            className="
-                group
-                relative
-                overflow-hidden
-                rounded-xl
-                border border-black/10
-                shadow-sm
-                transition-all
-                duration-300
-              "
+                            className="group relative overflow-hidden rounded-xl border border-black/10 shadow-sm transition-all duration-300"
                         >
                             {/* CENTER GRADIENT OVERLAY */}
                             <div
-                                className="
-                  pointer-events-none
-                  absolute
-                  inset-0
-                  opacity-0
-                  group-hover:opacity-100
-                  transition-opacity
-                  duration-300
-                  bg-[radial-gradient(circle_at_center,rgba(0,175,239,0.35),rgba(0,175,239,0.10),transparent_70%)]
-                "
+                                className=" pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_center,rgba(0,175,239,0.35),rgba(0,175,239,0.10),transparent_70%)]"
                             />
 
                             <div className="relative z-10 flex flex-col items-center text-center gap-3">

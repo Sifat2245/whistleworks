@@ -217,7 +217,7 @@ export default function CampDetails({ campData }) {
             onClick={() => setIsModalOpen(true)}
             className="bg-primary text-white py-4 px-8 rounded-md w-full text-lg font-medium mt-6 cursor-pointer hover:opacity-90 transition"
           >
-            Check In
+            Register
           </button>
         )}
       </div>
@@ -234,7 +234,7 @@ export default function CampDetails({ campData }) {
         onCancel={handleCancel}
         confirmLoading={loading}
         cancelText="Go Back"
-        okText={loading ? "Processing..." : "Confirm Check In"}
+        okText={loading ? "Processing..." : "Proceed Please.."}
         centered
         width={420}
         okButtonProps={{
