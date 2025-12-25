@@ -5,6 +5,7 @@ import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import CourtSlotBox from "./CourtSlotBox";
 import ScheduleActionButtons from "./ScheduleActionButtons";
+import ScheduleSkeleton from "./ScheduleSkeleton";
 
 const CourtLists = ({ campData }) => {
   const axiosInstance = useAxiosSecure();
@@ -115,9 +116,7 @@ const CourtLists = ({ campData }) => {
   };
 
   if (loadingInitial || isLoading) {
-    return (
-      <div className="text-center py-12 text-gray-600">Loading schedule...</div>
-    );
+    return <ScheduleSkeleton />;
   }
 
   if (availableDates.length === 0) {
@@ -212,7 +211,7 @@ const CourtLists = ({ campData }) => {
       </div>
 
       {/* Footer Actions */}
-     <ScheduleActionButtons campId={campData?.id}/>
+      <ScheduleActionButtons campId={campData?.id} />
 
       {/* Modal */}
       <ScheduleAddModal
