@@ -1,31 +1,71 @@
 // components/schedule/CourtSlotBox.jsx
 import { TiPlus } from "react-icons/ti";
+import { HiXMark } from "react-icons/hi2";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
 const CourtSlotBox = ({
   court,
   timeSlot,
   isBlocked,
-  referees: localReferees = [], // fallback if no API data yet
+  referees: localReferees = [],
   onUndoBlock,
   onClick,
 }) => {
   const axiosInstance = useAxiosSecure();
+  const queryClient = useQueryClient();
 
-  // Fetch real assigned referees from API
+  // Mutation to remove a referee assignment
+  const removeMutation = useMutation({
+    mutationFn: async (assignmentId) => {
+      await axiosInstance.delete(
+        `/v1/director/court-assign/assignment/${assignmentId}/remove`
+      );
+    },
+    onSuccess: () => {
+      toast.success("Referee unassigned successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["assigned-referee", court.slot_id],
+      });
+    },
+    onError: () => {
+      toast.error("Failed to unassign referee");
+    },
+  });
+
+  const handleRemoveReferee = async (e, assignmentId, refereeName) => {
+    e.stopPropagation(); // Prevent opening modal
+
+    const result = await Swal.fire({
+      title: "Unassign Referee?",
+      text: `Are you sure you want to remove ${refereeName || "this referee"} from this slot?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, unassign",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+    });
+
+    if (result.isConfirmed) {
+      removeMutation.mutate(assignmentId);
+    }
+  };
+
   const { data: apiResponse } = useQuery({
-    queryKey: ["assigned-referee", court.slot_id], // Use slot_id (unique per slot)
+    queryKey: ["assigned-referee", court.slot_id],
     queryFn: async () => {
       const res = await axiosInstance.get(
         `/v1/director/court-assign/slot/${court?.slot_id}/assigned-referees-crew`
       );
-      return res?.data?.data; // return the inner "data" object
+      return res?.data?.data;
     },
     enabled: !!court?.slot_id,
   });
 
-  // Extract referees from API response (or fallback to local state)
   const assignedReferees = apiResponse?.referees || localReferees;
 
   const handleUndoClick = (e) => {
@@ -41,37 +81,72 @@ const CourtSlotBox = ({
   return (
     <div
       onClick={handleBoxClick}
-      className={`shrink-0 w-72 rounded-xl p-8 min-h-[200px] flex items-center justify-center shadow-lg transition-all cursor-pointer
-        ${isBlocked ? "bg-gray-200 cursor-not-allowed opacity-70" : "bg-white hover:shadow-2xl"}`}
+      className={`shrink-0 w-72 rounded-xl p-8 min-h-[200px] flex flex-col items-center justify-center shadow-lg transition-all
+        ${isBlocked
+          ? "bg-gray-200 cursor-not-allowed opacity-70"
+          : "bg-white hover:shadow-2xl cursor-pointer"
+        }`}
     >
       {isBlocked ? (
         <button
           onClick={handleUndoClick}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 text-sm font-medium"
+          className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
         >
           Undo Block
         </button>
       ) : assignedReferees.length > 0 ? (
-        <div className="text-left w-full">
-          <div className="text-sm font-medium text-gray-700 mb-3">
-            Referees ({assignedReferees.length}/3):
+        <div className="w-full text-left">
+          <div className="text-sm font-semibold text-gray-700 mb-3">
+            Referees ({assignedReferees.length}/3)
           </div>
-          <div className="space-y-2">
-            {assignedReferees.map((item, idx) => (
-              <div key={item.assignment_id || idx} className="flex items-center gap-3 text-sm">
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center font-bold text-xs">
-                  {idx + 1}
+          <div className="space-y-3">
+            {assignedReferees.map((item, idx) => {
+              const refereeName = item?.referee?.name || "Unknown Referee";
+
+              return (
+                <div
+                  key={item.assignment_id || idx}
+                  className="group flex items-center justify-between gap-3 py-1"
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    <img
+                      src={item?.referee?.avatar || "/default-avatar.png"}
+                      alt={refereeName}
+                      className="w-9 h-9 rounded-full object-cover border border-gray-200"
+                      onError={(e) => (e.target.src = "/default-avatar.png")}
+                    />
+                    <span className="text-sm font-medium truncate max-w-[140px]">
+                      {refereeName}
+                    </span>
+                  </div>
+
+                  {/* Cross button - appears on hover */}
+                  <button
+                    onClick={(e) =>
+                      handleRemoveReferee(e, item.assignment_id, refereeName)
+                    }
+                    disabled={removeMutation.isPending}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity
+                               bg-black  text-white
+                               rounded-full p-1 cursor-pointer shadow-md"
+                    title="Unassign referee"
+                  >
+                    <HiXMark className="w-3 h-3" />
+                  </button>
                 </div>
-                <span className="truncate max-w-[180px]">
-                  {item.referee?.name || "Unknown"}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {assignedReferees.length < 3 && (
+            <div className="mt-4 text-center text-xs text-gray-500">
+              {3 - assignedReferees.length} spot{assignedReferees.length === 2 ? "" : "s"} available
+            </div>
+          )}
         </div>
       ) : (
-        <div className="bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
-          <TiPlus className="text-3xl" />
+        <div className="bg-[#00AEEF] hover:bg-[#0099d4] transition-colors text-white rounded-full w-16 h-16 flex items-center justify-center shadow-xl hover:scale-110">
+          <TiPlus className="text-4xl" />
         </div>
       )}
     </div>

@@ -1,4 +1,3 @@
-import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import CommonSectionTitle from "../CommonSectionTitle";
 
 const CourtHeader = ({campData}) => {
@@ -11,11 +10,7 @@ const CourtHeader = ({campData}) => {
                 wrapperClass={"w-full"}
             />
 
-            {/* buttons */}
-            <div className="w-full flex items-center justify-end gap-10">
-                <CommonSubmitBtn>Assign by crew ?</CommonSubmitBtn>
-                <CommonSubmitBtn>Auto-Assign Referees</CommonSubmitBtn>
-            </div>
+          
         </div>
     );
 };
