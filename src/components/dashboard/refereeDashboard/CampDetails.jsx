@@ -47,7 +47,7 @@ export default function CampDetails({ campData }) {
 
     try {
       const response = await axiosSecure.post(
-        `/v1/referee/camp/${campId}/checkin`
+        `/v1/referee/camp/${campId}/register`
       );
 
       const { success, message, data } = response.data;
@@ -234,7 +234,7 @@ export default function CampDetails({ campData }) {
         onCancel={handleCancel}
         confirmLoading={loading}
         cancelText="Go Back"
-        okText={loading ? "Processing..." : "Proceed Please.."}
+        okText={loading ? "Processing..." : "Proceed"}
         centered
         width={420}
         okButtonProps={{

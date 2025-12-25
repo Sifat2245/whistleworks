@@ -18,21 +18,25 @@ const ScheduleAddModal = ({
 }) => {
   const [selectedReferees, setSelectedReferees] = useState([]);
   const axiosInstance = useAxiosSecure();
+  console.log(selectedCourt?.slot_id, "slot id");
 
   // ---------------- GET REFEREES ----------------
-  const { data: refereeListData } = useQuery({
+  const { data: refereeListData, refetch } = useQuery({
     queryKey: ["referee-list", campId],
     queryFn: async () => {
       const res = await axiosInstance.get(
-        `/v1/director/court-assign/camp/${campId}/available-referees`
+        `/v1/director/court-assign/slot/${selectedCourt?.slot_id}/available-referees-with-time-check`
       );
-      return res?.data?.data?.referees || [];
+      return res?.data?.data?.available_referees || [];
     },
     enabled: !!campId,
   });
 
+  console.log(refereeListData, "referee");
+
   useEffect(() => {
     if (isModalOpen) {
+      refetch()
       setSelectedReferees(existingReferees || []);
     }
   }, [isModalOpen, existingReferees]);
