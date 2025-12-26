@@ -10,15 +10,17 @@ import Swal from "sweetalert2"; // For beautiful confirmation
 const ScheduleActionButtons = ({ campId }) => {
   const axiosInstance = useAxiosSecure();
   const navigate = useNavigate();
-  const {scheduleData} = useCampSchedule(campId)
+  const { scheduleData } = useCampSchedule(campId);
 
-  const scheduleId = scheduleData?.id
+  const scheduleId = scheduleData?.id;
   console.log(scheduleId, "schedule id");
 
   // === Publish Schedule Mutation ===
   const publishMutation = useMutation({
     mutationFn: async () => {
-      const res = await axiosInstance.post(`/v1/camp/${campId}/schedule/publish`);
+      const res = await axiosInstance.post(
+        `/v1/camp/${campId}/schedule/publish`
+      );
       return res?.data;
     },
     onSuccess: (data) => {
@@ -35,13 +37,16 @@ const ScheduleActionButtons = ({ campId }) => {
   });
 
   // === Delete Schedule Mutation ===
-  const deleteMutation = useMutation({
+  const clearSchedule = useMutation({
     mutationFn: async () => {
-      const res = await axiosInstance.delete(`/v1/director/court-assign/schedules/${scheduleId}/clear-assignments`);
+      const res = await axiosInstance.delete(
+        `/v1/director/court-assign/schedules/${scheduleId}/clear-assignments`
+      );
       return res?.data;
     },
     onSuccess: (data) => {
       toast.success(data?.message || "Schedule Cleared successfully!");
+      window.location.reload();
     },
     onError: (error) => {
       const message =
@@ -52,8 +57,8 @@ const ScheduleActionButtons = ({ campId }) => {
     },
   });
 
-  // clear schedule mutation
-  const clearSchedule = useMutation({
+  // == clear schedule mutation ==
+  const deleteMutation = useMutation({
     mutationFn: async () => {
       const res = await axiosInstance.delete(`/v1/camp/${campId}/schedule`);
       return res?.data;
@@ -61,6 +66,29 @@ const ScheduleActionButtons = ({ campId }) => {
     onSuccess: (data) => {
       toast.success(data?.message || "Schedule deleted successfully!");
       navigate("/director-dashboard");
+    },
+    onError: (error) => {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to delete schedule";
+      toast.error(message);
+    },
+  });
+
+  // == clear schedule mutation ==
+  const autoAssign = useMutation({
+    mutationFn: async () => {
+      const res = await axiosInstance.post(
+        `/v1/director/court-assign/camp/${campId}/auto-assign`
+      );
+      return res?.data;
+    },
+    onSuccess: (data) => {
+      toast.success(
+        data?.message || "All available referees assigned successfully!"
+      );
+      window.location.reload();
     },
     onError: (error) => {
       const message =
@@ -110,13 +138,30 @@ const ScheduleActionButtons = ({ campId }) => {
       text: "Are you sure you want to clear the schedule?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, Delete",
+      confirmButtonText: "Yes, Clear",
       cancelButtonText: "Cancel",
       confirmButtonColor: "#d33",
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
         clearSchedule.mutate();
+      }
+    });
+  };
+
+  const handleAutoAssign = () => {
+    Swal.fire({
+      title: "Assign Referees?",
+      text: "Assign all available referees to the schedule?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Proceed",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        autoAssign.mutate();
       }
     });
   };
@@ -135,7 +180,9 @@ const ScheduleActionButtons = ({ campId }) => {
         </CommonSubmitBtn>
 
         <CommonSubmitBtn
-        onClick={handleClearSchedule}
+          onClick={handleClearSchedule}
+          isLoading={clearSchedule.isPending}
+          disabled={clearSchedule.isPending}
           className="border border-primary bg-white text-primary px-8 py-4 hover:bg-gray-50"
           // onClick={handleClear} // Add later
         >
@@ -146,8 +193,10 @@ const ScheduleActionButtons = ({ campId }) => {
       {/* Right Side */}
       <div className="flex gap-6">
         <CommonSubmitBtn
+          onClick={handleAutoAssign}
           variant="primary"
-          disabled // Until implemented
+          isLoading={autoAssign.isPending}
+          disabled={autoAssign.isPending}
         >
           Auto-Assign Referees
         </CommonSubmitBtn>
