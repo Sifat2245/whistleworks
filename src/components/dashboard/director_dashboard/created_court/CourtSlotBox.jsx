@@ -70,7 +70,7 @@ const CourtSlotBox = ({
 
   const handleUndoClick = (e) => {
     e.stopPropagation();
-    onUndoBlock(court.court_number, timeSlot.time_24h);
+    onUndoBlock(court.slot_id);
   };
 
   const handleBoxClick = () => {
@@ -90,9 +90,9 @@ const CourtSlotBox = ({
       {isBlocked ? (
         <button
           onClick={handleUndoClick}
-          className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer"
         >
-          Undo Block
+          Unblock
         </button>
       ) : assignedReferees.length > 0 ? (
         <div className="w-full text-left">

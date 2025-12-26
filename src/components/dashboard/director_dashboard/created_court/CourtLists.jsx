@@ -2,10 +2,11 @@
 import { useState, useEffect } from "react";
 import ScheduleAddModal from "./ScheduleAddModal";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import CourtSlotBox from "./CourtSlotBox";
 import ScheduleActionButtons from "./ScheduleActionButtons";
 import ScheduleSkeleton from "./ScheduleSkeleton";
+import toast from "react-hot-toast";
 
 const CourtLists = ({ campData }) => {
   const axiosInstance = useAxiosSecure();
@@ -15,13 +16,16 @@ const CourtLists = ({ campData }) => {
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [courtSchedules, setCourtSchedules] = useState({});
+  const queryClient = useQueryClient();
+
+  // console.log(selectedCourt, "court");
 
   const getCourtTimeKey = (courtNumber, time24h) => `${courtNumber}_${time24h}`;
 
-  const isCourtBlocked = (courtNumber, time24h) => {
-    const key = getCourtTimeKey(courtNumber, time24h);
-    return courtSchedules[key]?.isBlocked || false;
-  };
+  // const isCourtBlocked = (courtNumber, time24h) => {
+  //   const key = getCourtTimeKey(courtNumber, time24h);
+  //   return courtSchedules[key]?.isBlocked || false;
+  // };
 
   const getCourtReferees = (courtNumber, time24h) => {
     const key = getCourtTimeKey(courtNumber, time24h);
@@ -66,6 +70,26 @@ const CourtLists = ({ campData }) => {
   const courtHeaders = data?.court_headers || [];
   const timeSlots = data?.time_slots || [];
 
+  const toggleBlockMutation = useMutation({
+    mutationFn: async (slotId) => {
+      const res = await axiosInstance.patch(
+        `/v1/director/court-assign/slot/${slotId}/toggle-block`
+      );
+      return res?.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Updated");
+
+      // refresh schedule list
+      queryClient.invalidateQueries({
+        queryKey: ["court-info", campData?.id, selectedDate],
+      });
+
+      handleCloseModal();
+    },
+    onError: () => toast.error("Failed to update block status"),
+  });
+
   const handleDateClick = (item) => {
     setActiveFilter(item.formatted);
     setSelectedDate(item.date.split("T")[0]);
@@ -94,25 +118,13 @@ const CourtLists = ({ campData }) => {
   };
 
   const handleBlockCourt = () => {
-    if (selectedCourt && selectedTimeSlot) {
-      const key = getCourtTimeKey(
-        selectedCourt.court_number,
-        selectedTimeSlot.time_24h
-      );
-      setCourtSchedules((prev) => ({
-        ...prev,
-        [key]: { isBlocked: true, referees: [] },
-      }));
-    }
+    if (!selectedCourt?.slot_id) return;
+    toggleBlockMutation.mutate(selectedCourt?.slot_id);
     handleCloseModal();
   };
 
-  const handleUndoBlock = (courtNumber, time24h) => {
-    const key = getCourtTimeKey(courtNumber, time24h);
-    setCourtSchedules((prev) => ({
-      ...prev,
-      [key]: { ...prev[key], isBlocked: false },
-    }));
+  const handleUndoBlock = (slotId) => {
+    toggleBlockMutation.mutate(slotId);
   };
 
   if (loadingInitial || isLoading) {
@@ -182,10 +194,7 @@ const CourtLists = ({ campData }) => {
                 </div>
                 <div className="flex gap-6 py-8">
                   {slot.courts.map((court) => {
-                    const blocked = isCourtBlocked(
-                      court.court_number,
-                      slot.time_24h
-                    );
+                    const isBlocked = court?.is_blocked;
                     const referees = getCourtReferees(
                       court.court_number,
                       slot.time_24h
@@ -196,7 +205,7 @@ const CourtLists = ({ campData }) => {
                         key={court.slot_id}
                         court={court}
                         timeSlot={slot}
-                        isBlocked={blocked}
+                        isBlocked={isBlocked}
                         referees={referees}
                         onClick={handleBoxClick}
                         onUndoBlock={handleUndoBlock}
