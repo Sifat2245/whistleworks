@@ -5,7 +5,7 @@ import RosterTable from "@/components/dashboard/director_dashboard/Roster/Roster
 import { useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import ActiveEvaluate from "./ActiveEvaluate";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ActiveCrews from "./ActiveCrews";
 import { ImCross } from "react-icons/im";
 import { RxDropdownMenu } from "react-icons/rx";
@@ -16,6 +16,9 @@ const Roster = () => {
   const [active, setActive] = useState("active-evaluate");
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const navigate = useNavigate();
+  const {id} = useParams()
+
+  // console.log(id,"camp id");
 
   const btnClasses = (isActive = false) =>
     `px-3 py-2 sm:px-4 sm:py-2 cursor-pointer rounded-md hover:bg-primary hover:text-white transition-all duration-300 text-sm sm:text-base ${
@@ -118,7 +121,7 @@ const Roster = () => {
         {active === "active-evaluate" && <RosterTable category="active-evaluate" />}
         {active === "Evaluator" && <ActiveEvaluate />}
         {active === "Referees" && <RosterTable category="referees" />}
-        {active === "Crews" && <ActiveCrews />}
+        {active === "Crews" && <ActiveCrews campId={id} />}
       </div>
     </div>
   );

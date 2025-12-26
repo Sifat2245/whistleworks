@@ -7,7 +7,7 @@ const MyCampus = () => {
     // console.log(getMyCamp, "getMyCamp");
 
     return (
-        <div className="w-full border border-[#E8E8E8] rounded-xl md:p-5 p-3 mt-10">
+        <div className="w-full border border-[#E8E8E8] rounded-xl md:p-5 p-3 my-10">
             <h4 className="text-2xl font-medium text-[#333]">
                 MY Camps <span className="text-lg">({getMyCamp?.length})</span>
             </h4>

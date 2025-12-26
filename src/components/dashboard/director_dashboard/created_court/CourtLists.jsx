@@ -22,11 +22,6 @@ const CourtLists = ({ campData }) => {
 
   const getCourtTimeKey = (courtNumber, time24h) => `${courtNumber}_${time24h}`;
 
-  // const isCourtBlocked = (courtNumber, time24h) => {
-  //   const key = getCourtTimeKey(courtNumber, time24h);
-  //   return courtSchedules[key]?.isBlocked || false;
-  // };
-
   const getCourtReferees = (courtNumber, time24h) => {
     const key = getCourtTimeKey(courtNumber, time24h);
     return courtSchedules[key]?.referees || [];
