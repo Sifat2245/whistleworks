@@ -1,16 +1,38 @@
+// CourtLists.jsx
 import { useState, useEffect } from "react";
-import { TiPlus } from "react-icons/ti";
 import ScheduleAddModal from "./ScheduleAddModal";
-import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import CourtSlotBox from "./CourtSlotBox";
+import ScheduleActionButtons from "./ScheduleActionButtons";
+import ScheduleSkeleton from "./ScheduleSkeleton";
+import toast from "react-hot-toast";
 
 const CourtLists = ({ campData }) => {
   const axiosInstance = useAxiosSecure();
   const [activeFilter, setActiveFilter] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourt, setSelectedCourt] = useState(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [courtSchedules, setCourtSchedules] = useState({});
+  const queryClient = useQueryClient();
 
-  // Note: Fetch available dates first (no date param) to get the list
+  // console.log(selectedCourt, "court");
+
+  const getCourtTimeKey = (courtNumber, time24h) => `${courtNumber}_${time24h}`;
+
+  // const isCourtBlocked = (courtNumber, time24h) => {
+  //   const key = getCourtTimeKey(courtNumber, time24h);
+  //   return courtSchedules[key]?.isBlocked || false;
+  // };
+
+  const getCourtReferees = (courtNumber, time24h) => {
+    const key = getCourtTimeKey(courtNumber, time24h);
+    return courtSchedules[key]?.referees || [];
+  };
+
+  // Fetch available dates
   const { data: initialData, isLoading: loadingInitial } = useQuery({
     queryKey: ["available-dates", campData?.id],
     queryFn: async () => {
@@ -24,16 +46,16 @@ const CourtLists = ({ campData }) => {
 
   const availableDates = initialData?.available_dates || [];
 
-  // Note: Set first date as default when availableDates loads
+  // Set first date as default
   useEffect(() => {
     if (availableDates.length > 0 && !selectedDate) {
       const firstDate = availableDates[0];
       setActiveFilter(firstDate.formatted);
-      setSelectedDate(firstDate.date.split("T")[0]); // "2025-12-14"
+      setSelectedDate(firstDate.date.split("T")[0]);
     }
   }, [availableDates, selectedDate]);
 
-  // Note: Fetch schedule for the selected date
+  // Fetch schedule for selected date
   const { data, isLoading } = useQuery({
     queryKey: ["court-info", campData?.id, selectedDate],
     queryFn: async () => {
@@ -44,32 +66,33 @@ const CourtLists = ({ campData }) => {
     },
     enabled: !!campData?.id && !!selectedDate,
   });
-  console.log("Fetch schedule:--->", data)
 
   const courtHeaders = data?.court_headers || [];
   const timeSlots = data?.time_slots || [];
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCourt, setSelectedCourt] = useState(null);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
-  const [courtSchedules, setCourtSchedules] = useState({});
+  const toggleBlockMutation = useMutation({
+    mutationFn: async (slotId) => {
+      const res = await axiosInstance.patch(
+        `/v1/director/court-assign/slot/${slotId}/toggle-block`
+      );
+      return res?.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Updated");
 
-  const getCourtTimeKey = (courtNumber, time24h) => `${courtNumber}_${time24h}`;
+      // refresh schedule list
+      queryClient.invalidateQueries({
+        queryKey: ["court-info", campData?.id, selectedDate],
+      });
 
-  const isCourtBlocked = (courtNumber, time24h) => {
-    const key = getCourtTimeKey(courtNumber, time24h);
-    return courtSchedules[key]?.isBlocked || false;
-  };
+      handleCloseModal();
+    },
+    onError: () => toast.error("Failed to update block status"),
+  });
 
-  const getCourtReferees = (courtNumber, time24h) => {
-    const key = getCourtTimeKey(courtNumber, time24h);
-    return courtSchedules[key]?.referees || [];
-  };
-
-  // Note: handled click on the date button
   const handleDateClick = (item) => {
     setActiveFilter(item.formatted);
-    setSelectedDate(item.date.split("T")[0]); // Extract YYYY-MM-DD
+    setSelectedDate(item.date.split("T")[0]);
   };
 
   const handleBoxClick = (court, timeSlot) => {
@@ -87,108 +110,49 @@ const CourtLists = ({ campData }) => {
     setSelectedTimeSlot(null);
   };
 
-  // Note: referee update handler
   const handleAssignSuccess = (slotId, assignedReferees) => {
     setCourtSchedules((prev) => ({
       ...prev,
-      [slotId]: {
-        referees: assignedReferees,
-        isBlocked: false,
-      },
+      [slotId]: { referees: assignedReferees, isBlocked: false },
     }));
   };
 
-
-  // Note: block court handler
   const handleBlockCourt = () => {
-    if (selectedCourt && selectedTimeSlot) {
-      const key = getCourtTimeKey(selectedCourt.court_number, selectedTimeSlot.time_24h);
-      setCourtSchedules((prev) => ({
-        ...prev,
-        [key]: { isBlocked: true, referees: [] },
-      }));
-    }
+    if (!selectedCourt?.slot_id) return;
+    toggleBlockMutation.mutate(selectedCourt?.slot_id);
     handleCloseModal();
   };
 
-  const handleUndoBlock = (courtNumber, time24h, e) => {
-    e.stopPropagation();
-    const key = getCourtTimeKey(courtNumber, time24h);
-    setCourtSchedules((prev) => ({
-      ...prev,
-      [key]: { ...prev[key], isBlocked: false },
-    }));
-  };
-
-  const renderCourtBoxContent = (court, timeSlot) => {
-    const key = getCourtTimeKey(court.court_number, timeSlot.time_24h);
-    const schedule = courtSchedules[key];
-    const blocked = schedule?.isBlocked;
-    const referees = schedule?.referees || [];
-
-    if (blocked) {
-      return (
-        <button
-          onClick={(e) => handleUndoBlock(court.court_number, timeSlot.time_24h, e)}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 text-sm font-medium"
-        >
-          Undo Block
-        </button>
-      );
-    }
-
-    if (referees.length > 0) {
-      return (
-        <div className="text-left w-full">
-          <div className="text-sm font-medium text-gray-700 mb-3">
-            Referees ({referees.length}/3):
-          </div>
-          <div className="space-y-2">
-            {referees.map((referee, idx) => (
-              <div key={idx} className="flex items-center gap-3 text-sm">
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center font-bold text-xs">
-                  {idx + 1}
-                </div>
-                <span className="truncate max-w-[180px]">{referee.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
-        <TiPlus className="text-3xl" />
-      </div>
-    );
+  const handleUndoBlock = (slotId) => {
+    toggleBlockMutation.mutate(slotId);
   };
 
   if (loadingInitial || isLoading) {
-    return <div className="text-center py-12 text-gray-600">Loading schedule...</div>;
+    return <ScheduleSkeleton />;
   }
 
-  if (availableDates?.length === 0) {
-    return <div className="text-center py-12 text-gray-500">No available dates.</div>;
+  if (availableDates.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">No available dates.</div>
+    );
   }
 
   return (
     <div className="w-full mt-6 mb-16">
-      {/* Date Filter Buttons */}
+      {/* Date Filter */}
       <div className="flex gap-4 mb-8 overflow-x-auto pb-6">
-        {availableDates?.map((item) => (
+        {availableDates.map((item) => (
           <button
-            key={item?.formatted}
+            key={item.formatted}
             onClick={() => handleDateClick(item)}
-            className={`border border-[#00AEEF] px-8 py-4 rounded-xl whitespace-nowrap transition-all font-medium
-              ${activeFilter === item?.formatted
-                ? "bg-[#00AEEF] text-white shadow-lg"
-                : "bg-white text-gray-700 hover:bg-gray-50"
+            className={`border border-[#00AEEF] px-8 py-4 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer
+              ${
+                activeFilter === item.formatted
+                  ? "bg-[#00AEEF] text-white shadow-lg"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
           >
-            <div className="text-center">
-              <div className="font-semibold">{item?.formatted}</div>
-            </div>
+            <div className="text-center font-semibold">{item.formatted}</div>
           </button>
         ))}
       </div>
@@ -197,15 +161,20 @@ const CourtLists = ({ campData }) => {
       <div className="w-full border border-gray-300 rounded-xl overflow-hidden">
         <div className="max-h-[90vh] overflow-auto scrollbar-thin scrollbar-thumb-gray-400">
           <div className="min-w-max">
-            {/* Sticky Header */}
+            {/* Header */}
             <div className="flex gap-6 bg-gray-50 border-b border-gray-300 sticky top-0 z-20">
               <div className="w-32 shrink-0 px-6 py-6 text-lg font-semibold sticky left-0 bg-gray-50 z-30 border-r border-gray-300">
                 Time
               </div>
               <div className="flex gap-6 py-6">
                 {courtHeaders.map((court) => (
-                  <div key={court.court_number} className="shrink-0 w-72 text-center">
-                    <div className="text-red-600 text-sm font-medium">{court.location}</div>
+                  <div
+                    key={court.court_number}
+                    className="shrink-0 w-72 text-center"
+                  >
+                    <div className="text-red-600 text-sm font-medium">
+                      {court.location}
+                    </div>
                     <div className="text-[#00AEEF] font-bold text-xl mt-1">
                       Court {court.court_number}
                     </div>
@@ -214,8 +183,8 @@ const CourtLists = ({ campData }) => {
               </div>
             </div>
 
-            {/* Body */}
-            {timeSlots?.map((slot) => (
+            {/* Rows */}
+            {timeSlots.map((slot) => (
               <div
                 key={slot.time_24h}
                 className="flex gap-6 border-b border-gray-200 hover:bg-gray-50 transition-colors"
@@ -225,20 +194,22 @@ const CourtLists = ({ campData }) => {
                 </div>
                 <div className="flex gap-6 py-8">
                   {slot.courts.map((court) => {
-                    const blocked = isCourtBlocked(court.court_number, slot.time_24h);
+                    const isBlocked = court?.is_blocked;
+                    const referees = getCourtReferees(
+                      court.court_number,
+                      slot.time_24h
+                    );
 
                     return (
-                      <div
+                      <CourtSlotBox
                         key={court.slot_id}
-                        className={`shrink-0 w-72 rounded-xl p-8 min-h-[200px] flex items-center justify-center shadow-lg transition-all
-                          ${blocked
-                            ? "bg-gray-200 cursor-not-allowed opacity-70"
-                            : "bg-white hover:shadow-2xl cursor-pointer"
-                          }`}
-                        onClick={() => !blocked && handleBoxClick(court, slot)}
-                      >
-                        {renderCourtBoxContent(court, slot)}
-                      </div>
+                        court={court}
+                        timeSlot={slot}
+                        isBlocked={isBlocked}
+                        referees={referees}
+                        onClick={handleBoxClick}
+                        onUndoBlock={handleUndoBlock}
+                      />
                     );
                   })}
                 </div>
@@ -248,20 +219,8 @@ const CourtLists = ({ campData }) => {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex justify-between items-center mt-10">
-        <CommonSubmitBtn className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-lg">
-          Delete Schedule
-        </CommonSubmitBtn>
-        <div className="flex gap-6">
-          <CommonSubmitBtn className="border border-primary bg-white text-primary px-8 py-4 ">
-            Clear Schedule
-          </CommonSubmitBtn>
-          <CommonSubmitBtn variant="primary" className="px-10 py-4">
-            Publish Schedule
-          </CommonSubmitBtn>
-        </div>
-      </div>
+      {/* Footer Actions */}
+      <ScheduleActionButtons campId={campData?.id} />
 
       {/* Modal */}
       <ScheduleAddModal
@@ -274,9 +233,9 @@ const CourtLists = ({ campData }) => {
         existingReferees={
           selectedCourt && selectedTimeSlot
             ? getCourtReferees(
-              selectedCourt.court_number,
-              selectedTimeSlot.time_24h
-            )
+                selectedCourt.court_number,
+                selectedTimeSlot.time_24h
+              )
             : []
         }
         onAssignSuccess={handleAssignSuccess}

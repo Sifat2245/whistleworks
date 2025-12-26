@@ -29,8 +29,8 @@ export default function CampDetailsPage() {
 
   // Define allowed tabs per role
   const allowedTabs = {
-    common: ["camp-details", "roster"],
-    evaluator: ["ranking-report", "evaluate", "schedule"],
+    common: ["camp-details"],
+    evaluator: ["ranking-report", "evaluate", "schedule", "roster"],
     referee: ["performance", "my-games"],
   };
 
@@ -65,9 +65,9 @@ export default function CampDetailsPage() {
           <>
             {/* Common Tabs - Both Roles */}
             {tab === "camp-details" && <CampDetails campData={campData} />}
-            {tab === "roster" && <Roster camp_id={id} />}
 
             {/* Evaluator Only Tabs */}
+            {isEvaluator && tab === "roster" && <Roster camp_id={id} />}
             {isEvaluator && tab === "ranking-report" && <RankingReport camp_id={id} />}
             {isEvaluator && tab === "evaluate" && <EvaluateV2 camp_id={id} />}
             {isEvaluator && tab === "schedule" && <Schedule />}
