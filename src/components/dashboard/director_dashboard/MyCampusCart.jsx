@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import useCampSchedule from "@/hooks/useCampSchedule";
 import { BsArrowLeftRight } from "react-icons/bs";
 import { CiCalendar } from "react-icons/ci";
 import { HiOutlineUser } from "react-icons/hi2";
@@ -39,7 +40,6 @@ const actions = [
 ];
 
 const MyCampusCart = ({ league }) => {
-  console.log(league, "league");
   const {
     camp_id,
     camp_logo,
@@ -52,6 +52,12 @@ const MyCampusCart = ({ league }) => {
     sports_type,
     sports_type_id,
   } = league || {};
+  console.log(camp_id, "camp id");
+
+  const { scheduleData } = useCampSchedule(camp_id);
+
+  const scheduleStatus = scheduleData?.status;
+  console.log(scheduleData, "schedule data");
 
   const filteredActions = actions.filter((action) => {
     if (total_courts > 0) {
@@ -89,15 +95,28 @@ const MyCampusCart = ({ league }) => {
           </div>
         </div>
 
-        {status === "active" ? (
-          <span className="px-3 py-1 bg-blue-100 text-primary font-medium rounded-md text-sm sm:text-base md:text-lg w-fit self-start sm:self-auto">
-            {status || "N/F"}
-          </span>
-        ) : (
-          <span className="px-3 py-1 bg-red-100 text-red-500 font-medium rounded-md text-sm sm:text-base md:text-lg w-fit self-start sm:self-auto">
-            {status || "N/F"}
-          </span>
-        )}
+        <div className="flex gap-4">
+          {(scheduleStatus === "published" || scheduleStatus === "draft") &&
+            (scheduleStatus === "published" ? (
+              <span className="px-3 py-1 bg-green-100 text-green-500 font-medium rounded-md text-sm sm:text-base md:text-lg w-fit self-start sm:self-auto">
+                {scheduleStatus}
+              </span>
+            ) : (
+              <span className="px-3 py-1 bg-yellow-100 text-yellow-600 font-medium rounded-md text-sm sm:text-base md:text-lg w-fit self-start sm:self-auto">
+                {scheduleStatus}
+              </span>
+            ))}
+
+          {status === "active" ? (
+            <span className="px-3 py-1 bg-blue-100 text-primary font-medium rounded-md text-sm sm:text-base md:text-lg w-fit self-start sm:self-auto">
+              {status || "N/F"}
+            </span>
+          ) : (
+            <span className="px-3 py-1 bg-red-100 text-red-500 font-medium rounded-md text-sm sm:text-base md:text-lg w-fit self-start sm:self-auto">
+              {status || "N/F"}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* referees and games - Stack on mobile */}
@@ -116,7 +135,7 @@ const MyCampusCart = ({ league }) => {
           <p className="text-[#00AEEF] text-xl sm:text-2xl md:text-3xl font-medium">
             {total_courts || "00"}
           </p>
-          <p className="text-[#666] text-sm sm:text-base">Courts</p>
+          <p className="text-[#666] text-sm sm:text-base">Games</p>
         </div>
       </div>
 
