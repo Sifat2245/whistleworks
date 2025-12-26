@@ -52,9 +52,11 @@ const MyCampusCart = ({ league }) => {
     sports_type,
     sports_type_id,
   } = league || {};
-  console.log(camp_id, "camp id");
+  console.log(league, "league");
 
-  const { scheduleData } = useCampSchedule(camp_id);
+  const { scheduleData } = useCampSchedule(
+    total_courts > 0 ? camp_id : null
+  );
 
   const scheduleStatus = scheduleData?.status;
   console.log(scheduleData, "schedule data");

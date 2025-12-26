@@ -115,7 +115,7 @@ const router = createBrowserRouter([
         element: <ActiveEvaluate />,
       },
       {
-        path: "active-crews",
+        path: "active-crews/:id",
         element: <ActiveCrews />,
       },
       {
