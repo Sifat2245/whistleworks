@@ -71,7 +71,7 @@ const Roster = () => {
             <button
               className={btnClasses(active === "Crews")}
               onClick={() => {
-                navigate("/director-dashboard/active-crews");
+                navigate(`/director-dashboard/active-crews/${id}`);
                 setShowMobileMenu(false);
               }}
             >
