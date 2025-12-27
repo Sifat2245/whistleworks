@@ -2,16 +2,14 @@
 import { useState, useEffect } from "react";
 import { Modal, Input, Button, Avatar, Spin } from "antd";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-
-const { TextArea } = Input;
 
 const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
   const axiosInstance = useAxiosSecure();
+  const queryClient = useQueryClient(); // Access directly (cleaner than prop drilling)
 
   const [crewName, setCrewName] = useState("");
-  const [description, setDescription] = useState("");
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -35,22 +33,22 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
     ref?.name?.toLowerCase?.().includes(searchTerm.toLowerCase())
   );
 
-  // Toggle referee selection (max 3)
+  // Toggle referee selection (max 6)
   const handleRefereeToggle = (referee) => {
     setSelectedReferees((prev) => {
       const exists = prev.find((r) => r.id === referee.id);
       if (exists) {
         return prev.filter((r) => r.id !== referee.id);
       }
-      if (prev.length >= 3) {
-        toast.warning("Maximum 3 referees can be selected");
+      if (prev.length >= 6) {
+        toast.warning("Maximum 6 referees can be selected per crew");
         return prev;
       }
       return [...prev, referee];
     });
   };
 
-  // Create crew
+  // Create crew mutation
   const createCrewMutation = useMutation({
     mutationFn: async (payload) => {
       const res = await axiosInstance.post(`/v1/camp/${campId}/crew/create`, payload);
@@ -58,12 +56,13 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
     },
     onSuccess: (data) => {
       toast.success(data?.message || "Crew created successfully!");
+
+      // Invalidate crew list to refresh UI automatically
+      queryClient.invalidateQueries({
+        queryKey: ["crew-groups", campId],
+      });
+
       handleCloseModal();
-      // Reset form
-      setCrewName("");
-      setDescription("");
-      setSelectedReferees([]);
-      setSearchTerm("");
     },
     onError: (error) => {
       toast.error(error?.response?.data?.message || "Failed to create crew");
@@ -81,19 +80,18 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
     }
 
     const payload = {
-      name: crewName,
-      description: description || null,
-      members: selectedReferees.map((r) => r.id),
+      name: crewName.trim(),
+      referee_ids: selectedReferees.map((r) => r.id),
     };
 
+    console.log(payload,"submited data");
     createCrewMutation.mutate(payload);
   };
 
-  // Reset when modal opens
+  // Reset form when modal opens
   useEffect(() => {
     if (openModal) {
       setCrewName("");
-      setDescription("");
       setSelectedReferees([]);
       setSearchTerm("");
     }
@@ -107,6 +105,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
       footer={null}
       width={900}
       centered
+      destroyOnClose // Ensures fresh state on reopen
     >
       <div className="mt-4 space-y-6">
         {/* Crew Name */}
@@ -115,33 +114,25 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
             Crew Name <span className="text-red-500">*</span>
           </label>
           <Input
-            placeholder="e.g., Elite Officials"
+            placeholder="e.g., Elite Officials Crew"
             value={crewName}
             onChange={(e) => setCrewName(e.target.value)}
             size="large"
+            maxLength={50}
           />
-        </div>
-
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description (Optional)
-          </label>
-          <TextArea
-            rows={3}
-            placeholder="Brief description about this crew..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            size="large"
-          />
+          <p className="text-xs text-gray-500 mt-1">
+            {crewName.length}/50 characters
+          </p>
         </div>
 
         {/* Referees Selection */}
-        <div className="mt-6">
+        <div>
           <div className="flex justify-between items-center mb-4">
-            <p className="font-medium">Available Referees ({filteredReferees.length})</p>
+            <p className="font-medium text-gray-700">
+              Select Referees (Max 6)
+            </p>
             <p className="text-sm font-semibold text-[#00AEEF]">
-              Selected: {selectedReferees.length}/3
+              Selected: {selectedReferees.length}/6
             </p>
           </div>
 
@@ -154,35 +145,35 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
             className="mb-4"
           />
 
-          <div className="max-h-[450px] overflow-y-auto space-y-3 pr-3 scrollbar-thin">
+          <div className="max-h-[450px] overflow-y-auto space-y-3 pr-3 scrollbar-thin scrollbar-thumb-gray-400">
             {loadingReferees ? (
-              <div className="text-center py-12 text-gray-500">
-                <Spin size="large" />
+              <div className="text-center py-12">
+                <Spin size="large" tip="Loading referees..." />
               </div>
             ) : isError ? (
               <div className="text-center py-12 text-red-500">
-                Failed to load referees
+                Failed to load referees. Please try again.
               </div>
             ) : filteredReferees.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                {searchTerm ? "No match found" : "No available referees"}
+                {searchTerm ? "No referees match your search" : "No available referees"}
               </div>
             ) : (
               filteredReferees.map((ref) => {
                 const isSelected = selectedReferees.some((r) => r.id === ref.id);
-                const disabled = !isSelected && selectedReferees.length >= 3;
+                const isDisabled = !isSelected && selectedReferees.length >= 6;
 
                 return (
                   <div
                     key={ref.id}
-                    onClick={() => !disabled && handleRefereeToggle(ref)}
+                    onClick={() => !isDisabled && handleRefereeToggle(ref)}
                     className={`
-                      border rounded-xl p-4 flex items-center justify-between transition-all cursor-pointer
-                      ${isSelected 
-                        ? "border-[#00AEEF] bg-blue-50 shadow-md" 
-                        : disabled 
-                        ? "bg-gray-50 opacity-60 cursor-not-allowed" 
-                        : "hover:border-[#00AEEF] hover:shadow-md border-gray-200"
+                      border rounded-xl p-4 flex items-center justify-between transition-all
+                      ${isSelected
+                        ? "border-[#00AEEF] bg-blue-50 shadow-md cursor-pointer"
+                        : isDisabled
+                        ? "bg-gray-50 opacity-60 cursor-not-allowed"
+                        : "hover:border-[#00AEEF] hover:shadow-md border-gray-200 cursor-pointer"
                       }
                     `}
                   >
@@ -193,7 +184,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
                         className="border-2 border-gray-200"
                       />
                       <div>
-                        <p className="font-medium">{ref.name}</p>
+                        <p className="font-medium text-gray-800">{ref.name}</p>
                         <p className="text-sm text-gray-500">{ref.email}</p>
                       </div>
                     </div>
@@ -202,7 +193,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
                       type="checkbox"
                       checked={isSelected}
                       readOnly
-                      className="w-5 h-5 text-[#00AEEF] rounded focus:ring-[#00AEEF]"
+                      className="w-5 h-5 text-[#00AEEF] rounded focus:ring-[#00AEEF] cursor-pointer"
                     />
                   </div>
                 );
@@ -211,12 +202,11 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex justify-end gap-3 mt-6 pt-4">
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 pt-4">
           <Button size="large" onClick={handleCloseModal}>
             Cancel
           </Button>
-
           <Button
             type="primary"
             size="large"
@@ -224,7 +214,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
             loading={createCrewMutation.isPending}
             disabled={!crewName.trim() || selectedReferees.length === 0}
           >
-            Create Crew
+            {createCrewMutation.isPending ? "Creating..." : "Create Crew"}
           </Button>
         </div>
       </div>

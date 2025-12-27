@@ -52,14 +52,14 @@ const MyCampusCart = ({ league }) => {
     sports_type,
     sports_type_id,
   } = league || {};
-  console.log(league, "league");
+  // console.log(league, "league");
 
   const { scheduleData } = useCampSchedule(
     total_courts > 0 ? camp_id : null
   );
 
   const scheduleStatus = scheduleData?.status;
-  console.log(scheduleData, "schedule data");
+  // console.log(scheduleData, "schedule data");
 
   const filteredActions = actions.filter((action) => {
     if (total_courts > 0) {

@@ -7,6 +7,7 @@ import CourtSlotBox from "./CourtSlotBox";
 import ScheduleActionButtons from "./ScheduleActionButtons";
 import ScheduleSkeleton from "./ScheduleSkeleton";
 import toast from "react-hot-toast";
+import { HiLockClosed } from "react-icons/hi2";
 
 const CourtLists = ({ campData }) => {
   const axiosInstance = useAxiosSecure();
@@ -159,7 +160,7 @@ const CourtLists = ({ campData }) => {
             {/* Header */}
             <div className="flex gap-6 bg-gray-50 border-b border-gray-300 sticky top-0 z-20">
               <div className="w-32 shrink-0 px-6 py-6 text-lg font-semibold sticky left-0 bg-gray-50 z-30 border-r border-gray-300">
-                Time
+                <span>Time</span>
               </div>
               <div className="flex gap-6 py-6">
                 {courtHeaders.map((court) => (
@@ -173,6 +174,7 @@ const CourtLists = ({ campData }) => {
                     <div className="text-[#00AEEF] font-bold text-xl mt-1">
                       Court {court.court_number}
                     </div>
+                     <HiLockClosed className="w-5 h-5 text-gray-400" title="Block indicator" />
                   </div>
                 ))}
               </div>
@@ -184,16 +186,17 @@ const CourtLists = ({ campData }) => {
                 key={slot.time_24h}
                 className="flex gap-6 border-b border-gray-200 hover:bg-gray-50 transition-colors"
               >
-                <div className="w-32 shrink-0 px-6 py-10 text-lg font-medium text-gray-800 sticky left-0 bg-white z-10 border-r border-gray-200">
-                  {slot.time}
-                </div>
+                <div className="w-32 shrink-0 px-6 py-10 text-lg font-medium text-gray-800 sticky left-0 bg-white z-10 border-r border-gray-200 flex items-center justify-between">
+                    <span>{slot.time}</span>
+                      <HiLockClosed
+                        className="w-6 h-6 text-red-600"
+                        title="All courts blocked in this time slot"
+                      />
+                  </div>
                 <div className="flex gap-6 py-8">
                   {slot.courts.map((court) => {
                     const isBlocked = court?.is_blocked;
-                    const referees = getCourtReferees(
-                      court.court_number,
-                      slot.time_24h
-                    );
+                    const referees = court?.assignments || [];
 
                     return (
                       <CourtSlotBox
@@ -202,6 +205,8 @@ const CourtLists = ({ campData }) => {
                         timeSlot={slot}
                         isBlocked={isBlocked}
                         referees={referees}
+                        campId={campData?.id}
+                        selectedDate={selectedDate}
                         onClick={handleBoxClick}
                         onUndoBlock={handleUndoBlock}
                       />
@@ -225,6 +230,7 @@ const CourtLists = ({ campData }) => {
         selectedTimeSlot={selectedTimeSlot}
         handleBlockCourt={handleBlockCourt}
         campId={campData?.id}
+        selectedDate={selectedDate}
         existingReferees={
           selectedCourt && selectedTimeSlot
             ? getCourtReferees(

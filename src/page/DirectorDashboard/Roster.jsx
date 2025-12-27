@@ -48,7 +48,7 @@ const Roster = () => {
           <div className="w-full bg-border p-2 flex  items-center justify-center sm:flex-row gap-2 sm:gap-3">
             {/* Evaluator button */}
             <button
-              className={btnClasses(active === "active-evaluate")}
+              className={btnClasses()}
               onClick={() => {
                 navigate("/director-dashboard/active-evaluate");
                 setShowMobileMenu(false);

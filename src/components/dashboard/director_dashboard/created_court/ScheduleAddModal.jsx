@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { Modal, Input, Tabs } from "antd";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
-import { FaShield } from "react-icons/fa6";
 import { BiSearch } from "react-icons/bi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import toast from "react-hot-toast";
+import { ImBlocked } from "react-icons/im";
 
 const { Search } = Input;
 const { TabPane } = Tabs;
@@ -19,6 +19,7 @@ const ScheduleAddModal = ({
   onAssignSuccess,
   existingReferees = [],
   campId,
+  selectedDate
 }) => {
   const [activeTab, setActiveTab] = useState("referees");
   const [selectedReferees, setSelectedReferees] = useState([]);
@@ -115,7 +116,9 @@ const ScheduleAddModal = ({
       if (data?.data?.assigned_referees?.length > 0) {
         toast.success("Referees assigned successfully");
         onAssignSuccess(selectedCourt.slot_id, data.data.assigned_referees);
-        queryClient.invalidateQueries({ queryKey: ["assigned-referee", selectedCourt.slot_id] });
+       queryClient.invalidateQueries({
+        queryKey: ["court-info", campId, selectedDate],
+      });
         handleCloseModal();
       }
       if (data?.data?.errors?.length > 0) {
@@ -136,7 +139,9 @@ const ScheduleAddModal = ({
     onSuccess: (data) => {
       toast.success(data.message || "Crew assigned successfully");
       onAssignSuccess(selectedCourt.slot_id, data.data.assigned_referees || []);
-      queryClient.invalidateQueries({ queryKey: ["assigned-referee", selectedCourt.slot_id] });
+     queryClient.invalidateQueries({
+        queryKey: ["court-info", campId, selectedDate],
+      });
       handleCloseModal();
     },
     onError: () => toast.error("Failed to assign crew"),
@@ -324,8 +329,8 @@ const ScheduleAddModal = ({
             Cancel
           </CommonSubmitBtn>
 
-          <CommonSubmitBtn variant="secondary" onClick={handleBlockCourt}>
-            <FaShield className="mr-2" />
+          <CommonSubmitBtn variant="danger" onClick={handleBlockCourt}>
+            <ImBlocked className="mr-2" />
             Block Court
           </CommonSubmitBtn>
         </div>
