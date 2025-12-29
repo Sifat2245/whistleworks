@@ -2,9 +2,9 @@
 import { TiPlus } from "react-icons/ti";
 import { HiXMark } from "react-icons/hi2";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import Swal from "sweetalert2";
 
 const CourtSlotBox = ({
   court,
@@ -13,21 +13,23 @@ const CourtSlotBox = ({
   referees: localReferees = [],
   onUndoBlock,
   onClick,
+  campId,
+  selectedDate
 }) => {
   const axiosInstance = useAxiosSecure();
   const queryClient = useQueryClient();
 
   // Mutation to remove a referee assignment
   const removeMutation = useMutation({
-    mutationFn: async (assignmentId) => {
+    mutationFn: async (assgnment_id) => {
       await axiosInstance.delete(
-        `/v1/director/court-assign/assignment/${assignmentId}/remove`
+        `/v1/director/court-assign/assignment/${assgnment_id}/remove`
       );
     },
     onSuccess: () => {
       toast.success("Referee unassigned successfully");
       queryClient.invalidateQueries({
-        queryKey: ["assigned-referee", court.slot_id],
+        queryKey: ["court-info", campId, selectedDate], // You need these from parent
       });
     },
     onError: () => {
@@ -35,12 +37,14 @@ const CourtSlotBox = ({
     },
   });
 
-  const handleRemoveReferee = async (e, assignmentId, refereeName) => {
+  const handleRemoveReferee = async (e, assgnment_id, refereeName) => {
     e.stopPropagation(); // Prevent opening modal
 
     const result = await Swal.fire({
       title: "Unassign Referee?",
-      text: `Are you sure you want to remove ${refereeName || "this referee"} from this slot?`,
+      text: `Are you sure you want to remove ${
+        refereeName || "this referee"
+      } from this slot?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -51,22 +55,11 @@ const CourtSlotBox = ({
     });
 
     if (result.isConfirmed) {
-      removeMutation.mutate(assignmentId);
+      removeMutation.mutate(assgnment_id);
     }
   };
 
-  const { data: apiResponse } = useQuery({
-    queryKey: ["assigned-referee", court.slot_id],
-    queryFn: async () => {
-      const res = await axiosInstance.get(
-        `/v1/director/court-assign/slot/${court?.slot_id}/assigned-referees-crew`
-      );
-      return res?.data?.data;
-    },
-    enabled: !!court?.slot_id,
-  });
-
-  const assignedReferees = apiResponse?.referees || localReferees;
+  const assignedReferees = localReferees;
 
   const handleUndoClick = (e) => {
     e.stopPropagation();
@@ -82,9 +75,10 @@ const CourtSlotBox = ({
     <div
       onClick={handleBoxClick}
       className={`shrink-0 w-72 rounded-xl p-8 min-h-[200px] flex flex-col items-center justify-center shadow-lg transition-all
-        ${isBlocked
-          ? "bg-gray-200 cursor-not-allowed opacity-70"
-          : "bg-white hover:shadow-2xl cursor-pointer"
+        ${
+          isBlocked
+            ? "bg-gray-200 cursor-not-allowed opacity-70"
+            : "bg-white hover:shadow-2xl cursor-pointer"
         }`}
     >
       {isBlocked ? (
@@ -101,16 +95,16 @@ const CourtSlotBox = ({
           </div>
           <div className="space-y-3">
             {assignedReferees.map((item, idx) => {
-              const refereeName = item?.referee?.name || "Unknown Referee";
+              const refereeName = item?.referee_name || "Unknown Referee";
 
               return (
                 <div
-                  key={item.assignment_id || idx}
+                  key={item.assgnment_id || idx}
                   className="group flex items-center justify-between gap-3 py-1"
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <img
-                      src={item?.referee?.avatar || "/default-avatar.png"}
+                      src={item?.avatar || "/default-avatar.png"}
                       alt={refereeName}
                       className="w-9 h-9 rounded-full object-cover border border-gray-200"
                       onError={(e) => (e.target.src = "/default-avatar.png")}
@@ -123,7 +117,7 @@ const CourtSlotBox = ({
                   {/* Cross button - appears on hover */}
                   <button
                     onClick={(e) =>
-                      handleRemoveReferee(e, item.assignment_id, refereeName)
+                      handleRemoveReferee(e, item.assgnment_id, refereeName)
                     }
                     disabled={removeMutation.isPending}
                     className="opacity-0 group-hover:opacity-100 transition-opacity
@@ -140,7 +134,8 @@ const CourtSlotBox = ({
 
           {assignedReferees.length < 3 && (
             <div className="mt-4 text-center text-xs text-gray-500">
-              {3 - assignedReferees.length} spot{assignedReferees.length === 2 ? "" : "s"} available
+              {3 - assignedReferees.length} spot
+              {assignedReferees.length === 2 ? "" : "s"} available
             </div>
           )}
         </div>

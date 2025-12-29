@@ -62,7 +62,7 @@ const DailyTimeRange = ({ getDateRange }) => {
       locations: data.locations,
     };
 
-    console.log("Final Body:", body);
+    // console.log("Final Body:", body);
     createScheduleMutation.mutate(body);
   };
 

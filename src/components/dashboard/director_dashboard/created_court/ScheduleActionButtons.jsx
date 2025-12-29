@@ -13,7 +13,7 @@ const ScheduleActionButtons = ({ campId }) => {
   const { scheduleData } = useCampSchedule(campId);
 
   const scheduleId = scheduleData?.id;
-  console.log(scheduleId, "schedule id");
+  // console.log(scheduleId, "schedule id");
 
   // === Publish Schedule Mutation ===
   const publishMutation = useMutation({

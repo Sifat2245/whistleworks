@@ -1,5 +1,4 @@
 import BackBtn from "@/components/common/BackBtn";
-import CourtDetails from "@/components/dashboard/director_dashboard/created_court/CourtDetails";
 import CourtHeader from "@/components/dashboard/director_dashboard/created_court/CourtHeader";
 import CourtLists from "@/components/dashboard/director_dashboard/created_court/CourtLists";
 import useCampSchedule from "@/hooks/useCampSchedule";
@@ -15,8 +14,7 @@ const CreatedCourt = () => {
   return (
     <div className="w-full">
       <BackBtn />
-      <CourtHeader campData={campData} />
-      <CourtDetails scheduleData={scheduleData} isLoading={isLoading} />
+      <CourtHeader campData={campData} scheduleData={scheduleData} isLoading={isLoading}/>
       <CourtLists campData={campData}/>
     </div>
   );
