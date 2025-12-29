@@ -19,7 +19,7 @@ const RefereeDashboard = () => {
       {/* button div */}
       <div className="mt-8 space-y-6">
         <DashboardButton
-          label="Registered Camps"
+          label="My Camps"
           iconSrc="/referee/home-icon.svg"
           path="/referee-dashboard/active-camps"
         />

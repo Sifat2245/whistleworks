@@ -1,20 +1,38 @@
 import ActiveCmpsBackBtn from "@/components/common/ActiveCmpsBackBtn";
 import CommonText from "@/components/common/CommonText";
 import CampCard from "@/components/reusable/CampCard";
+import { useAuth } from "@/hooks/useAuth";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import { Spin } from "antd";
 
 export default function ActiveCamps() {
-  const axiosInstance = useAxiosSecure()
-  const { data: camps, isLoading } = useQuery({
-    queryKey: ["camps"],
+  const axiosInstance = useAxiosSecure();
+  const { userData } = useAuth();
+
+  const role = userData?.role?.toLowerCase();
+
+  const { data: camps = [], isLoading } = useQuery({
+    queryKey: ["active-camps", role],
     queryFn: async () => {
-      const response = await axiosInstance.get("/v1/referee/camp/my-registrations");
-      return response?.data?.data?.registrations || [];
+      if (!role) return [];
+
+      let response;
+
+      if (role === "referee") {
+        response = await axiosInstance.get("/v1/referee/camp/active-camps");
+      } else if (role === "evaluator") {
+        response = await axiosInstance.get("/evaluator/active-camps"); // ← change this endpoint
+      } else {
+        return [];
+      }
+
+      return response?.data?.data?.registrations || []; // adjust according to actual response
     },
+    enabled: !!role, // only run query when role is available
   });
-  console.log(camps, 'active camps');
+
+  console.log(camps, "active camps");
 
   if (isLoading) {
     return (
