@@ -70,7 +70,7 @@ export default function CampDetailsPage() {
             {isEvaluator && tab === "roster" && <Roster camp_id={id} />}
             {isEvaluator && tab === "ranking-report" && <RankingReport camp_id={id} />}
             {isEvaluator && tab === "evaluate" && <EvaluateV2 camp_id={id} />}
-            {isEvaluator && tab === "schedule" && <Schedule />}
+            {isEvaluator && tab === "schedule" && <Schedule camp_id={id} />}
 
             {/* Referee Only Tabs */}
             {isReferee && tab === "performance" && <Performance />}

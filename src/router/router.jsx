@@ -34,6 +34,10 @@ import ResetPasswordOtp from "@/page/auth/ResetPasswordOtp";
 import CampOverview from "@/page/DirectorDashboard/CampOverview";
 import axiosSecureInstance from "@/hooks/axiosInstace";
 import EditCampPage from "@/page/DirectorDashboard/EditCampPage";
+import PaymentSuccess from "@/page/RefereeDashboard/PaymentSuccess";
+import PaymentCancel from "@/page/RefereeDashboard/PaymentCancel";
+import MyCamps from "@/page/EvolatorDashboard/MyCamp";
+import CrewDetailsPage from "@/page/DirectorDashboard/CrewDetailsPage";
 
 const router = createBrowserRouter([
   {
@@ -111,12 +115,16 @@ const router = createBrowserRouter([
         element: <Evaluate />,
       },
       {
-        path: "active-evaluate",
+        path: "active-evaluate/:id",
         element: <ActiveEvaluate />,
       },
       {
         path: "active-crews/:id",
         element: <ActiveCrews />,
+      },
+      {
+        path: "crew-details/:crewId",
+        element: <CrewDetailsPage />,
       },
       {
         path: "profile",
@@ -141,10 +149,10 @@ const router = createBrowserRouter([
         index: true,
         element: <EvolatorDashboard />,
       },
-      // {
-      //   path: "active-camps",
-      //   element: <ActiveCamps />,
-      // },
+      {
+        path: "active-camps",
+        element: <MyCamps />,
+      },
       {
         path: "camp/:id",
         element: <CampDetailsPage />,
@@ -195,6 +203,14 @@ const router = createBrowserRouter([
       {
         path: "find-camps",
         element: <FindCamps />,
+      },
+      {
+        path: "payment-success",
+        element: <PaymentSuccess />,
+      },
+      {
+        path: "payment-cancel",
+        element: <PaymentCancel />,
       },
       {
         path: "profile",

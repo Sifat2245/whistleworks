@@ -2,128 +2,196 @@ import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import CommonSectionTitle from "@/components/dashboard/director_dashboard/CommonSectionTitle";
 import RosterTable from "@/components/dashboard/director_dashboard/Roster/RosterTable";
-import { useState } from "react";
-import { FiSearch } from "react-icons/fi";
 import ActiveEvaluate from "./ActiveEvaluate";
-import { useNavigate, useParams } from "react-router-dom";
 import ActiveCrews from "./ActiveCrews";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useState, useMemo } from "react"; // ← Added useMemo
+import { FiSearch } from "react-icons/fi";
 import { ImCross } from "react-icons/im";
 import { RxDropdownMenu } from "react-icons/rx";
-
+import { Spin } from "antd";
 
 const Roster = () => {
-  // eslint-disable-next-line no-unused-vars
-  const [active, setActive] = useState("active-evaluate");
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const { id: campId } = useParams();
   const navigate = useNavigate();
-  const {id} = useParams()
+  const location = useLocation();
+  const axiosSecure = useAxiosSecure();
 
-  // console.log(id,"camp id");
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(""); // ← Search state
 
-  const btnClasses = (isActive = false) =>
-    `px-3 py-2 sm:px-4 sm:py-2 cursor-pointer rounded-md hover:bg-primary hover:text-white transition-all duration-300 text-sm sm:text-base ${
-      isActive ? "bg-primary text-white" : "bg-transparent"
-    }`;
+  // Fetch camp details
+  const {
+    data: campData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["camp-roster-details", campId],
+    queryFn: async () => {
+      const response = await axiosSecure.get(`/roster/camp/details/${campId}`);
+      return response?.data?.data?.camp;
+    },
+    enabled: !!campId,
+  });
 
-  // Note: main ui component
+  // Determine active tab
+  const pathname = location.pathname;
+  const isEvaluatorsActive = pathname.includes("active-evaluate");
+  const isCrewsActive = pathname.includes("active-crews");
+  const isRefereesActive = !isEvaluatorsActive && !isCrewsActive;
+
+  const btnClasses = (isActive) =>
+    `px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 whitespace-nowrap
+     ${isActive 
+       ? "bg-[#00AEEF] text-white shadow-md" 
+       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+     }`;
+
+  const handleTabClick = (path) => {
+    navigate(path);
+    setShowMobileMenu(false);
+  };
+
+  // Filter referees based on search query
+  const filteredReferees = useMemo(() => {
+    if (!campData?.referees || !isRefereesActive) return [];
+
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return campData.referees;
+
+    return campData.referees.filter((ref) => {
+      return (
+        ref.name?.toLowerCase().includes(query) ||
+        ref.email?.toLowerCase().includes(query) ||
+        ref.id.toString().includes(query)
+      );
+    });
+  }, [campData?.referees, searchQuery, isRefereesActive]);
+
+  const totalReferees = campData?.referees?.length || 0;
+  const displayedCount = filteredReferees.length;
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (isError || !campData) {
+    return (
+      <div className="text-center py-20 text-red-600">
+        <p className="text-xl font-medium">Failed to load camp details.</p>
+        <p>Please try again later.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full">
-      {/* Header Section - Stack on mobile */}
-      <div className="flex flex-col md:flex-row lg:justify-between lg:items-center gap-4 mb-4">
-        {/* Back button and Mobile Menu Toggle */}
-        <div className="flex items-center justify-between w-full md:w-auto">
+    <div className="w-full container mx-auto px-4 py-6">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-8">
+        <div className="flex items-center justify-between w-full lg:w-auto">
           <BackBtn />
-          {/* Mobile Menu Toggle */}
           <button
-            className="md:hidden "
             onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition"
             aria-label="Toggle menu"
           >
-            {showMobileMenu ? <ImCross className="text-lg" /> : <RxDropdownMenu className="text-3xl" />}
+            {showMobileMenu ? (
+              <ImCross className="w-6 h-6 text-gray-700" />
+            ) : (
+              <RxDropdownMenu className="w-8 h-8 text-gray-700" />
+            )}
           </button>
         </div>
 
-        {/* Navigation Tabs - Hide on mobile, show in dropdown or horizontal on larger screens */}
-        <div className={`${showMobileMenu ? "block" : "hidden"} lg:block w-full lg:w-auto`}>
-          <div className="w-full bg-border p-2 flex  items-center justify-center sm:flex-row gap-2 sm:gap-3">
-            {/* Evaluator button */}
+        <div className={`w-full lg:w-auto ${showMobileMenu ? "block" : "hidden lg:block"}`}>
+          <div className="flex flex-col sm:flex-row gap-3 bg-gray-50 p-3 rounded-xl">
             <button
-              className={btnClasses()}
-              onClick={() => {
-                navigate("/director-dashboard/active-evaluate");
-                setShowMobileMenu(false);
-              }}
+              onClick={() => handleTabClick(`/director-dashboard/roster/${campId}`)}
+              className={btnClasses(isRefereesActive)}
             >
-              Evaluator
+              Referees ({totalReferees})
             </button>
-
-            {/* Referees button */}
             <button
-              className={btnClasses(active === "Referees")}
-              onClick={() => {
-                navigate("/director-dashboard/roster");
-                setShowMobileMenu(false);
-              }}
+              onClick={() => handleTabClick(`/director-dashboard/active-evaluate/${campId}`)}
+              className={btnClasses(isEvaluatorsActive)}
             >
-              Referees
+              Evaluators ({campData.evaluators?.length || 0})
             </button>
-
             <button
-              className={btnClasses(active === "Crews")}
-              onClick={() => {
-                navigate(`/director-dashboard/active-crews/${id}`);
-                setShowMobileMenu(false);
-              }}
+              onClick={() => handleTabClick(`/director-dashboard/active-crews/${campId}`)}
+              className={btnClasses(isCrewsActive)}
             >
               Crews
             </button>
           </div>
         </div>
 
-        {/* Announcement Button - Full width on mobile */}
         <div className="w-full lg:w-auto">
-          <CommonSubmitBtn 
-            type="button" 
+          <CommonSubmitBtn
+            type="button"
             variant="primary"
-            className="w-full lg:w-auto justify-center"
+            className="w-full lg:w-auto py-3 px-8 text-base font-medium"
           >
-            Announcement
+            Make Announcement
           </CommonSubmitBtn>
         </div>
       </div>
 
-      {/* Title and Total Referees Section */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <div className="w-full sm:w-auto">
-          <CommonSectionTitle
-            text="Roster - Elite Officials Summer Cam 2024"
-            subText="View and manage referee roster for this camp"
-          />
+      {/* Title Section */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-5 mb-8">
+        <CommonSectionTitle
+          text={`Roster - ${campData.camp_name}`}
+          subText="View and manage officials roster for this camp"
+          className="max-w-3xl"
+        />
+
+        <div className="flex items-center gap-4">
+          <button className="bg-[#00AEEF]/10 text-[#00AEEF] px-6 py-3 rounded-lg font-semibold text-base whitespace-nowrap">
+            {displayedCount} of {totalReferees} Referee{displayedCount !== 1 ? "s" : ""} Shown
+          </button>
         </div>
-        
-        <button className="bg-transparent text-primary border border-primary transition px-4 py-2 sm:py-3 rounded-lg text-sm sm:text-base whitespace-nowrap w-full sm:w-auto">
-          5 Total Referees
-        </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="w-full relative mb-6 sm:mb-8">
-        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg sm:text-xl z-10" />
+      {/* Functional Search Bar */}
+      <div className="relative mb-10">
+        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xl" />
         <input
           type="text"
-          placeholder="Search referees..."
-          className="w-full pl-10 pr-4 py-2.5 sm:py-3 border bg-neutral-100 border-gray-300 rounded-lg outline-none focus:border-[#00AEEF] focus:ring-2 focus:ring-[#00AEEF]/20 text-sm sm:text-base"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name, email, or ID..."
+          className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-[#00AEEF] focus:ring-4 focus:ring-[#00AEEF]/10 text-base placeholder-gray-500 transition"
         />
+        {/* Clear button */}
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+          >
+            <ImCross className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
-      {/* Main Content Area */}
-      <div className="mt-6 sm:mt-8">
-        {active === "active-evaluate" && <RosterTable category="active-evaluate" />}
-        {active === "Evaluator" && <ActiveEvaluate />}
-        {active === "Referees" && <RosterTable category="referees" />}
-        {active === "Crews" && <ActiveCrews campId={id} />}
+      {/* Main Content */}
+      <div className="mt-8">
+        {isEvaluatorsActive && <ActiveEvaluate />}
+        {isRefereesActive && (
+          <RosterTable
+            referees={filteredReferees}
+            campId={campId}
+          />
+        )}
+        {isCrewsActive && <ActiveCrews campId={campId} />}
       </div>
     </div>
   );
 };
+
 export default Roster;

@@ -1,160 +1,81 @@
-import evaluatorImage from "@/assets/dashboard/evaluator_image.png";
 import ActiveEvalutorList2 from "./ActiveEvalutorList2";
 import BackBtn from "@/components/common/BackBtn";
 import PendingEvaluator2 from "./PendingEvaluator2";
-
-// Note: active evaluator data
-const activeEvaluatorData = [
-    {
-        id: 1,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "Sycolin Rd, Leesburg, VA, USA",
-        evaluatorNumber: "918-229-2928",
-    },
-    {
-        id: 2,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 3,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 4,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 5,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 6,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 7,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 8,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 9,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 10,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-];
-// Note: pending evaluator data
-const pendingEvaluatorData = [
-    {
-        id: 1,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "Sycolin Rd, Leesburg, VA, USA",
-        evaluatorNumber: "918-229-2928",
-    },
-    {
-        id: 2,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 3,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 4,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 5,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 6,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-    {
-        id: 7,
-        iamge: evaluatorImage,
-        name: "Zobayer",
-        evaluatorMail: "evaluatorl@gmail.com",
-        evaluatorAddress: "",
-        evaluatorNumber: "",
-    },
-];
+import useAxiosSecure from "@/hooks/useAxiosSecure";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
+import { Spin } from "antd"; // Optional: for loading state
 
 const ActiveEvaluate = () => {
+  const { id } = useParams(); // Camp ID
+  const axiosInstance = useAxiosSecure();
+
+  const {
+    data: registrations = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["evaluator-registrations", id],
+    queryFn: async () => {
+      const response = await axiosInstance.get(
+        `/director/evaluator-registrations/camp/${id}`
+      );
+      return response?.data?.data?.registrations || [];
+    },
+    enabled: !!id,
+  });
+
+  // Separate approved and pending evaluators
+  const approvedEvaluators = registrations
+    .filter((reg) => reg.status === "approved")
+    .map((reg) => ({
+      id: reg.id,
+      image: reg.evaluator.avatar, // fallback to default image
+      name: reg.evaluator.name?.trim() || "Unnamed Evaluator",
+      evaluatorMail: reg.evaluator.email,
+      // You can add more fields if available in the future (address, phone, etc.)
+      evaluatorAddress: "", // Not in current API response
+      evaluatorNumber: "",  // Not in current API response
+      registeredAt: reg.registered_at,
+      approvedAt: reg.approved_at,
+    }));
+
+
+  const pendingEvaluators = registrations
+    .filter((reg) => reg.status === "pending")
+    .map((reg) => ({
+      id: reg.id,
+      image: reg.evaluator.avatar,
+      name: reg.evaluator.name?.trim() || "Unnamed Evaluator",
+      evaluatorMail: reg.evaluator.email,
+      evaluatorAddress: "",
+      evaluatorNumber: "",
+      registeredAt: reg.registered_at,
+    }));
+
+  if (isLoading) {
     return (
-        <div className="w-full flex flex-col items-start gap-10">
-            <BackBtn />
-            <ActiveEvalutorList2 activeEvaluatorData={activeEvaluatorData} />
-            <PendingEvaluator2
-                pendingEvaluatorData={pendingEvaluatorData}
-            />
-        </div>
+      <div className="w-full flex justify-center items-center min-h-screen">
+        <Spin size="large" />
+      </div>
     );
+  }
+
+  if (isError) {
+    return (
+      <div className="w-full text-center py-12 text-red-500">
+        Failed to load evaluators. Please try again later.
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full flex flex-col items-start gap-10 mb-16">
+      <BackBtn />
+      <ActiveEvalutorList2 activeEvaluatorData={approvedEvaluators} />
+      <PendingEvaluator2 pendingEvaluatorData={pendingEvaluators} />
+    </div>
+  );
 };
+
 export default ActiveEvaluate;

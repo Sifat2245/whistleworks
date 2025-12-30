@@ -68,6 +68,10 @@ export const CourtDetailsModal = ({ scheduleData, isLoading, onClose, open }) =>
               <span className="ml-2">{scheduleData.total_game_slots}</span>
             </p>
             <p>
+              <strong>Referees per slot:</strong>{" "}
+              <span className="ml-2">{scheduleData.max_referees_per_slot} Referees</span>
+            </p>
+            <p>
               <strong>Assigned Slots:</strong>{" "}
               <span className="ml-2">{scheduleData.assigned_slots}</span>
             </p>
