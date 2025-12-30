@@ -1,9 +1,13 @@
+import { useNavigate } from "react-router-dom";
 
-const CrewCard = ({group}) => {
+const CrewCard = ({ group }) => {
+  const navigate = useNavigate()
+
   return (
     <div
+      onClick={() => navigate(`/director-dashboard/crew-details/${group.id}`)}
       key={group.id}
-      className="relative bg-white rounded-2xl border border-black/15 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+      className="relative bg-white rounded-2xl border border-black/15 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer"
     >
       {/* Gradient header strip */}
       <div className="h-2 w-full bg-linear-to-r from-primary to-sky-600" />

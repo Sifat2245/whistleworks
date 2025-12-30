@@ -60,9 +60,10 @@ const DailyTimeRange = ({ getDateRange }) => {
       game_duration: Number(data.game_duration),
       time_ranges: filteredTimeRanges,
       locations: data.locations,
+      max_referees_per_slot: Number(data.max_referees_per_slot),
     };
 
-    // console.log("Final Body:", body);
+    console.log("Final Body:", body);
     createScheduleMutation.mutate(body);
   };
 
@@ -139,7 +140,7 @@ const DailyTimeRange = ({ getDateRange }) => {
           </p>
 
           {/* input field */}
-          <div className="w-full bg-[rgba(245,245,245,0.50)] rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5">
+          <div className="w-full bg-[rgba(245,245,245,0.50)] rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 flex flex-col sm:flex-row gap-4">
             <CommonInputWrapper
               type="number"
               placeholder="Game Duration (minutes)"
@@ -147,6 +148,15 @@ const DailyTimeRange = ({ getDateRange }) => {
               name="game_duration"
               register={register}
               register_as="game_duration"
+              errors={errors}
+            />
+            <CommonInputWrapper
+              type="number"
+              placeholder="Max Referees per game"
+              className="w-full text-sm sm:text-base"
+              name="max_referees_per_slot"
+              register={register}
+              register_as="max_referees_per_slot"
               errors={errors}
             />
           </div>

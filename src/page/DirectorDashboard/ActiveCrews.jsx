@@ -70,27 +70,37 @@ const ActiveCrews = () => {
         </div>
       </div>
 
-      {/* Loading */}
-      {isLoading && <CrewCardSkeleton/>}
-
       {/* Empty */}
-      {!isLoading && crewGroups.length === 0 && (
+      {crewGroups.length === 0 && (
         <p className="text-gray-500 text-lg">No crew groups found.</p>
       )}
 
-      {/* Crew List */}
-      {crewGroups.length > 0 && (
+      {isLoading ? (
         <div>
           <h2 className="text-xl font-semibold text-gray-700 mb-8">
             Active Crew List
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {crewGroups.map((group) => (
-             <CrewCard key={group.id} group={group}/>
+            {[...Array(8)].map((_, i) => (
+              <CrewCardSkeleton key={i} />
             ))}
           </div>
         </div>
+      ) : crewGroups.length > 0 ? (
+        <div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-8">
+            Active Crew List
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {crewGroups.map((group) => (
+              <CrewCard key={group.id} group={group} />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-gray-500 text-lg text-center py-12">
+          No crew groups found.
+        </p>
       )}
 
       {/* Modal */}

@@ -7,7 +7,8 @@ import CourtSlotBox from "./CourtSlotBox";
 import ScheduleActionButtons from "./ScheduleActionButtons";
 import ScheduleSkeleton from "./ScheduleSkeleton";
 import toast from "react-hot-toast";
-import { HiLockClosed } from "react-icons/hi2";
+import { HiLockClosed, HiLockOpen } from "react-icons/hi2";
+import Swal from "sweetalert2";
 
 const CourtLists = ({ campData }) => {
   const axiosInstance = useAxiosSecure();
@@ -64,13 +65,14 @@ const CourtLists = ({ campData }) => {
   });
 
   const courtHeaders = data?.court_headers || [];
+  const maxReferees = data?.schedule?.max_referees_per_slot;
+  const scheduleId = data?.schedule?.schedule_id;
   const timeSlots = data?.time_slots || [];
+  console.log(timeSlots, "time");
 
   const toggleBlockMutation = useMutation({
     mutationFn: async (slotId) => {
-      const res = await axiosInstance.patch(
-        `/v1/director/court-assign/slot/${slotId}/toggle-block`
-      );
+      const res = await axiosInstance.patch(`/v1/slot/${slotId}/toggle-block`);
       return res?.data;
     },
     onSuccess: (data) => {
@@ -119,6 +121,60 @@ const CourtLists = ({ campData }) => {
     handleCloseModal();
   };
 
+  //handle bulk block
+  const bulkToggleBlockMutation = useMutation({
+    mutationFn: async ({ date, start_time, action }) => {
+      const res = await axiosInstance.post(
+        `/v1/schedule/${scheduleId}/bulk-toggle-block`,
+        { date, start_time, action }
+      );
+      return res?.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Time slot updated successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["court-info", campData?.id, selectedDate],
+      });
+    },
+    onError: (error) => {
+      const msg =
+        error?.response?.data?.message || "Failed to update time slot";
+      toast.error(msg);
+    },
+  });
+
+  // === Handle Bulk Block/Unblock ===
+  const handleBulkBlock = async (time24h, date) => {
+    if (!scheduleId) return;
+
+    // Find if ALL courts in this time slot are already blocked
+    const slot = timeSlots.find((s) => s.time_24h === time24h);
+    if (!slot) return;
+
+    const allBlocked = slot.courts.every((court) => court.is_blocked);
+    const action = allBlocked ? "unblock" : "block";
+    const actionText = allBlocked ? "Unblock" : "Block";
+    const icon = allBlocked ? "unlock" : "lock";
+
+    const result = await Swal.fire({
+      title: `${actionText} All Courts?`,
+      text: `This will ${action} all courts in the ${slot.time} time slot on ${date}.`,
+      icon: icon === "lock" ? "warning" : "question",
+      showCancelButton: true,
+      confirmButtonText: `Yes, ${actionText}`,
+      cancelButtonText: "Cancel",
+      confirmButtonColor: action === "block" ? "#ef4444" : "#10b981",
+    });
+
+    if (result.isConfirmed) {
+      bulkToggleBlockMutation.mutate({
+        date,
+        start_time: time24h, // e.g., "09:00:00"
+        action,
+      });
+    }
+  };
+
   const handleUndoBlock = (slotId) => {
     toggleBlockMutation.mutate(slotId);
   };
@@ -159,7 +215,7 @@ const CourtLists = ({ campData }) => {
           <div className="min-w-max">
             {/* Header */}
             <div className="flex gap-6 bg-gray-50 border-b border-gray-300 sticky top-0 z-20">
-              <div className="w-32 shrink-0 px-6 py-6 text-lg font-semibold sticky left-0 bg-gray-50 z-30 border-r border-gray-300">
+              <div className="w-34 shrink-0 px-6 py-6 text-lg font-semibold sticky left-0 bg-gray-50 z-30 border-r border-gray-300">
                 <span>Time</span>
               </div>
               <div className="flex gap-6 py-6">
@@ -169,52 +225,76 @@ const CourtLists = ({ campData }) => {
                     className="shrink-0 w-72 text-center"
                   >
                     <div className="text-red-600 text-sm font-medium">
-                      {court.location}
+                      {court?.location}
                     </div>
                     <div className="text-[#00AEEF] font-bold text-xl mt-1">
-                      Court {court.court_number}
+                      {court?.court_name}
                     </div>
-                     <HiLockClosed className="w-5 h-5 text-gray-400" title="Block indicator" />
                   </div>
                 ))}
               </div>
             </div>
-
+            
             {/* Rows */}
-            {timeSlots.map((slot) => (
-              <div
-                key={slot.time_24h}
-                className="flex gap-6 border-b border-gray-200 hover:bg-gray-50 transition-colors"
-              >
-                <div className="w-32 shrink-0 px-6 py-10 text-lg font-medium text-gray-800 sticky left-0 bg-white z-10 border-r border-gray-200 flex items-center justify-between">
-                    <span>{slot.time}</span>
-                      <HiLockClosed
-                        className="w-6 h-6 text-red-600"
-                        title="All courts blocked in this time slot"
-                      />
-                  </div>
-                <div className="flex gap-6 py-8">
-                  {slot.courts.map((court) => {
-                    const isBlocked = court?.is_blocked;
-                    const referees = court?.assignments || [];
+            {timeSlots.map((slot) => {
+              // Check if all courts in this slot are blocked
+              const allBlocked = slot.courts.every((court) => court.is_blocked);
 
-                    return (
-                      <CourtSlotBox
-                        key={court.slot_id}
-                        court={court}
-                        timeSlot={slot}
-                        isBlocked={isBlocked}
-                        referees={referees}
-                        campId={campData?.id}
-                        selectedDate={selectedDate}
-                        onClick={handleBoxClick}
-                        onUndoBlock={handleUndoBlock}
-                      />
-                    );
-                  })}
+              return (
+                <div
+                  key={slot.time_24h}
+                  className="flex gap-6 border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="w-34 shrink-0 px-6 py-10 text-lg font-medium text-gray-800 sticky left-0 bg-white z-10 border-r border-gray-200 flex flex-col items-center justify-center gap-6">
+                    <span>{slot.time}</span>
+
+                    <button
+                      onClick={() =>
+                        handleBulkBlock(slot.time_24h, selectedDate)
+                      }
+                      disabled={bulkToggleBlockMutation.isPending}
+                      className={`rounded-lg px-4 py-2 flex items-center gap-2 text-white font-medium transition-all cursor-pointer
+                        ${
+                          allBlocked
+                            ? "bg-green-400 hover:bg-green-500"
+                            : "bg-red-400 hover:bg-red-500"
+                        }
+                        disabled:opacity-70 disabled:cursor-not-allowed
+                      `}
+                    >
+                      {allBlocked ? (
+                        <HiLockOpen className="w-3 h-3" />
+                      ) : (
+                        <HiLockClosed className="w-3 h-3" />
+                      )}
+                      <span className="text-xs">{allBlocked ? "Unblock" : "Block"}</span>
+                    </button>
+                  </div>
+
+                  <div className="flex gap-6 py-8">
+                    {slot.courts.map((court) => {
+                      const isBlocked = court?.is_blocked;
+                      const referees = court?.assignments || [];
+
+                      return (
+                        <CourtSlotBox
+                          key={court.slot_id}
+                          court={court}
+                          timeSlot={slot}
+                          isBlocked={isBlocked}
+                          referees={referees}
+                          campId={campData?.id}
+                          selectedDate={selectedDate}
+                          maxReferees={maxReferees}
+                          onClick={handleBoxClick}
+                          onUndoBlock={handleUndoBlock}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -230,6 +310,7 @@ const CourtLists = ({ campData }) => {
         selectedTimeSlot={selectedTimeSlot}
         handleBlockCourt={handleBlockCourt}
         campId={campData?.id}
+        maxReferees={maxReferees}
         selectedDate={selectedDate}
         existingReferees={
           selectedCourt && selectedTimeSlot

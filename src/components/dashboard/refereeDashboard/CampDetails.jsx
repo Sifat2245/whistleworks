@@ -1,26 +1,25 @@
-import { Image, Modal, notification, Spin } from "antd";
+import { Image } from "antd";
 import Icon from "@/components/common/Icon";
 import location from "@/assets/svg/location.svg";
 import calender from "/referee/calender-icon.svg";
 import singleUser from "/referee/single-user-icon.svg";
 import facility from "@/assets/svg/facility.svg";
 import { useState } from "react";
-import { HiOutlineShieldCheck } from "react-icons/hi2";
 import { useAuth } from "@/hooks/useAuth";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import dummyImage from "@/assets/dummyCardImg.png"
+import dummyImage from "@/assets/dummyCardImg.png";
+import Swal from "sweetalert2";
+import toast from "react-hot-toast";
 
-export default function CampDetails({ campData }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function CampDetails({ campData, onRegistrationUpdate }) {
   const [loading, setLoading] = useState(false);
-  const [api, contextHolder] = notification.useNotification();
 
   const { userData } = useAuth();
   const axiosSecure = useAxiosSecure();
 
   const isEvaluator = userData?.role === "evaluator";
+  const isReferee = userData?.role === "referee";
 
-  // Note: Destructure camp data
   const {
     id: campId,
     camp_name = "Untitled Camp",
@@ -31,6 +30,8 @@ export default function CampDetails({ campData }) {
     camp_details = "No description available.",
     sports_type_name = "Unknown Sport",
     price = "N/A",
+    referee_registration_status: refereeStatus,
+    evaluator_registration_status: evaluatorStatus,
   } = campData || {};
 
   const formatDate = (dateString) => {
@@ -42,228 +43,261 @@ export default function CampDetails({ campData }) {
     });
   };
 
-  const handleCheckIn = async () => {
-    setLoading(true);
+  const handleAction = async () => {
+    let endpoint = "";
+    let payload = {};
+    let successMessage = "";
+    let newStatusField = "";
+    let newStatusValue = "";
 
-    try {
-      const response = await axiosSecure.post(
-        `/v1/referee/camp/${campId}/register`
-      );
-
-      const { success, message, data } = response.data;
-
-      if (success && data?.payment_required && data?.checkout_url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.checkout_url;
-      } else {
-        // Already paid or free camp
-        api.success({
-          message: "Check-in Successful!",
-          description:
-            message ||
-            "You have successfully checked in to the camp. Enjoy your training!",
-          placement: "topRight",
-        });
-        setIsModalOpen(false);
-      }
-    } catch (error) {
-      // Robust error message extraction
-      const fallback = "Check-in failed. Please try again.";
-
-      const getErrorString = (obj) => {
-        if (typeof obj === "string") return obj;
-        if (obj && typeof obj === "object") {
-          return (
-            obj.message ||
-            obj.details ||
-            obj.error ||
-            obj.description ||
-            JSON.stringify(obj)
-          );
-        }
-        return fallback;
-      };
-
-      const errorMsg =
-        getErrorString(error.response?.data?.message) ||
-        getErrorString(error.response?.data) ||
-        fallback;
-
-      api.error({
-        message: "Check-in Failed",
-        description: errorMsg,
-        placement: "topRight",
-      });
-    } finally {
-      setLoading(false);
+    if (isEvaluator) {
+      endpoint = `/evaluator/camp-registration/register`;
+      payload = { camp_id: campId };
+      successMessage = "Registration submitted successfully. Waiting for director approval.";
+      newStatusField = "evaluator_registration_status";
+      newStatusValue = "pending";
+    } else if (isReferee && refereeStatus === "registered") {
+      endpoint = `/v1/referee/camp/${campId}/checkin`;
+      payload = {};
+      successMessage = "Checked In Successfully!";
+      newStatusField = "referee_registration_status";
+      newStatusValue = "checked_in";
+    } else if (isReferee) {
+      endpoint = `/v1/referee/camp/${campId}/register`;
+      payload = {};
+      successMessage = "Registered Successfully!";
+      newStatusField = "referee_registration_status";
+      newStatusValue = "registered";
     }
+
+    await Swal.fire({
+      title: isEvaluator
+        ? "Evaluator Registration Confirmation"
+        : refereeStatus === "registered" && isReferee
+        ? "Camp Check In Confirmation"
+        : "Camp Registration Confirmation",
+      html: `
+        <div class="text-center">
+          <p class="text-lg text-gray-700 leading-relaxed max-w-md mx-auto">
+            ${
+              isEvaluator
+                ? "I confirm I want to register as an evaluator for this camp."
+                : refereeStatus === "registered" && isReferee
+                ? "I have physically arrived at camp and am ready to begin training."
+                : "I confirm I want to register for this camp."
+            }
+          </p>
+          ${
+            price !== "N/A" && parseFloat(price) > 0
+              ? '<p class="text-sm text-gray-500 mt-6">Note: You may be redirected to payment if required.</p>'
+              : ""
+          }
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: loading ? "Processing..." : "Proceed",
+      cancelButtonText: "Go Back",
+      width: 520,
+      padding: "2.5rem",
+      showLoaderOnConfirm: true,
+      // Fixed button colors with custom classes
+      customClass: {
+        confirmButton: "bg-[#00AEEF] hover:bg-[#0099d4] text-white font-medium rounded-lg px-8 py-3 text-lg",
+        cancelButton: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg px-8 py-3 text-lg ml-3",
+      },
+      buttonsStyling: false,
+      preConfirm: async () => {
+        setLoading(true);
+        try {
+          const response = await axiosSecure.post(endpoint, payload);
+
+          const { success, data } = response.data;
+
+          if (success) {
+            if (data?.payment_required && data?.checkout_url) {
+              Swal.close();
+              window.location.href = data.checkout_url;
+              return;
+            }
+
+            toast.success(successMessage);
+
+            // Update the correct status field
+            onRegistrationUpdate?.({
+              ...campData,
+              [newStatusField]: newStatusValue,
+            });
+          }
+        } catch (error) {
+          const errorMsg =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            "Operation failed. Please try again.";
+
+          Swal.showValidationMessage(`<i>${errorMsg}</i>`);
+        } finally {
+          setLoading(false);
+        }
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+    });
   };
 
-  const handleCancel = () => {
-    setIsModalOpen(false);
-  };
+  // Current status for badge and button logic
+  const currentStatus = isEvaluator ? evaluatorStatus : refereeStatus;
+
+  const showButton = (() => {
+    if (!isReferee && !isEvaluator) return false;
+    if (isEvaluator) {
+      return !currentStatus || currentStatus === "rejected";
+    }
+    if (isReferee) {
+      return currentStatus !== "checked_in";
+    }
+    return false;
+  })();
+
+  const buttonText = (() => {
+    if (isEvaluator) return "Register as Evaluator";
+    if (isReferee && refereeStatus === "registered") return "Check In";
+    return "Register";
+  })();
+
+  const statusBadge = (() => {
+    if (!currentStatus) return null;
+
+    if (isEvaluator) {
+      if (currentStatus === "pending") return { text: "Pending Approval", color: "bg-yellow-500" };
+      if (currentStatus === "approved") return { text: "Approved", color: "bg-green-600" };
+      if (currentStatus === "rejected") return { text: "Rejected", color: "bg-red-600" };
+    } else {
+      if (currentStatus === "checked_in") return { text: "Checked In", color: "bg-green-600" };
+      if (currentStatus === "registered") return { text: "Registered", color: "bg-[#00AEEF]" };
+    }
+    return null;
+  })();
 
   return (
-    <div>
-      {contextHolder}
+    <div className="space-y-3 mt-10">
+      {/* Overview */}
+      <div className="border border-border p-5 rounded-[10px]">
+        <div className="flex justify-between items-center mb-5">
+          <h3 className="text-xl font-medium">Overview</h3>
 
-      <div className="space-y-3 mt-10">
-        {/* Overview */}
-        <div className="border border-border p-5 rounded-[10px]">
-          <h3 className="text-xl font-medium mb-5">Overview</h3>
-
-          <div className="flex items-center gap-1.5 mb-4">
-            <Image
-              src={camp_logo || dummyImage}
-              alt={camp_name}
-              width={36}
-              height={36}
-              preview={false}
-              className="rounded-full object-cover"
-              fallback={dummyImage}
-            />
-            <p className="text-[14px] font-normal">{camp_name}</p>
-          </div>
-
-          <div className="flex gap-2 mb-3">
-            <Icon src={location} className="size-5" />
-            <div>
-              <p className="text-[#666666]">Location</p>
-              <p className="text-lg">{campLocation}</p>
-            </div>
-          </div>
-
-          <div className="flex gap-2 mb-3">
-            <Icon src={calender} className="size-5 text-primary" />
-            <div>
-              <p className="text-[#666666]">Dates</p>
-              <p className="text-lg">
-                {formatDate(start_date)} - {formatDate(end_date)}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-2 mb-3">
-            <Icon src={singleUser} className="size-5 text-primary" />
-            <div>
-              <p className="text-[#666666]">Sport</p>
-              <p className="text-lg capitalize">{sports_type_name}</p>
-            </div>
-          </div>
-
-          {price !== "N/A" && (
-            <div className="flex gap-2 mb-3">
-              <Icon src={singleUser} className="size-5 text-primary" />
-              <div>
-                <p className="text-[#666666]">Camp Fee</p>
-                <p className="text-lg">${parseFloat(price).toFixed(2)}</p>
-              </div>
-            </div>
+          {statusBadge && (
+            <span
+              className={`inline-block px-6 py-3 rounded-full text-white font-medium text-sm ${statusBadge.color}`}
+            >
+              {statusBadge.text}
+            </span>
           )}
         </div>
 
-        {/* Camp Description */}
-        <div className="border border-border p-5 rounded-[10px]">
-          <h3 className="text-xl font-medium mb-5">Camp Description</h3>
-          <p className="max-w-lg text-[#666666] leading-relaxed">
-            {camp_details}
-          </p>
+        <div className="flex items-center gap-1.5 mb-4">
+          <Image
+            src={camp_logo || dummyImage}
+            alt={camp_name}
+            width={36}
+            height={36}
+            preview={false}
+            className="rounded-full object-cover"
+            fallback={dummyImage}
+          />
+          <p className="text-[14px] font-normal">{camp_name}</p>
         </div>
 
-        {/* Venue Information */}
-        <div className="border border-border p-5 rounded-[10px]">
-          <h3 className="text-xl font-medium mb-5">Venue Information</h3>
-          <div className="flex gap-2 mb-3">
-            <Icon src={facility} className="size-5 text-primary" />
-            <div>
-              <p className="text-[#666666]">Facility</p>
-              <p className="text-lg">{campLocation}</p>
-            </div>
-          </div>
-          <div className="bg-[#F5F5F5] px-3 py-2.5 rounded-md">
-            <p className="text-[14px] text-[#666666]">Address</p>
+        <div className="flex gap-2 mb-3">
+          <Icon src={location} className="size-5" />
+          <div>
+            <p className="text-[#666666]">Location</p>
             <p className="text-lg">{campLocation}</p>
           </div>
         </div>
 
-        {/* Camp Dates */}
-        <div className="border border-border p-5 rounded-[10px]">
-          <h3 className="text-xl font-medium mb-5">Camp Dates</h3>
-          <div className="space-y-3">
-            <div className="flex gap-2 bg-[#F5F5F5] px-3 py-2.5 rounded-md">
-              <Icon src={calender} className="size-5 text-primary" />
-              <div>
-                <p className="text-lg font-normal">Duration</p>
-                <p className="text-[14px] text-[#666666]">
-                  {formatDate(start_date)} to {formatDate(end_date)}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2 bg-[#F5F5F5] px-3 py-2.5 rounded-md">
-              <Icon src={singleUser} className="size-5 text-primary" />
-              <div>
-                <p className="text-lg font-normal">Sport</p>
-                <p className="text-[14px] text-[#666666] capitalize">
-                  {sports_type_name}
-                </p>
-              </div>
-            </div>
+        <div className="flex gap-2 mb-3">
+          <Icon src={calender} className="size-5 text-primary" />
+          <div>
+            <p className="text-[#666666]">Dates</p>
+            <p className="text-lg">
+              {formatDate(start_date)} - {formatDate(end_date)}
+            </p>
           </div>
         </div>
 
-        {/* Check In Button - Only for referees */}
-        {!isEvaluator && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-primary text-white py-4 px-8 rounded-md w-full text-lg font-medium mt-6 cursor-pointer hover:opacity-90 transition"
-          >
-            Register
-          </button>
+        <div className="flex gap-2 mb-3">
+          <Icon src={singleUser} className="size-5 text-primary" />
+          <div>
+            <p className="text-[#666666]">Sport</p>
+            <p className="text-lg capitalize">{sports_type_name}</p>
+          </div>
+        </div>
+
+        {price !== "N/A" && (
+          <div className="flex gap-2 mb-3">
+            <Icon src={singleUser} className="size-5 text-primary" />
+            <div>
+              <p className="text-[#666666]">Camp Fee</p>
+              <p className="text-lg">${parseFloat(price).toFixed(2)}</p>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Check-in Confirmation Modal */}
-      <Modal
-        title={
-          <h3 className="text-xl font-semibold mb-10">
-            Camp Check In Confirmation
-          </h3>
-        }
-        open={isModalOpen}
-        onOk={handleCheckIn}
-        onCancel={handleCancel}
-        confirmLoading={loading}
-        cancelText="Go Back"
-        okText={loading ? "Processing..." : "Proceed"}
-        centered
-        width={420}
-        okButtonProps={{
-          disabled: loading,
-          className:
-            "bg-primary text-white rounded-md px-6 py-5 text-lg font-medium",
-        }}
-        cancelButtonProps={{
-          className:
-            "text-lg font-medium px-6 py-5 rounded-md hover:text-primary hover:border-primary",
-        }}
-      >
-        <div className="flex flex-col items-center text-center">
-          {loading ? (
-            <Spin size="large" className="my-8" />
-          ) : (
-            <HiOutlineShieldCheck className="text-5xl text-primary mb-6" />
-          )}
-          <p className="text-lg mb-8 text-gray-700">
-            I have physically arrived at camp and am ready to begin training.
-          </p>
-          {price !== "N/A" && parseFloat(price) > 0 && (
-            <p className="text-sm text-gray-500">
-              Note: You will be redirected to Stripe to complete payment if
-              required.
-            </p>
-          )}
+      {/* Camp Description */}
+      <div className="border border-border p-5 rounded-[10px]">
+        <h3 className="text-xl font-medium mb-5">Camp Description</h3>
+        <p className="max-w-lg text-[#666666] leading-relaxed">{camp_details}</p>
+      </div>
+
+      {/* Venue Information */}
+      <div className="border border-border p-5 rounded-[10px]">
+        <h3 className="text-xl font-medium mb-5">Venue Information</h3>
+        <div className="flex gap-2 mb-3">
+          <Icon src={facility} className="size-5 text-primary" />
+          <div>
+            <p className="text-[#666666]">Facility</p>
+            <p className="text-lg">{campLocation}</p>
+          </div>
         </div>
-      </Modal>
+        <div className="bg-[#F5F5F5] px-3 py-2.5 rounded-md">
+          <p className="text-[14px] text-[#666666]">Address</p>
+          <p className="text-lg">{campLocation}</p>
+        </div>
+      </div>
+
+      {/* Camp Dates */}
+      <div className="border border-border p-5 rounded-[10px]">
+        <h3 className="text-xl font-medium mb-5">Camp Dates</h3>
+        <div className="space-y-3">
+          <div className="flex gap-2 bg-[#F5F5F5] px-3 py-2.5 rounded-md">
+            <Icon src={calender} className="size-5 text-primary" />
+            <div>
+              <p className="text-lg font-normal">Duration</p>
+              <p className="text-[14px] text-[#666666]">
+                {formatDate(start_date)} to {formatDate(end_date)}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 bg-[#F5F5F5] px-3 py-2.5 rounded-md">
+            <Icon src={singleUser} className="size-5 text-primary" />
+            <div>
+              <p className="text-lg font-normal">Sport</p>
+              <p className="text-[14px] text-[#666666] capitalize">{sports_type_name}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Button */}
+      {showButton && (
+        <button
+          onClick={handleAction}
+          disabled={loading}
+          className="bg-primary text-white py-4 px-8 rounded-md w-full text-lg font-medium mt-6 hover:opacity-90 transition disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {loading ? "Processing..." : buttonText}
+        </button>
+      )}
     </div>
   );
 }
