@@ -79,7 +79,7 @@ const EditProfileModal = ({ open, onClose }) => {
                                 />
                                 {/* last name */}
                                 <CommonInputWrapper
-                                    label="First Name"
+                                    label="Last Name"
                                     placeholder="Enter your first name"
                                     register_as="last_name"
                                     register={register}

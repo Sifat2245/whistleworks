@@ -20,7 +20,6 @@ import Ranking from "@/page/DirectorDashboard/Ranking";
 import Roster from "@/page/DirectorDashboard/Roster";
 import Evaluate from "@/page/DirectorDashboard/Evaluate";
 import ActiveCamps from "@/page/RefereeDashboard/ActiveCamps";
-import RankingReport from "@/page/DirectorDashboard/RankingReport";
 import Profile from "@/components/common/Profile";
 import PreviousCamps from "@/page/RefereeDashboard/PreviousCamps";
 import FindCamps from "@/page/RefereeDashboard/FindCamps";
@@ -38,6 +37,7 @@ import PaymentSuccess from "@/page/RefereeDashboard/PaymentSuccess";
 import PaymentCancel from "@/page/RefereeDashboard/PaymentCancel";
 import MyCamps from "@/page/EvolatorDashboard/MyCamp";
 import CrewDetailsPage from "@/page/DirectorDashboard/CrewDetailsPage";
+import MakeAnnouncement from "@/page/DirectorDashboard/MakeAnnouncement";
 
 const router = createBrowserRouter([
   {
@@ -99,16 +99,16 @@ const router = createBrowserRouter([
         },
       },
       {
-        path: "ranking",
-        element: <Ranking />,
-      },
-      {
         path: "ranking/:id",
-        element: <RankingReport />,
+        element: <Ranking />,
       },
       {
         path: "roster/:id",
         element: <Roster />,
+      },
+      {
+        path: "make-announcement/:id",
+        element: <MakeAnnouncement />,
       },
       {
         path: "evaluate/:id",

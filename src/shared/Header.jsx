@@ -6,8 +6,8 @@ import { useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import UserPopover from "./UserPopover";
-import { IoNotificationsOutline } from "react-icons/io5";
 import userImage from "@/assets/dashboard/userImage.png";
+import NotificationBell from "./NotificationBell";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -74,13 +74,7 @@ const Header = () => {
               </div>
             </Popover>
 
-            <button className="cursor-pointer relative">
-              <IoNotificationsOutline className="text-xl" />
-
-              <span className="absolute flex items-center justify-center -top-3 -right-2.5 size-5 bg-primary text-white rounded-lg border-2 border-white text-xs">
-                2
-              </span>
-            </button>
+           <NotificationBell badgeCount={2} />
           </div>
         ) : (
           <div className="hidden lg:flex space-x-3">
