@@ -87,3 +87,7 @@ body {
 .active .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
   padding: 14px !important;
 }
+
+.ant-popover.notification-popover {
+  z-index: 1000;
+}

@@ -1,18 +1,33 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { MdEmail } from "react-icons/md";
+import { MdEmail, MdPhone, MdLocationOn, MdClose } from "react-icons/md";
 import { IoCheckboxOutline } from "react-icons/io5";
+import { AnimatePresence, motion } from "framer-motion";
 
 const RosterTable = ({ referees = [] }) => {
   const data = useMemo(() => referees, [referees]);
 
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedReferee, setSelectedReferee] = useState(null);
+
   // Calculate stats
   const totalReferees = referees.length;
   const checkedInCount = referees.filter((ref) => ref.status === "checked_in").length;
+
+  const openModal = (referee) => {
+    setSelectedReferee(referee);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedReferee(null);
+  };
 
   const columns = useMemo(
     () => [
@@ -28,9 +43,12 @@ const RosterTable = ({ referees = [] }) => {
               onError={(e) => (e.target.src = "/default-avatar.png")}
             />
             <div>
-              <div className="font-semibold text-gray-900 hover:underline cursor-pointer">
+              <button
+                onClick={() => openModal(row.original)}
+                className="font-semibold text-gray-900 hover:underline cursor-pointer focus:outline-none"
+              >
                 {row.original.name || "Unnamed Referee"}
-              </div>
+              </button>
               <div className="text-sm text-gray-500">Referee</div>
             </div>
           </div>
@@ -60,11 +78,11 @@ const RosterTable = ({ referees = [] }) => {
         ),
       },
       {
-        accessorKey: "gamesAssigned",
+        accessorKey: "assigned_games_count",
         header: "Games Assigned",
-        cell: () => (
+        cell: ({ row }) => (
           <div className="text-center font-medium text-gray-900">
-            —
+            {row.original.assigned_games_count ?? "N/A"}
           </div>
         ),
       },
@@ -121,9 +139,9 @@ const RosterTable = ({ referees = [] }) => {
         ))}
       </div>
 
-      {/* Scrollable Table with Fixed Height */}
+      {/* Table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="max-h-[600px] overflow-y-auto"> {/* ← Fixed height + vertical scroll */}
+        <div className="max-h-[600px] overflow-y-auto">
           <table className="w-full min-w-[800px]">
             <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
@@ -172,6 +190,128 @@ const RosterTable = ({ referees = [] }) => {
           </table>
         </div>
       </div>
+
+      {/* Modal */}
+     <AnimatePresence>
+        {isModalOpen && selectedReferee && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+            onClick={closeModal} // Close when clicking backdrop
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.96 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                duration: 0.4
+              }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()} // Prevent close when clicking inside
+            >
+              <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900">Referee Details</h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600 transition"
+                  aria-label="Close modal"
+                >
+                  <MdClose className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Avatar + Name */}
+                <div className="flex flex-col items-center text-center">
+                  <motion.img
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                    src={selectedReferee.avatar || "/default-avatar.png"}
+                    alt={selectedReferee.name}
+                    className="w-28 h-28 rounded-full object-cover border-4 border-gray-200 mb-4"
+                    onError={(e) => (e.target.src = "/default-avatar.png")}
+                  />
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {selectedReferee.name || "Unnamed Referee"}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">Referee ID: #{selectedReferee.id}</p>
+                </div>
+
+                {/* Details - unchanged */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <MdEmail className="text-gray-400 text-xl" />
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedReferee.email || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedReferee.phone && (
+                    <div className="flex items-center gap-3">
+                      <MdPhone className="text-gray-400 text-xl" />
+                      <div>
+                        <p className="text-sm text-gray-500">Phone</p>
+                        <p className="font-medium text-gray-900">{selectedReferee.phone}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedReferee.address && (
+                    <div className="flex items-center gap-3">
+                      <MdLocationOn className="text-gray-400 text-xl" />
+                      <div>
+                        <p className="text-sm text-gray-500">Address</p>
+                        <p className="font-medium text-gray-900">{selectedReferee.address}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <IoCheckboxOutline className="text-gray-400 text-xl" />
+                    <div>
+                      <p className="text-sm text-gray-500">Status</p>
+                      <p
+                        className={`font-medium ${
+                          selectedReferee.status === "checked_in"
+                            ? "text-[#008236]"
+                            : "text-[#1E40AF]"
+                        }`}
+                      >
+                        {selectedReferee.status === "checked_in" ? "Checked In" : "Registered"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-500">Games Assigned</p>
+                    <p className="text-2xl font-bold text-[#00AEEF]">
+                      {selectedReferee.assigned_games_count ?? 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-200">
+                <button
+                  onClick={closeModal}
+                  className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

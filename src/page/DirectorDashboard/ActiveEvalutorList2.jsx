@@ -1,6 +1,26 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MdEmail, MdPhone, MdLocationOn, MdClose } from "react-icons/md";
 
 const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
-    console.log(activeEvaluatorData);
+  console.log(activeEvaluatorData, 'data');
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvaluator, setSelectedEvaluator] = useState(null);
+
+  console.log(selectedEvaluator, 'selected');
+
+  const openModal = (evaluator) => {
+    setSelectedEvaluator(evaluator);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvaluator(null);
+  };
+
   return (
     <div className="w-full">
       {/* Title */}
@@ -19,16 +39,18 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
             <div className="flex flex-col items-center mb-5">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 mb-4">
                 <img
-                  src={evaluator.image || "/default-avatar.png"}
+                  src={evaluator.image || ""}
                   alt={evaluator.name}
                   className="w-full h-full rounded-full object-cover border-4 border-[#00AEEF]/20 shadow-md"
-                  onError={(e) => (e.target.src = "/default-avatar.png")}
                 />
               </div>
 
-              <h6 className="text-base sm:text-lg font-bold text-[#333] text-center line-clamp-1">
+              <button
+                onClick={() => openModal(evaluator)}
+                className="text-base sm:text-lg font-bold text-[#333] text-center line-clamp-1 hover:text-[#00AEEF] hover:underline focus:outline-none transition-colors"
+              >
                 {evaluator.name || "Unnamed Evaluator"}
-              </h6>
+              </button>
 
               <span className="mt-2 inline-block bg-[#00AEEF]/10 text-[#00AEEF] text-xs font-semibold px-3 py-1.5 rounded-full">
                 Active Evaluator
@@ -98,6 +120,110 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
           </p>
         </div>
       )}
+
+      {/* Animated Modal */}
+      <AnimatePresence>
+        {isModalOpen && selectedEvaluator && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+            onClick={closeModal}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.96 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                duration: 0.4
+              }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900">Evaluator Details</h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600 transition"
+                  aria-label="Close modal"
+                >
+                  <MdClose className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Avatar + Name */}
+                <div className="flex flex-col items-center text-center">
+                  <motion.img
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                    src={selectedEvaluator.image || "/default-avatar.png"}
+                    alt={selectedEvaluator.name}
+                    className="w-28 h-28 rounded-full object-cover border-4 border-[#00AEEF]/20 mb-4 shadow-lg"
+                    onError={(e) => (e.target.src = "/default-avatar.png")}
+                  />
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {selectedEvaluator.name || "Unnamed Evaluator"}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Evaluator ID: #{selectedEvaluator.id}
+                  </p>
+                  <span className="mt-3 inline-block bg-green-100 text-green-700 text-sm font-medium px-4 py-1.5 rounded-full">
+                    Active Since {selectedEvaluator.approvedAt ? new Date(selectedEvaluator.approvedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "N/A"}
+                  </span>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <MdEmail className="text-gray-400 text-xl" />
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedEvaluator.evaluatorMail || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedEvaluator.evaluatorNumber && (
+                    <div className="flex items-center gap-3">
+                      <MdPhone className="text-gray-400 text-xl" />
+                      <div>
+                        <p className="text-sm text-gray-500">Phone</p>
+                        <p className="font-medium text-gray-900">{selectedEvaluator.evaluatorNumber}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedEvaluator.evaluatorAddress && (
+                    <div className="flex items-center gap-3">
+                      <MdLocationOn className="text-gray-400 text-xl" />
+                      <div>
+                        <p className="text-sm text-gray-500">Address</p>
+                        <p className="font-medium text-gray-900">{selectedEvaluator.evaluatorAddress}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-200">
+                <button
+                  onClick={closeModal}
+                  className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

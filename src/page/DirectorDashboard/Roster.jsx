@@ -134,6 +134,8 @@ const Roster = () => {
 
         <div className="w-full lg:w-auto">
           <CommonSubmitBtn
+          link
+          path={`/director-dashboard/make-announcement/${campId}`}
             type="button"
             variant="primary"
             className="w-full lg:w-auto py-3 px-8 text-base font-medium"
