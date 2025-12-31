@@ -11,11 +11,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import toast from "react-hot-toast";
+import { useState } from "react";
+import EditProfileModal from "./EditProfileModal";
 
 export default function Profile() {
   const axiosInstance = useAxiosSecure();
   const { userData } = useAuth();
   const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false);
+
 
   // Note: profile image update mutation
   const changeProfileImageMutation = useMutation({
@@ -60,6 +64,9 @@ export default function Profile() {
     }
     changeProfileImageMutation.mutate(file);
   };
+
+  // Note: profile info update mutation
+
 
   // Note: main ui component
   return (
@@ -109,15 +116,16 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* edit profile info button
+        {/* edit profile info button */}
         <div className="w-full flex justify-end items-end">
-          <Link
-            to="/profile/1"
+          <button
+            onClick={() => setOpen(true)}
             className="bg-primary py-2 px-5 rounded-md text-white"
           >
             Edit Profile Info
-          </Link>
-        </div> */}
+          </button>
+        </div>
+
 
         {/* Contact information */}
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
@@ -145,6 +153,12 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* modal */}
+      <EditProfileModal
+        open={open}
+        onClose={() => setOpen(false)}
+      />
     </section>
   );
 }
