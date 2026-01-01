@@ -1,20 +1,22 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import CommonInputWrapper from "./CommonInputWrapper";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 
 const EditProfileModal = ({ open, onClose }) => {
+    const queryClient = useQueryClient();
     const axiosInstance = useAxiosSecure();
 
+    // Note: hook form
     const {
         register,
         handleSubmit,
         formState: { errors }
     } = useForm()
 
-
+    // Note: update mutation data
     const updateProfilInfoMutation = useMutation({
         mutationKey: ["updte-profile-info"],
         mutationFn: async (formData) => {
@@ -23,20 +25,28 @@ const EditProfileModal = ({ open, onClose }) => {
                     "Content-type": "multipart/form-data"
                 }
             });
-            return respone?.data?.data
+            return respone?.data
         },
         onSuccess: (data) => {
             toast.success(data.message || "Profile update successfully")
+            queryClient.invalidateQueries({ queryKey: ["userData"], exact: true })
         },
         onError: (err) => {
             toast.error(err?.respone?.data?.message || "Something went wrong!")
         }
     });
 
-
+    // Note: 
     const onSubmit = (data) => {
-        console.log(data)
-        // updateProfilInfoMutation.mutate()
+        const formData = new FormData();
+        formData.append("first_name", data.first_name);
+        formData.append("last_name", data.last_name);
+        formData.append("phone", data.phone);
+        formData.append("address", data.address);
+        formData.append("biography", data.biography);
+
+        console.log("Onsubmit data : ---->", data)
+        updateProfilInfoMutation.mutate(formData)
     }
 
     return (
@@ -107,7 +117,6 @@ const EditProfileModal = ({ open, onClose }) => {
                             </div>
 
                             {/* biography */}
-                            {/* Biography */}
                             <CommonInputWrapper
                                 label="Biography"
                                 type="textarea"
@@ -117,25 +126,29 @@ const EditProfileModal = ({ open, onClose }) => {
                                 errors={errors}
                                 validationRules={{ required: "Biography is required" }}
                             />
+
+                            {/* close button */}
+                            <div className="w-full flex justify-between items-center">
+                                <button
+                                    onClick={onClose}
+                                    type="button"
+                                    className="px-4 py-2 bg-gray-200 rounded cursor-pointer"
+                                >
+                                    Close
+                                </button>
+
+                                {/* update button */}
+                                <button
+                                    disabled={updateProfilInfoMutation?.isPending}
+                                    type="submit"
+                                    className="cursor-pointer bg-primary text-white py-1.5 px-7 rounded-md border border-primary hover:bg-transparent hover:text-black hover:shadow-md transition-all duration-300"
+                                >
+                                    {updateProfilInfoMutation?.isPending ? "Updating..." : "Update Info"}
+                                </button>
+                            </div>
                         </form>
 
-                        {/* close button */}
-                        <div className="mt-5 w-full flex justify-between items-center">
-                            <button
-                                onClick={onClose}
-                                className="px-4 py-2 bg-gray-200 rounded cursor-pointer"
-                            >
-                                Close
-                            </button>
 
-                            {/* update button */}
-                            <button
-                                disabled={updateProfilInfoMutation?.isPending}
-                                className="cursor-pointer bg-primary text-white py-1.5 px-7 rounded-md border border-primary hover:bg-transparent hover:text-black hover:shadow-md transition-all duration-300"
-                            >
-                                {updateProfilInfoMutation?.isPending ? "Updating..." : "Update Info"}
-                            </button>
-                        </div>
                     </motion.div>
                 </motion.div>
             )}
