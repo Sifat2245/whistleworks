@@ -104,7 +104,7 @@ export default function Profile() {
             </label>
           </div>
           <div>
-            <p className="text-[30px] font-medium mb-3">John Anderson</p>
+            <p className="text-[30px] font-medium mb-3">{`${userData?.first_name} ${userData?.last_name}`}</p>
             <button className="text-base font-medium text-primary bg-[#E6F7FD] py-2.5 px-9 rounded-md mb-6">
               {userData?.role?.toUpperCase()}
             </button>
@@ -120,7 +120,7 @@ export default function Profile() {
         <div className="w-full flex justify-end items-end">
           <button
             onClick={() => setOpen(true)}
-            className="bg-primary py-2 px-5 rounded-md text-white"
+            className="cursor-pointer bg-primary py-2 px-5 rounded-md text-white border border-primary hover:bg-transparent hover:text-primary transition-all duration-300"
           >
             Edit Profile Info
           </button>
