@@ -6,60 +6,90 @@ import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useMutation } from "@tanstack/react-query";
 import { Avatar } from "antd";
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 
 const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `${i + 1}`,
   value: i + 1,
 }));
 
+const levelOptions = [
+  { label: "NCAA D1", value: "NCAA D1" },
+  { label: "NCAA D2", value: "NCAA D2" },
+  { label: "NAIA", value: "NAIA" },
+  { label: "JUCO", value: "JUCO" },
+  { label: "HS", value: "HS" },
+  { label: "JH/ELEM", value: "JH/ELEM" },
+];
+
 const EvaluationFormV2 = ({ camp_id }) => {
-  const axiosInstace = useAxiosSecure();
+  const axiosInstance = useAxiosSecure();
   const { getRegisterReferess } = useRegisteredReferees(camp_id);
 
-  // Note: convert referee name and id to label and value
-  const covertedRefOptions = getRegisterReferess?.map(ref => ({
+  // Convert referees to select options
+  const convertedRefOptions = getRegisterReferess?.map((ref) => ({
     value: String(ref?.referee_id),
     label: (
       <div className="w-full flex items-center gap-2">
         <Avatar src={ref?.avatar} size={32} />
         <span>{ref?.name}</span>
       </div>
-    )
+    ),
   }));
 
-  // Note: react hook form
+  // React Hook Form
   const {
     control,
     register,
     handleSubmit,
     formState: { errors },
+    reset: resetForm,
   } = useForm();
 
-  // Note: Evaluation handler mutation
+  // Mutation for submitting evaluation
   const giveEvaluationMutation = useMutation({
-    mutationKey: ["give-evaluation"],
     mutationFn: async (formData) => {
-      const response = await axiosInstace.post(
-        "/referee/evaluation/store",
+      const response = await axiosInstance.post(
+        "/referee/evaluation/upsert",
         formData
       );
       return response?.data;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "Evaluation created successfully");
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: data?.message || "Evaluation submitted successfully",
+        timer: 2500,
+        showConfirmButton: false,
+      });
+
+      // Reset the entire form after success
+      resetForm();
     },
-    onError: (err) => {
-      toast.error(err?.response?.data?.message || "Something went wrong!");
+    onError: (error) => {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.data ||
+        "Something went wrong! Please try again.";
+
+      Swal.fire({
+        icon: "error",
+        title: "Submission Failed",
+        text: errorMessage,
+        timer: 4000,
+        showConfirmButton: false,
+      });
     },
   });
 
-  // Note: evaluation submit
+  // Handle form submission
   const onSubmit = (data) => {
     const formData = new FormData();
 
     formData.append("referee_id", data.referee_id);
     formData.append("camp_id", camp_id);
+
     formData.append("call_accuracy", Number(data.call_accuracy));
     formData.append("communication_skills", Number(data.communication_skills));
     formData.append("consistency_of_calls", Number(data.consistency_of_calls));
@@ -67,29 +97,26 @@ const EvaluationFormV2 = ({ camp_id }) => {
     formData.append("fitness_mobility", Number(data.fitness_mobility));
     formData.append("game_awareness", Number(data.game_awareness));
 
-    if (data.private_comments) {
+    if (data.private_comments?.trim()) {
       formData.append("private_comments", data.private_comments);
     }
 
-    if (data.referee_feedback) {
+    if (data.referee_feedback?.trim()) {
       formData.append("referee_feedback", data.referee_feedback);
     }
 
-    formData.append(
-      "recommended_highest_level",
-      data.recommended_highest_level
-    );
+    formData.append("recommended_level", data.recommended_level);
     formData.append("status", "submitted");
+
     giveEvaluationMutation.mutate(formData);
   };
 
-  // Note: main ui component
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="w-full bg-white p-6 rounded-xl border border-black/10 shadow-sm flex flex-col gap-6"
     >
-      <h2 className="text-2xl  text-black">Evaluation Form</h2>
+      <h2 className="text-2xl text-black font-bold">Evaluation Form</h2>
 
       <div>
         <h3 className="font-medium text-lg text-black">Performance Criteria</h3>
@@ -99,17 +126,17 @@ const EvaluationFormV2 = ({ camp_id }) => {
       {/* Select Referee */}
       <CommonInputWrapper
         type="select"
-        selectClass={"text-center!"}
+        selectClass="text-center!"
         label="Select A Referee"
         placeholder="+ Select A Referee"
         register_as="referee_id"
         control={control}
-        options={covertedRefOptions}
+        options={convertedRefOptions}
         validationRules={{ required: "Please select a referee" }}
         errors={errors}
       />
 
-      {/* 1. Call / No Call Accuracy */}
+      {/* Call Accuracy */}
       <CommonInputWrapper
         type="select"
         label="Call/No Call Accuracy (10=Excellent; 1=Poor)"
@@ -121,7 +148,7 @@ const EvaluationFormV2 = ({ camp_id }) => {
         errors={errors}
       />
 
-      {/* 2. Communication Skills */}
+      {/* Communication Skills */}
       <CommonInputWrapper
         type="select"
         label="Communication Skills (10=Excellent; 1=Poor)"
@@ -133,7 +160,7 @@ const EvaluationFormV2 = ({ camp_id }) => {
         errors={errors}
       />
 
-      {/* 3. Consistency of Calls */}
+      {/* Consistency of Calls */}
       <CommonInputWrapper
         type="select"
         label="Consistency of Calls (10=Excellent; 1=Poor)"
@@ -145,7 +172,7 @@ const EvaluationFormV2 = ({ camp_id }) => {
         errors={errors}
       />
 
-      {/* 4. Court Position / Mechanics */}
+      {/* Court Position / Mechanics */}
       <CommonInputWrapper
         type="select"
         label="Court Position/Mechanics (10=Excellent; 1=Poor)"
@@ -157,7 +184,7 @@ const EvaluationFormV2 = ({ camp_id }) => {
         errors={errors}
       />
 
-      {/* 5. Fitness / Mobility */}
+      {/* Fitness / Mobility */}
       <CommonInputWrapper
         type="select"
         label="Fitness/Mobility (10=Excellent; 1=Poor)"
@@ -169,7 +196,7 @@ const EvaluationFormV2 = ({ camp_id }) => {
         errors={errors}
       />
 
-      {/* 6. Game Awareness */}
+      {/* Game Awareness */}
       <CommonInputWrapper
         type="select"
         label="Game Awareness (10=Excellent; 1=Poor)"
@@ -184,9 +211,9 @@ const EvaluationFormV2 = ({ camp_id }) => {
       {/* Private Comments */}
       <CommonInputWrapper
         type="textarea"
-        label="Private Comments :"
-        textareaClass={'border-black/15'}
-        placeholder="Write comments..."
+        label="Private Comments"
+        textareaClass="border-black/15"
+        placeholder="Write private comments (visible only to evaluators and directors)..."
         register_as="private_comments"
         register={register}
         errors={errors}
@@ -195,37 +222,40 @@ const EvaluationFormV2 = ({ camp_id }) => {
       {/* Referee Feedback */}
       <CommonInputWrapper
         type="textarea"
-        textareaClass={'border-black/15'}
-        label="Referee Feedback :"
-        placeholder="Write feedback..."
+        textareaClass="border-black/15"
+        label="Referee Feedback"
+        placeholder="Write feedback for the referee..."
         register_as="referee_feedback"
         register={register}
         errors={errors}
       />
 
-      {/* Highest Level Recommendation */}
+      {/* Recommended Level */}
       <CommonInputWrapper
         type="select"
         label="Recommended HIGHEST Level of Officiating"
         placeholder="Select one.."
-        register_as="recommended_highest_level"
+        register_as="recommended_level"
         control={control}
-        options={[
-          { label: "NCAA D1", value: "NCAA_D1" },
-          { label: "NCAA D2", value: "NCAA_D2" },
-          { label: "NAIA", value: "NAIA" },
-          { label: "JUCO", value: "JUCO" },
-          { label: "HS", value: "HS" },
-          { label: "JH/ELEM", value: "JH/ELEM" },
-        ]}
+        options={levelOptions}
         validationRules={{ required: "Required" }}
         errors={errors}
       />
 
-      <CommonSubmitBtn variant="primary" className="mt-2" disabled={giveEvaluationMutation.isPending}>
-        {giveEvaluationMutation.isPending ? <LoaderV2 /> : "Submit Evaluation"}
+      {/* Submit Button */}
+      <CommonSubmitBtn
+        variant="primary"
+        className="mt-4"
+        disabled={giveEvaluationMutation.isPending}
+      >
+        {giveEvaluationMutation.isPending ? (
+          <LoaderV2 />
+        ) : (
+          "Submit Evaluation"
+        )}
       </CommonSubmitBtn>
     </form>
   );
 };
+
 export default EvaluationFormV2;

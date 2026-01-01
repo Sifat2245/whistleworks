@@ -10,8 +10,8 @@ const { Option } = Select;
 
 // Note: filter by lebel options
 const LEVEL_OPTIONS = [
-  { label: "NCAA D1", value: "NCAA_D1" },
-  { label: "NCAA D2", value: "NCAA_D2" },
+  { label: "NCAA D1", value: "NCAA D1" },
+  { label: "NCAA D2", value: "NCAA D2" },
   { label: "NAIA", value: "NAIA" },
   { label: "JUCO", value: "JUCO" },
   { label: "HS", value: "HS" },

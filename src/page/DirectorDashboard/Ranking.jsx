@@ -5,8 +5,10 @@ import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import CommonSectionTitle from "@/components/dashboard/director_dashboard/CommonSectionTitle";
 import Rankings from "@/components/dashboard/director_dashboard/Rankings/Rankings";
+import { useParams } from "react-router-dom";
 
 const Ranking = () => {
+  const {id} = useParams()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Toggle states
@@ -36,7 +38,7 @@ const Ranking = () => {
         </CommonSubmitBtn>
       </div>
 
-      <Rankings />
+      <Rankings campId={id}/>
 
       {/* Settings Popup Modal */}
       <AnimatePresence>

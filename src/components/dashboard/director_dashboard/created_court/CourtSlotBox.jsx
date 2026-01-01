@@ -5,13 +5,13 @@ import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
-import crewImage from "@/assets/crew-image.jpg"; 
+// import crewImage from "@/assets/crew-image.jpg";  // no longer needed
 
 const CourtSlotBox = ({
   court,
   timeSlot,
   isBlocked,
-  referees: incomingReferees = [], 
+  referees: incomingReferees = [],
   onUndoBlock,
   onClick,
   campId,
@@ -26,7 +26,7 @@ const CourtSlotBox = ({
   const individualReferees = incomingReferees.filter((a) => a.type === "individual");
   const hasCrew = !!crewAssignment;
 
-  // Mutation to remove assignment (works for both individual and crew)
+  // Mutation to remove assignment
   const removeMutation = useMutation({
     mutationFn: async (assignmentId) => {
       await axiosInstance.delete(
@@ -49,7 +49,7 @@ const CourtSlotBox = ({
 
     const result = await Swal.fire({
       title: "Remove Assignment?",
-      text: `Are you sure you want to remove ${name || "this assignment"} from this slot?`,
+      text: `Are you sure you want to remove ${name || "this assignment"}?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -77,7 +77,7 @@ const CourtSlotBox = ({
   return (
     <div
       onClick={handleBoxClick}
-      className={`shrink-0 w-72 rounded-xl p-8 min-h-[260px] flex flex-col items-center justify-center shadow-lg transition-all
+      className={`shrink-0 w-72 rounded-xl p-6 min-h-[260px] flex flex-col items-center justify-center shadow-lg transition-all
         ${
           isBlocked
             ? "bg-gray-200 cursor-not-allowed opacity-70"
@@ -98,33 +98,43 @@ const CourtSlotBox = ({
             Crew Assigned
           </div>
 
-          <div className="group relative">
-            <img
-              src={crewImage}
-              alt={crewAssignment.crew_name}
-              className="w-24 h-24 rounded-2xl object-cover mx-auto border-4 border-[#00AEEF] shadow-lg"
-            />
-
-            <button
-              onClick={(e) =>
-                handleRemove(e, crewAssignment.assgnment_id, crewAssignment.crew_name)
-              }
-              disabled={removeMutation.isPending}
-              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity
-                         bg-black text-white rounded-full p-1.5 shadow-md"
-              title="Remove crew"
-            >
-              <HiXMark className="w-5 h-5" />
-            </button>
-          </div>
-
           <div className="font-bold text-lg text-[#00AEEF]">
             {crewAssignment.crew_name || "Unnamed Crew"}
           </div>
 
-          <div className="text-sm text-gray-600">
-            {crewAssignment?.members?.length} referee{crewAssignment?.members?.length !== 1 ? "s" : ""}
+          <div className="text-sm text-gray-600 mb-2">
+            {crewAssignment.member_count || crewAssignment.members?.length || 0} members
           </div>
+
+          {/* Show crew members with avatars and names */}
+          <div className="max-h-40 overflow-y-auto space-y-2 w-full px-2">
+            {crewAssignment.members?.map((member) => (
+              <div
+                key={member.referee_id}
+                className="flex items-center gap-3 bg-gray-50 rounded-lg p-2"
+              >
+                <img
+                  src={member.avatar || ""}
+                  alt={member.referee_name}
+                  className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                />
+                <span className="text-sm font-medium truncate">
+                  {member.referee_name}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Remove crew button */}
+          <button
+            onClick={(e) =>
+              handleRemove(e, crewAssignment.assignment_id, crewAssignment.crew_name)
+            }
+            disabled={removeMutation.isPending}
+            className="mt-3 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+          >
+            Remove Crew
+          </button>
         </div>
       ) : individualReferees.length > 0 ? (
         // === Individual Referees View ===
@@ -138,12 +148,12 @@ const CourtSlotBox = ({
 
               return (
                 <div
-                  key={item.assgnment_id || idx}
+                  key={item.assignment_id || idx}
                   className="group flex items-center justify-between gap-3 py-1"
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <img
-                      src={item?.avatar || ''}
+                      src={item?.avatar || ""}
                       alt={refereeName}
                       className="w-9 h-9 rounded-full object-cover border border-gray-200"
                     />
@@ -154,7 +164,7 @@ const CourtSlotBox = ({
 
                   <button
                     onClick={(e) =>
-                      handleRemove(e, item?.assgnment_id, refereeName)
+                      handleRemove(e, item?.assignment_id, refereeName)
                     }
                     disabled={removeMutation.isPending}
                     className="opacity-0 group-hover:opacity-100 transition-opacity
