@@ -6,9 +6,9 @@ export default function RankingReport({ camp_id }) {
   return (
     <section>
       <div className="flex justify-end">
-        <button className="bg-primary p-2.5 w-fit rounded-full cursor-pointer">
+        {/* <button className="bg-primary p-2.5 w-fit rounded-full cursor-pointer">
           <Icon src={setting} className="size-5 text-white" />
-        </button>
+        </button> */}
       </div>
       <h2 className="text-3xl font-medium mb-4">
         Ranking - Elite Officials Summer Camp 2024

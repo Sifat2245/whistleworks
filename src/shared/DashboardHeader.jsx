@@ -2,9 +2,9 @@ import Logo from "@/components/common/Logo";
 import { Popover } from "antd";
 import { Link } from "react-router-dom";
 import userImage from "@/assets/dashboard/userImage.png"
-import { IoNotificationsOutline } from "react-icons/io5";
 import UserPopover from "./UserPopover";
 import { useAuth } from "@/hooks/useAuth";
+import NotificationBell from "./NotificationBell";
 
 const DashboardHeader = () => {
     const { userData } = useAuth();
@@ -33,11 +33,7 @@ const DashboardHeader = () => {
                         </div>
                     </Popover>
 
-                    <button className="cursor-pointer relative">
-                        <IoNotificationsOutline className="text-xl" />
-
-                        <span className="absolute flex items-center justify-center -top-3 -right-2.5 size-5 bg-primary text-white rounded-lg border-2 border-white text-xs">2</span>
-                    </button>
+                    <NotificationBell badgeCount={2} />
                 </div>
             </div>
         </header>
