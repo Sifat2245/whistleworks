@@ -75,12 +75,12 @@ const ResetPasswordOtp = () => {
                 <p className="text-center">Please check on your email</p>
                 <p className="text-sm font-medium text-center text-[#333]">{maskEmail(get_email)}</p>
             </div>
-
+{/* 
             <div className="w-full flex flex-col gap-2 items-center mb-4">
                 <p className="text-center text-red-400 font-semibold">This otp shown only for testing purpose. It will be remove the production version</p>
 
                 <p className="w-fit bg-red-300 text-white font-medium py-2 px-4 rounded-sm">Using this OTP: {get_otp}</p>
-            </div>
+            </div> */}
 
             <OtpWrapper otp={otp} OtpChange={OtpChange} />
             {
