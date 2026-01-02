@@ -29,6 +29,7 @@ const ScheduleAddModal = ({
   const [searchTerm, setSearchTerm] = useState("");
   const axiosInstance = useAxiosSecure();
 
+  // Reset on open
   useEffect(() => {
     if (isModalOpen) {
       setSelectedReferees([]);
@@ -38,6 +39,7 @@ const ScheduleAddModal = ({
     }
   }, [isModalOpen]);
 
+  // Fetch referees
   const { data: refereeListData = [], isLoading: loadingReferees } = useQuery({
     queryKey: ["referee-list", campId, selectedCourt?.slot_id],
     queryFn: async () => {
@@ -49,6 +51,7 @@ const ScheduleAddModal = ({
     enabled: !!campId && isModalOpen && !!selectedCourt?.slot_id && activeTab === "referees",
   });
 
+  // Fetch crews
   const { data: crewListData = [], isLoading: loadingCrews } = useQuery({
     queryKey: ["crew-list", campId],
     queryFn: async () => {
@@ -58,7 +61,7 @@ const ScheduleAddModal = ({
     enabled: !!campId && isModalOpen,
   });
 
-  // Pre-select currently assigned
+  // Pre-select currently assigned referees
   useEffect(() => {
     if (refereeListData.length > 0 && activeTab === "referees") {
       const assigned = refereeListData.filter(ref => ref.is_assigned_to_this_slot);
@@ -66,7 +69,7 @@ const ScheduleAddModal = ({
     }
   }, [refereeListData, activeTab]);
 
-  // Search: always show currently assigned
+  // Search filter — always include currently assigned
   const filteredReferees = useMemo(() => {
     if (activeTab !== "referees") return [];
     if (!searchTerm.trim()) return refereeListData;
@@ -78,13 +81,13 @@ const ScheduleAddModal = ({
     });
   }, [refereeListData, searchTerm, activeTab]);
 
-  // Determine conflict type
+  // Conflict type detection
   const getConflictType = (ref) => {
     if (ref.can_assign !== false) return "none";
     if (ref.status_message?.toLowerCase().includes("another court at this time")) {
-      return "hard"; // Cannot assign — already booked same time
+      return "hard";
     }
-    return "soft"; // Back-to-back fatigue — warn only
+    return "soft";
   };
 
   const handleRefereeToggle = (referee) => {
@@ -103,7 +106,7 @@ const ScheduleAddModal = ({
       const exists = prev.some(r => r.id === referee.id);
       if (exists) return prev.filter(r => r.id !== referee.id);
       if (prev.length >= maxReferees) {
-        toast.warning(`Max ${maxReferees} referees allowed`);
+        toast.warning(`Maximum ${maxReferees} referees allowed`);
         return prev;
       }
       return [...prev, referee];
@@ -125,7 +128,7 @@ const ScheduleAddModal = ({
       onAssignSuccess();
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to assign");
+      toast.error(error?.response?.data?.message || "Failed to assign referees");
     },
   });
 
@@ -141,18 +144,68 @@ const ScheduleAddModal = ({
       onAssignSuccess();
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to assign crew");
+      const response = error?.response?.data;
+
+      // Handle crew time conflict with detailed info
+      if (response?.message?.conflicting_slots && Array.isArray(response.message.conflicting_slots)) {
+        const conflicts = response.message.conflicting_slots;
+
+        const conflictItems = conflicts.map(slot => {
+          const date = new Date(slot.date);
+          const formattedDate = date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+
+          return `
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg mb-3 text-left">
+              <div class="font-semibold text-red-800">${slot.court}</div>
+              <div class="text-sm text-gray-700 mt-1">${slot.time}</div>
+              <div class="text-xs text-gray-600 mt-1">${formattedDate}</div>
+            </div>
+          `;
+        }).join("");
+
+        Swal.fire({
+          title: "Crew Already Assigned Elsewhere",
+          icon: "error",
+          html: `
+            <div class="text-left max-w-full">
+              <p class="mb-4 text-gray-700">This crew is already scheduled in the same time slot at:</p>
+              ${conflictItems}
+              <p class="mt-4 font-medium text-gray-800">
+                Remove the crew from the conflicting assignment(s) before assigning here.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "Understood",
+          confirmButtonColor: "#dc2626",
+          width: 680,
+        });
+
+        return;
+      }
+
+      // Fallback
+      const msg = response?.data || response?.message || "Failed to assign crew";
+      toast.error(msg);
     },
   });
 
-  // Conflicts
+  // Conflict detection
   const hasCrewAssigned = !!selectedCourt?.crew || selectedCourt?.assignments?.some(a => a.is_crew || a.crew_id);
   const hasIndividualReferees = refereeListData.some(ref => ref.is_assigned_to_this_slot);
 
   const primaryButtonDisabled =
-    (activeTab === "referees" ? selectedReferees.length === 0 || hasCrewAssigned : !selectedCrew || hasIndividualReferees);
+    (activeTab === "referees" 
+      ? selectedReferees.length === 0 || hasCrewAssigned
+      : !selectedCrew || hasIndividualReferees);
 
-  const primaryButtonLoading = activeTab === "referees" ? assignRefereeMutation.isPending : assignCrewMutation.isPending;
+  const primaryButtonLoading = activeTab === "referees"
+    ? assignRefereeMutation.isPending
+    : assignCrewMutation.isPending;
 
   const primaryButtonText = () => {
     if (activeTab === "referees" && hasCrewAssigned) return "Crew Already Assigned";
@@ -172,7 +225,6 @@ const ScheduleAddModal = ({
       return;
     }
 
-    // Only check soft (fatigue) risk — hard conflicts already blocked on click
     const softRiskRefs = selectedReferees.filter(r => getConflictType(r) === "soft");
     if (softRiskRefs.length > 0) {
       const names = softRiskRefs.map(r => `<strong>${r.name}</strong>`).join(", ");
@@ -197,7 +249,9 @@ const ScheduleAddModal = ({
     <Modal
       title={
         <div>
-          <div className="text-lg font-semibold">Assign to Court {selectedCourt?.court_number}</div>
+          <div className="text-lg font-semibold">
+            Assign to Court {selectedCourt?.court_number}
+          </div>
           <div className="text-sm text-gray-500 mt-1">
             {selectedTimeSlot?.time} • {selectedCourt?.location}
           </div>
@@ -214,17 +268,18 @@ const ScheduleAddModal = ({
         activeKey={activeTab}
         onChange={(key) => {
           if (key === "referees" && hasCrewAssigned) {
-            Swal.fire("Blocked", "Remove assigned crew first", "warning");
+            Swal.fire("Blocked", "Remove the assigned crew first to assign individual referees.", "warning");
             return;
           }
           if (key === "crew" && hasIndividualReferees) {
-            Swal.fire("Blocked", "Remove individual referees first", "warning");
+            Swal.fire("Blocked", "Remove the assigned individual referees first to assign a crew.", "warning");
             return;
           }
           setActiveTab(key);
         }}
         className="mt-4"
       >
+        {/* ========== REFEREES TAB ========== */}
         <TabPane tab="Assign Referees" key="referees">
           <div className="mt-4 space-y-5">
             {hasCrewAssigned && (
@@ -232,7 +287,7 @@ const ScheduleAddModal = ({
                 <p className="font-medium flex items-center gap-2">
                   <ImBlocked /> Crew Already Assigned
                 </p>
-                <p className="text-sm mt-1">Remove crew to assign individuals.</p>
+                <p className="text-sm mt-1">Remove crew to assign individual referees.</p>
               </div>
             )}
 
@@ -363,17 +418,15 @@ const ScheduleAddModal = ({
           </div>
         </TabPane>
 
-        {/* Crew Tab — unchanged */}
+        {/* ========== CREW TAB ========== */}
         <TabPane tab="Assign Crew" key="crew">
-          {/* ... (same as before) */}
           <div className="mt-6">
             {hasIndividualReferees && (
-              <div className="mb-6 p-4 bg-orange-50 border border-orange-300 rounded-lg text-orange-800 flex items-center gap-3">
-                <ImBlocked className="text-xl" />
-                <div>
-                  <p className="font-medium">Individual Referees Already Assigned</p>
-                  <p className="text-sm">Remove them first to assign a crew.</p>
-                </div>
+              <div className="p-4 bg-orange-50 border border-orange-300 rounded-lg text-orange-800">
+                <p className="font-medium flex items-center gap-2">
+                  <ImBlocked /> Individual Referees Already Assigned
+                </p>
+                <p className="text-sm mt-1">Remove individual referees to assign a crew.</p>
               </div>
             )}
 
@@ -388,28 +441,34 @@ const ScheduleAddModal = ({
                 No crews available for this camp.
               </div>
             ) : (
-              <Radio.Group
-                value={selectedCrew}
-                onChange={e => setSelectedCrew(e.target.value)}
-                className="w-full space-y-4 h-[460px] overflow-y-auto"
-                disabled={hasIndividualReferees}
-              >
+              <div className={`space-y-4 h-[460px] overflow-y-auto ${hasIndividualReferees ? "opacity-60" : ""}`}>
                 {crewListData.map(crew => (
                   <div
                     key={crew.id}
-                    onClick={() => !hasIndividualReferees && setSelectedCrew(selectedCrew === crew.id ? null : crew.id)}
+                    onClick={() => {
+                      if (hasIndividualReferees) {
+                        toast.error("Remove assigned individual referees first");
+                        return;
+                      }
+                      setSelectedCrew(selectedCrew === crew.id ? null : crew.id);
+                    }}
                     className={`
-                      border-2 rounded-xl p-6 transition-all cursor-pointer
-                      ${hasIndividualReferees ? "opacity-60 cursor-not-allowed" : ""}
+                      border-2 rounded-xl p-6 transition-all
+                      ${hasIndividualReferees ? "cursor-not-allowed" : "cursor-pointer hover:shadow-md"}
                       ${selectedCrew === crew.id
                         ? "border-[#00AEEF] bg-blue-50 shadow-lg ring-2 ring-[#00AEEF]/20"
-                        : "border-gray-200 hover:border-[#00AEEF] hover:shadow-md"
+                        : "border-gray-200 hover:border-[#00AEEF]"
                       }
                     `}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-4 flex-1">
-                        <Radio value={crew.id} className="mt-1.5" disabled={hasIndividualReferees} />
+                        <Radio
+                          value={crew.id}
+                          checked={selectedCrew === crew.id}
+                          disabled={hasIndividualReferees}
+                          className="mt-1.5"
+                        />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <h4 className="font-bold text-lg">{crew.name}</h4>
@@ -444,15 +503,18 @@ const ScheduleAddModal = ({
                     </div>
                   </div>
                 ))}
-              </Radio.Group>
+              </div>
             )}
           </div>
         </TabPane>
       </Tabs>
 
+      {/* ========== FOOTER ========== */}
       <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
         <div className="flex gap-3">
-          <CommonSubmitBtn variant="secondary" onClick={handleCloseModal}>Cancel</CommonSubmitBtn>
+          <CommonSubmitBtn variant="secondary" onClick={handleCloseModal}>
+            Cancel
+          </CommonSubmitBtn>
           <CommonSubmitBtn variant="danger" onClick={handleBlockCourt}>
             <ImBlocked className="mr-2" /> Block Court
           </CommonSubmitBtn>
