@@ -113,6 +113,8 @@ const AuthProvider = ({ children }) => {
     });
     console.log("User Data-->", userData);
 
+    const isLoggedIn = accessToken && userData
+
     if (isLoading) return <ScreenLoading />
 
     // note: export all 
@@ -122,8 +124,9 @@ const AuthProvider = ({ children }) => {
             userRefetch,
             handleLogin,
             handleLogout,
+            isLoggedIn,
             accessToken,
-            isLoading: !!accessToken && (isFetching || userData === undefined)
+            isLoading: !!accessToken && (isFetching || userData === undefined || isLoading)
         }}>
             {children}
         </AuthContext.Provider>

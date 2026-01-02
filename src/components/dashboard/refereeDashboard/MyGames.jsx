@@ -1,47 +1,66 @@
-import profile from "@/assets/dashboard/profile.png";
+// MyGames.jsx
+import { parseISO } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { Spin } from "antd";
 import MyGameCard from "./MyGameCard";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
 
 export default function MyGames() {
+  const axiosInstance = useAxiosSecure();
+
+  const { data: response = {}, isLoading } = useQuery({
+    queryKey: ["my-game-slots"],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/referee/my-assigned-slots");
+      return res?.data?.data || {};
+    },
+  });
+
+  const gameSlots = response?.game_slots || [];
+
+  if (isLoading) {
+    return (
+      <section className="flex justify-center items-center py-20 min-h-[60vh]">
+        <Spin size="large" />
+      </section>
+    );
+  }
+
+  if (gameSlots.length === 0) {
+    return (
+      <section className="text-center py-20 min-h-[60vh]">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          No Assigned Games
+        </h2>
+        <p className="text-gray-600">
+          You haven&apos;t been assigned to any games yet.
+        </p>
+      </section>
+    );
+  }
+
+  // Sort by date descending
+  const sortedSlots = [...gameSlots].sort(
+    (a, b) => parseISO(b.game_details.date) - parseISO(a.game_details.date)
+  );
+
   return (
-    <section>
-      {
-        mygameData.map((game) => (
-            <MyGameCard key={game.id} game={game} />
-        ))
-      }
+    <section className="space-y-8 py-8">
+      <div className="text-center md:text-left">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          My Assigned Games
+        </h1>
+        <p className="text-gray-600">
+          {response?.total_assignments} assignment
+          {response?.total_assignments !== 1 ? "s" : ""}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-12">
+        {sortedSlots.map((game) => (
+          <MyGameCard key={game?.game_slot_id} game={game} />
+        ))}
+      </div>
     </section>
   );
 }
-
-const mygameData = [
-  {
-    id: 1,
-    time: "10/25 9:15 AM",
-    court: "Bixby HS - Court 2",
-    refree: [
-      { name: "ref 1 #5", phone: "(321) 555-7890", image: profile },
-      { name: "ref 2 #7", phone: "(987) 111-2233", image: profile },
-      { name: "ref 3 #9", phone: "(555) 444-6677", image: profile },
-    ],
-  },
-  {
-    id: 2,
-    time: "10/26 11:30 AM",
-    court: "Bixby HS - Court 1",
-    refree: [
-      { name: "ref 4 #12", phone: "(800) 222-4545", image: profile },
-      { name: "ref 5 #3", phone: "(999) 333-1212", image: profile },
-      { name: "ref 6 #11", phone: "(444) 888-9999", image: profile },
-    ],
-  },
-  {
-    id: 3,
-    time: "10/27 3:00 PM",
-    court: "Bixby HS - Court 3",
-    refree: [
-      { name: "ref 7 #2", phone: "(222) 777-8888", image: profile },
-      { name: "ref 8 #4", phone: "(666) 555-1212", image: profile },
-      { name: "ref 9 #6", phone: "(123) 000-4444", image: profile },
-    ],
-  },
-];

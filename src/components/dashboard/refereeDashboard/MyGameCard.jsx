@@ -1,44 +1,129 @@
-import location from "@/assets/svg/location.svg";
+// MyGameCard.jsx
+import locationIcon from "@/assets/svg/location.svg";
+import messageIcon from "@/assets/svg/message.svg";
 import Icon from "@/components/common/Icon";
-import message from "@/assets/svg/message.svg";
-import { Divider, Image } from "antd";
+import { Avatar, Card, Divider, Tag, Tooltip } from "antd";
+import { format, parseISO } from "date-fns";
 
 export default function MyGameCard({ game }) {
+  // Extract clean date (without time) from the ISO string
+  const gameDate = parseISO(game.game_details.date);
+  const formattedDate = format(gameDate, "MMM d, yyyy");
+
+  // Combine date with start/end time correctly
+  const startDateTime = new Date(
+    `${format(gameDate, "yyyy-MM-dd")}T${game.game_details.start_time}`
+  );
+  const endDateTime = new Date(
+    `${format(gameDate, "yyyy-MM-dd")}T${game.game_details.end_time}`
+  );
+
+  const startTime = format(startDateTime, "h:mm a");
+  const endTime = format(endDateTime, "h:mm a");
+
   return (
-    <div className="border border-border rounded-[10px] mb-5">
-      <p className="block md:hidden w-fit mx-auto mt-4 text-base font-medium  text-primary border border-primary py-2.5 px-3 bg-[#E6F7FD] rounded-md">
-        {game.court}
-      </p>
-      <div className="flex items-center justify-between p-5">
-        <div className="flex items-center gap-2.5">
-          <Icon src={location} className="size-5 text-primary" />
-          <p>{game.time}</p>
-        </div>
-        <p className="hidden md:block text-base font-medium  text-primary border border-primary py-2.5 px-3 bg-[#E6F7FD] rounded-md">
-          {game.court}
-        </p>
-        <button className="bg-primary p-3.5 rounded-[10px] cursor-pointer">
-          <Icon src={message} className="size-5 text-white" />
-        </button>
-      </div>
-      <Divider className="my-0!" />
-      <div className="p-5">
-        {game.refree.map((ref, index) => (
-          <div key={index} className="flex items-center gap-1.5 mb-2">
-            <Image
-              src={ref.image}
-              alt="game image"
-              width={60}
-              height={60}
-              className="rounded-full"
-            />
-            <div>
-              <p className="text-lg">{ref.name}</p>
-              <p className="text-primary">{ref.phone}</p>
-            </div>
+    <Card
+      className="rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border-t-4 border-[#00AEEF]"
+      cover={
+        <div className="relative">
+          <img
+            src={game.camp.logo}
+            alt={game.camp.name}
+            className="h-62 w-full object-cover rounded-t-xl"
+            onError={(e) => (e.target.src = "/default-camp-logo.png")}
+          />
+          <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-5">
+            <h3 className="text-white text-xl font-bold">{game.camp.name}</h3>
+            <p className="text-white/90 text-sm">
+              {game.location.name} • {game.camp.location}
+            </p>
           </div>
-        ))}
+        </div>
+      }
+    >
+      <div className="space-y-5 -mt-2">
+        {/* Date & Time */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-gray-700">
+            <Icon src={locationIcon} className="size-5 text-[#00AEEF]" />
+            <span className="font-semibold">{formattedDate}</span>
+          </div>
+          <Tag color="blue" className="text-sm font-medium px-4 py-1">
+            {startTime} – {endTime}
+          </Tag>
+        </div>
+
+        {/* Court Info */}
+        <div className="text-center py-4 bg-linear-to-r from-blue-50 to-[#E6F7FD] rounded-xl">
+          <p className="text-xl font-bold text-gray-800">
+            {game.game_details.court_name}
+          </p>
+          <p className="text-sm text-gray-600 mt-1">
+            Court {game.game_details.court_number} •{" "}
+            <Tag color="green" className="ml-1">
+              {game.game_details.status.toUpperCase()}
+            </Tag>
+          </p>
+        </div>
+
+        <Divider className="my-4 border-black/15" />
+
+        {/* Assigned Referees */}
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-4 text-center md:text-left">
+            Assigned With ({game.assigned_referees.total} Referee
+            {game.assigned_referees.total !== 1 ? "s" : ""})
+          </h4>
+          <div className="flex flex-wrap justify-center md:justify-start gap-5">
+            {game.assigned_referees.referees.map((ref) => (
+              <Tooltip
+                key={ref.id}
+                title={
+                  <div className="text-center">
+                    <p className="font-medium">{ref.name}</p>
+                    <p className="text-xs text-gray-600">{ref.email}</p>
+                    {ref.is_me && (
+                      <Tag color="green" className="mt-2">
+                        YOU
+                      </Tag>
+                    )}
+                  </div>
+                }
+              >
+                <div className="text-center">
+                  <Avatar
+                    src={ref.avatar}
+                    size={70}
+                    className={`border-4 shadow-md ${
+                      ref.is_me ? "border-green-500" : "border-gray-300"
+                    }`}
+                  >
+                    {ref.name.charAt(0).toUpperCase()}
+                  </Avatar>
+                  {ref.is_me && (
+                    <div className="mt-2 text-xs font-bold text-green-600">
+                      YOU
+                    </div>
+                  )}
+                </div>
+              </Tooltip>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-black/15">
+          <button className="flex items-center gap-2 text-primary hover:text-blue-700 font-medium">
+            <Icon src={locationIcon} className="size-5" />
+            View Location on Map
+          </button>
+{/* 
+          <button className="bg-[#00AEEF] text-white px-6 py-3 rounded-lg hover:bg-blue-600 flex items-center gap-3 font-medium shadow-md">
+            <Icon src={messageIcon} className="size-5" />
+            Message Crew
+          </button> */}
+        </div>
       </div>
-    </div>
+    </Card>
   );
 }
