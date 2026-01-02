@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 
 const useSubmitEvaluation = ({ camp_id }) => {
@@ -10,20 +9,16 @@ const useSubmitEvaluation = ({ camp_id }) => {
     mutationKey: ["give-evaluation", camp_id],
     mutationFn: async (formData) => {
       const response = await axiosInstance.post(
-        "/referee/evaluation/store",
+        "/referee/evaluation/upsert",
         formData
       );
       return response?.data;
     },
-    onSuccess: (data) => {
-      toast.success(data?.message || "Evaluation created successfully");
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["referees-ranking", camp_id],
       });
-    },
-    onError: (err) => {
-      toast.error(err?.response?.data?.message || "Something went wrong!");
-    },
+    }
   });
 
   const submitEvaluation = (data) => {
@@ -51,8 +46,8 @@ const useSubmitEvaluation = ({ camp_id }) => {
     }
 
     formData.append(
-      "recommended_highest_level",
-      data.recommended_highest_level
+      "recommended_level",
+      data.recommended_level
     );
     formData.append("status", "submitted");
 
@@ -62,6 +57,10 @@ const useSubmitEvaluation = ({ camp_id }) => {
   return {
     submitEvaluation,
     isSubmitting: mutation.isPending,
+    isSuccess: mutation.isSuccess,
+    isError: mutation.isError,
+    error: mutation.error,
+    reset: mutation.reset, // Add reset to clear mutation state
   };
 };
 

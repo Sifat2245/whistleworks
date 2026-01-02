@@ -1,5 +1,5 @@
 // CourtLists.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ScheduleAddModal from "./ScheduleAddModal";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -12,22 +12,18 @@ import Swal from "sweetalert2";
 
 const CourtLists = ({ campData }) => {
   const axiosInstance = useAxiosSecure();
+  const queryClient = useQueryClient();
+
   const [activeFilter, setActiveFilter] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
-  const [courtSchedules, setCourtSchedules] = useState({});
-  const queryClient = useQueryClient();
 
-  // console.log(selectedCourt, "court");
-
-  const getCourtTimeKey = (courtNumber, time24h) => `${courtNumber}_${time24h}`;
-
-  const getCourtReferees = (courtNumber, time24h) => {
-    const key = getCourtTimeKey(courtNumber, time24h);
-    return courtSchedules[key]?.referees || [];
-  };
+  // Editing state
+  const [editingSlotId, setEditingSlotId] = useState(null);
+  const [editValue, setEditValue] = useState("");
+  const inputRef = useRef(null);
 
   // Fetch available dates
   const { data: initialData, isLoading: loadingInitial } = useQuery({
@@ -68,21 +64,78 @@ const CourtLists = ({ campData }) => {
   const maxReferees = data?.schedule?.max_referees_per_slot;
   const scheduleId = data?.schedule?.schedule_id;
   const timeSlots = data?.time_slots || [];
-  console.log(timeSlots, "time");
+
+  // Mutation to update court name
+  const updateCourtNameMutation = useMutation({
+    mutationFn: async ({ slotId, court_name }) => {
+      const res = await axiosInstance.patch(
+        `/v1/slot/${slotId}/update-court-name`,
+        { court_name }
+      );
+      return res?.data;
+    },
+    onSuccess: () => {
+      toast.success("Court name updated successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["court-info", campData?.id, selectedDate],
+      });
+    },
+    onError: (error) => {
+      toast.error(
+        error?.response?.data?.message || "Failed to update court name"
+      );
+    },
+  });
+
+  // Start editing
+  const startEditing = (slotId, currentName) => {
+    setEditingSlotId(slotId);
+    setEditValue(currentName || "");
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  // Save edit
+  const saveEdit = () => {
+    if (!editValue.trim()) {
+      toast.error("Court name cannot be empty");
+      return;
+    }
+
+    if (editingSlotId) {
+      updateCourtNameMutation.mutate({
+        slotId: editingSlotId,
+        court_name: editValue.trim(),
+      });
+    }
+    setEditingSlotId(null);
+    setEditValue("");
+  };
+
+  // Cancel edit
+  const cancelEdit = () => {
+    setEditingSlotId(null);
+    setEditValue("");
+  };
+
+  // Handle Enter/Escape
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      saveEdit();
+    } else if (e.key === "Escape") {
+      cancelEdit();
+    }
+  };
 
   const toggleBlockMutation = useMutation({
     mutationFn: async (slotId) => {
       const res = await axiosInstance.patch(`/v1/slot/${slotId}/toggle-block`);
       return res?.data;
     },
-    onSuccess: (data) => {
-      toast.success(data?.message || "Updated");
-
-      // refresh schedule list
+    onSuccess: () => {
+      toast.success("Updated");
       queryClient.invalidateQueries({
         queryKey: ["court-info", campData?.id, selectedDate],
       });
-
       handleCloseModal();
     },
     onError: () => toast.error("Failed to update block status"),
@@ -94,9 +147,7 @@ const CourtLists = ({ campData }) => {
   };
 
   const handleBoxClick = (court, timeSlot) => {
-    const key = getCourtTimeKey(court.court_number, timeSlot.time_24h);
-    if (courtSchedules[key]?.isBlocked) return;
-
+    if (court?.is_blocked) return;
     setSelectedCourt(court);
     setSelectedTimeSlot(timeSlot);
     setIsModalOpen(true);
@@ -108,20 +159,18 @@ const CourtLists = ({ campData }) => {
     setSelectedTimeSlot(null);
   };
 
-  const handleAssignSuccess = (slotId, assignedReferees) => {
-    setCourtSchedules((prev) => ({
-      ...prev,
-      [slotId]: { referees: assignedReferees, isBlocked: false },
-    }));
+  const handleAssignSuccess = () => {
+    queryClient.invalidateQueries({
+      queryKey: ["court-info", campData?.id, selectedDate],
+    });
+    handleCloseModal();
   };
 
   const handleBlockCourt = () => {
     if (!selectedCourt?.slot_id) return;
     toggleBlockMutation.mutate(selectedCourt?.slot_id);
-    handleCloseModal();
   };
 
-  //handle bulk block
   const bulkToggleBlockMutation = useMutation({
     mutationFn: async ({ date, start_time, action }) => {
       const res = await axiosInstance.post(
@@ -130,36 +179,31 @@ const CourtLists = ({ campData }) => {
       );
       return res?.data;
     },
-    onSuccess: (data) => {
-      toast.success(data?.message || "Time slot updated successfully");
+    onSuccess: () => {
+      toast.success("Time slot updated successfully");
       queryClient.invalidateQueries({
         queryKey: ["court-info", campData?.id, selectedDate],
       });
     },
     onError: (error) => {
-      const msg =
-        error?.response?.data?.message || "Failed to update time slot";
-      toast.error(msg);
+      toast.error(error?.response?.data?.message || "Failed to update time slot");
     },
   });
 
-  // === Handle Bulk Block/Unblock ===
   const handleBulkBlock = async (time24h, date) => {
     if (!scheduleId) return;
 
-    // Find if ALL courts in this time slot are already blocked
     const slot = timeSlots.find((s) => s.time_24h === time24h);
     if (!slot) return;
 
     const allBlocked = slot.courts.every((court) => court.is_blocked);
     const action = allBlocked ? "unblock" : "block";
     const actionText = allBlocked ? "Unblock" : "Block";
-    const icon = allBlocked ? "unlock" : "lock";
 
     const result = await Swal.fire({
       title: `${actionText} All Courts?`,
       text: `This will ${action} all courts in the ${slot.time} time slot on ${date}.`,
-      icon: icon === "lock" ? "warning" : "question",
+      icon: allBlocked ? "question" : "warning",
       showCancelButton: true,
       confirmButtonText: `Yes, ${actionText}`,
       cancelButtonText: "Cancel",
@@ -167,11 +211,7 @@ const CourtLists = ({ campData }) => {
     });
 
     if (result.isConfirmed) {
-      bulkToggleBlockMutation.mutate({
-        date,
-        start_time: time24h, // e.g., "09:00:00"
-        action,
-      });
+      bulkToggleBlockMutation.mutate({ date, start_time: time24h, action });
     }
   };
 
@@ -179,15 +219,9 @@ const CourtLists = ({ campData }) => {
     toggleBlockMutation.mutate(slotId);
   };
 
-  if (loadingInitial || isLoading) {
-    return <ScheduleSkeleton />;
-  }
-
-  if (availableDates.length === 0) {
-    return (
-      <div className="text-center py-12 text-gray-500">No available dates.</div>
-    );
-  }
+  if (loadingInitial || isLoading) return <ScheduleSkeleton />;
+  if (availableDates.length === 0)
+    return <div className="text-center py-12 text-gray-500">No available dates.</div>;
 
   return (
     <div className="w-full mt-6 mb-16">
@@ -198,10 +232,9 @@ const CourtLists = ({ campData }) => {
             key={item.formatted}
             onClick={() => handleDateClick(item)}
             className={`border border-[#00AEEF] px-8 py-4 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer
-              ${
-                activeFilter === item.formatted
-                  ? "bg-[#00AEEF] text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
+              ${activeFilter === item.formatted
+                ? "bg-[#00AEEF] text-white shadow-lg"
+                : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
           >
             <div className="text-center font-semibold">{item.formatted}</div>
@@ -220,24 +253,41 @@ const CourtLists = ({ campData }) => {
               </div>
               <div className="flex gap-6 py-6">
                 {courtHeaders.map((court) => (
-                  <div
-                    key={court.court_number}
-                    className="shrink-0 w-72 text-center"
-                  >
+                  <div key={court.court_number} className="shrink-0 w-72 text-center">
                     <div className="text-red-600 text-sm font-medium">
                       {court?.location}
                     </div>
-                    <div className="text-[#00AEEF] font-bold text-xl mt-1">
-                      {court?.court_name}
+
+                    {/* Editable Court Name */}
+                    <div className="mt-2">
+                      {editingSlotId === court.slot_id ? (
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          onBlur={saveEdit}
+                          className="text-[#00AEEF] font-bold text-xl bg-white border-b-2 border-[#00AEEF] outline-none px-2 py-1 text-center"
+                          placeholder="Court name..."
+                        />
+                      ) : (
+                        <div
+                          onClick={() => startEditing(court.slot_id, court.court_name)}
+                          className="text-[#00AEEF] font-bold text-xl cursor-pointer hover:opacity-80 transition-opacity"
+                          title="Click to edit court name"
+                        >
+                          {court?.court_name || `Court ${court.court_number}`}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            
+
             {/* Rows */}
             {timeSlots.map((slot) => {
-              // Check if all courts in this slot are blocked
               const allBlocked = slot.courts.every((court) => court.is_blocked);
 
               return (
@@ -249,24 +299,15 @@ const CourtLists = ({ campData }) => {
                     <span>{slot.time}</span>
 
                     <button
-                      onClick={() =>
-                        handleBulkBlock(slot.time_24h, selectedDate)
-                      }
+                      onClick={() => handleBulkBlock(slot.time_24h, selectedDate)}
                       disabled={bulkToggleBlockMutation.isPending}
                       className={`rounded-lg px-4 py-2 flex items-center gap-2 text-white font-medium transition-all cursor-pointer
-                        ${
-                          allBlocked
-                            ? "bg-green-400 hover:bg-green-500"
-                            : "bg-red-400 hover:bg-red-500"
-                        }
-                        disabled:opacity-70 disabled:cursor-not-allowed
-                      `}
+                        ${allBlocked
+                          ? "bg-green-400 hover:bg-green-500"
+                          : "bg-red-400 hover:bg-red-500"
+                        } disabled:opacity-70 disabled:cursor-not-allowed`}
                     >
-                      {allBlocked ? (
-                        <HiLockOpen className="w-3 h-3" />
-                      ) : (
-                        <HiLockClosed className="w-3 h-3" />
-                      )}
+                      {allBlocked ? <HiLockOpen className="w-3 h-3" /> : <HiLockClosed className="w-3 h-3" />}
                       <span className="text-xs">{allBlocked ? "Unblock" : "Block"}</span>
                     </button>
                   </div>
@@ -299,7 +340,6 @@ const CourtLists = ({ campData }) => {
         </div>
       </div>
 
-      {/* Footer Actions */}
       <ScheduleActionButtons campId={campData?.id} />
 
       {/* Modal */}
@@ -312,14 +352,6 @@ const CourtLists = ({ campData }) => {
         campId={campData?.id}
         maxReferees={maxReferees}
         selectedDate={selectedDate}
-        existingReferees={
-          selectedCourt && selectedTimeSlot
-            ? getCourtReferees(
-                selectedCourt.court_number,
-                selectedTimeSlot.time_24h
-              )
-            : []
-        }
         onAssignSuccess={handleAssignSuccess}
       />
     </div>

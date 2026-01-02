@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 
 const Evaluate = () => {
   const { id: camp_id } = useParams();
-  console.log("Camp id", camp_id)
+  // console.log("Camp id", camp_id)
 
   // Note: main ui component
   return (

@@ -73,6 +73,7 @@ const Header = () => {
                 </p>
               </div>
             </Popover>
+            
 
            <NotificationBell badgeCount={2} />
           </div>
