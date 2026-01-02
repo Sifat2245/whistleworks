@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Modal, Input, Tabs, Radio, Spin } from "antd";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { BiSearch } from "react-icons/bi";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import { ImBlocked } from "react-icons/im";
@@ -21,16 +21,15 @@ const ScheduleAddModal = ({
   onAssignSuccess,
   campId,
   selectedDate,
-  maxReferees = 2,
+  maxReferees,
 }) => {
   const [activeTab, setActiveTab] = useState("referees");
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const axiosInstance = useAxiosSecure();
-  const queryClient = useQueryClient();
 
-  // Reset state when modal opens
+  // Reset on open
   useEffect(() => {
     if (isModalOpen) {
       setSelectedReferees([]);
@@ -40,7 +39,7 @@ const ScheduleAddModal = ({
     }
   }, [isModalOpen]);
 
-  // Individual Referees Query
+  // Fetch referees
   const { data: refereeListData = [], isLoading: loadingReferees } = useQuery({
     queryKey: ["referee-list", campId, selectedCourt?.slot_id],
     queryFn: async () => {
@@ -49,14 +48,10 @@ const ScheduleAddModal = ({
       );
       return res?.data?.data?.referees || [];
     },
-    enabled:
-      !!campId &&
-      isModalOpen &&
-      !!selectedCourt?.slot_id &&
-      activeTab === "referees",
+    enabled: !!campId && isModalOpen && !!selectedCourt?.slot_id && activeTab === "referees",
   });
 
-  // Crew List Query
+  // Fetch crews
   const { data: crewListData = [], isLoading: loadingCrews } = useQuery({
     queryKey: ["crew-list", campId],
     queryFn: async () => {
@@ -68,36 +63,50 @@ const ScheduleAddModal = ({
 
   // Pre-select currently assigned referees
   useEffect(() => {
-    if (activeTab === "referees" && refereeListData.length > 0) {
-      const preSelected = refereeListData.filter(
-        (ref) => ref.is_assigned_to_this_slot
-      );
-      setSelectedReferees(preSelected);
+    if (refereeListData.length > 0 && activeTab === "referees") {
+      const assigned = refereeListData.filter(ref => ref.is_assigned_to_this_slot);
+      setSelectedReferees(assigned);
     }
   }, [refereeListData, activeTab]);
 
-  // Search filter
+  // Search filter — always include currently assigned
   const filteredReferees = useMemo(() => {
-    if (!searchTerm || activeTab !== "referees") return refereeListData;
-    return refereeListData.filter((ref) =>
-      ref.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    if (activeTab !== "referees") return [];
+    if (!searchTerm.trim()) return refereeListData;
+
+    const lower = searchTerm.toLowerCase();
+    return refereeListData.filter(ref => {
+      if (ref.is_assigned_to_this_slot) return true;
+      return ref.name?.toLowerCase().includes(lower) || ref.email?.toLowerCase().includes(lower);
+    });
   }, [refereeListData, searchTerm, activeTab]);
 
-  // Toggle referee
+  // Conflict type detection
+  const getConflictType = (ref) => {
+    if (ref.can_assign !== false) return "none";
+    if (ref.status_message?.toLowerCase().includes("another court at this time")) {
+      return "hard";
+    }
+    return "soft";
+  };
+
   const handleRefereeToggle = (referee) => {
     if (hasCrewAssigned) {
-      toast.warning("Cannot modify — a crew is already assigned");
+      toast.error("Remove the assigned crew first");
       return;
     }
 
-    setSelectedReferees((prev) => {
-      const exists = prev.find((r) => r.id === referee.id);
-      if (exists) {
-        return prev.filter((r) => r.id !== referee.id);
-      }
+    const conflictType = getConflictType(referee);
+    if (conflictType === "hard") {
+      toast.error("This referee is already assigned to another court at this time");
+      return;
+    }
+
+    setSelectedReferees(prev => {
+      const exists = prev.some(r => r.id === referee.id);
+      if (exists) return prev.filter(r => r.id !== referee.id);
       if (prev.length >= maxReferees) {
-        toast.warning(`Maximum ${maxReferees} referees can be assigned`);
+        toast.warning(`Maximum ${maxReferees} referees allowed`);
         return prev;
       }
       return [...prev, referee];
@@ -108,104 +117,133 @@ const ScheduleAddModal = ({
   const assignRefereeMutation = useMutation({
     mutationFn: async () => {
       const formData = new FormData();
-      selectedReferees.forEach((ref) =>
-        formData.append("referee_ids[]", ref.id)
-      );
-      const res = await axiosInstance.post(
+      selectedReferees.forEach(ref => formData.append("referee_ids[]", ref.id));
+      return await axiosInstance.post(
         `/v1/director/court-assign/slot/${selectedCourt?.slot_id}/assign-individual`,
         formData
       );
-      return res?.data;
     },
     onSuccess: () => {
       toast.success("Referees assigned successfully");
       onAssignSuccess();
     },
     onError: (error) => {
-      const backendMessage =
-        error?.response?.data?.data ||
-        error?.response?.data?.message ||
-        "Failed to assign referees";
-
-      // Special handling for crew conflict
-      if (
-        backendMessage.includes("crew") ||
-        backendMessage.includes("Remove crew first")
-      ) {
-        Swal.fire({
-          icon: "warning",
-          title: "Crew Already Assigned",
-          text: backendMessage,
-          confirmButtonColor: "#00AEEF",
-          confirmButtonText: "OK",
-        });
-      } else {
-        toast.error(backendMessage);
-      }
+      toast.error(error?.response?.data?.message || "Failed to assign referees");
     },
   });
 
   const assignCrewMutation = useMutation({
     mutationFn: async () => {
-      const res = await axiosInstance.post(
+      return await axiosInstance.post(
         `/v1/director/court-assign/slot/${selectedCourt?.slot_id}/assign-crew`,
         { crew_id: selectedCrew }
       );
-      return res?.data;
     },
     onSuccess: () => {
       toast.success("Crew assigned successfully");
       onAssignSuccess();
     },
     onError: (error) => {
-      const msg = error?.response?.data?.message || "Failed to assign crew";
+      const response = error?.response?.data;
+
+      // Handle crew time conflict with detailed info
+      if (response?.message?.conflicting_slots && Array.isArray(response.message.conflicting_slots)) {
+        const conflicts = response.message.conflicting_slots;
+
+        const conflictItems = conflicts.map(slot => {
+          const date = new Date(slot.date);
+          const formattedDate = date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+
+          return `
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg mb-3 text-left">
+              <div class="font-semibold text-red-800">${slot.court}</div>
+              <div class="text-sm text-gray-700 mt-1">${slot.time}</div>
+              <div class="text-xs text-gray-600 mt-1">${formattedDate}</div>
+            </div>
+          `;
+        }).join("");
+
+        Swal.fire({
+          title: "Crew Already Assigned Elsewhere",
+          icon: "error",
+          html: `
+            <div class="text-left max-w-full">
+              <p class="mb-4 text-gray-700">This crew is already scheduled in the same time slot at:</p>
+              ${conflictItems}
+              <p class="mt-4 font-medium text-gray-800">
+                Remove the crew from the conflicting assignment(s) before assigning here.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "Understood",
+          confirmButtonColor: "#dc2626",
+          width: 680,
+        });
+
+        return;
+      }
+
+      // Fallback
+      const msg = response?.data || response?.message || "Failed to assign crew";
       toast.error(msg);
     },
   });
 
-  // Button logic
-  const isRefereesTab = activeTab === "referees";
-
-  // Detect current assignment conflicts 
-  const hasIndividualReferees =
-    (selectedCourt?.assignments && selectedCourt.assignments.length > 0) ||
-    refereeListData?.some((ref) => ref.is_assigned_to_this_slot === true);
-
-  const hasCrewAssigned = !!selectedCourt?.crew;
-
-  // sometimes crew might be in assignments
-  const hasCrewInAssignments = selectedCourt?.assignments?.some(
-    (assignment) => assignment.is_crew || assignment.crew_id
-  );
-
-  const isConflictRefereesTab =
-    activeTab === "referees" && (hasCrewAssigned || hasCrewInAssignments);
-  const isConflictCrewTab = activeTab === "crew" && hasIndividualReferees;
+  // Conflict detection
+  const hasCrewAssigned = !!selectedCourt?.crew || selectedCourt?.assignments?.some(a => a.is_crew || a.crew_id);
+  const hasIndividualReferees = refereeListData.some(ref => ref.is_assigned_to_this_slot);
 
   const primaryButtonDisabled =
-    (isRefereesTab ? selectedReferees.length === 0 : !selectedCrew) ||
-    isConflictRefereesTab ||
-    isConflictCrewTab;
+    (activeTab === "referees" 
+      ? selectedReferees.length === 0 || hasCrewAssigned
+      : !selectedCrew || hasIndividualReferees);
 
-  const primaryButtonLoading = isRefereesTab
+  const primaryButtonLoading = activeTab === "referees"
     ? assignRefereeMutation.isPending
     : assignCrewMutation.isPending;
 
   const primaryButtonText = () => {
-    if (isConflictRefereesTab) return "Crew Already Assigned";
-    if (isConflictCrewTab) return "Individuals Already Assigned";
-    if (isRefereesTab)
-      return `Assign Referees (${selectedReferees.length}/${maxReferees})`;
+    if (activeTab === "referees" && hasCrewAssigned) return "Crew Already Assigned";
+    if (activeTab === "crew" && hasIndividualReferees) return "Individuals Already Assigned";
+
+    if (activeTab === "referees") {
+      const hasSoftRisk = selectedReferees.some(r => getConflictType(r) === "soft");
+      const base = `Assign Referees (${selectedReferees.length}/${maxReferees})`;
+      return hasSoftRisk ? `${base} Fatigue Risk` : base;
+    }
     return selectedCrew ? "Assign Selected Crew" : "Select a Crew";
   };
 
-  const handlePrimaryAction = () => {
-    if (isRefereesTab) {
-      assignRefereeMutation.mutate();
-    } else {
+  const handlePrimaryAction = async () => {
+    if (activeTab === "crew") {
       assignCrewMutation.mutate();
+      return;
     }
+
+    const softRiskRefs = selectedReferees.filter(r => getConflictType(r) === "soft");
+    if (softRiskRefs.length > 0) {
+      const names = softRiskRefs.map(r => `<strong>${r.name}</strong>`).join(", ");
+      const result = await Swal.fire({
+        title: "Back-to-Back Fatigue Risk",
+        html: `<p>The following referee(s) just finished a previous game:</p><div class="mt-2">${names}</div><p class="mt-3">This may cause fatigue. Assign anyway?</p>`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Assign Anyway",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#f97316",
+      });
+      if (!result.isConfirmed) return;
+    }
+
+    assignRefereeMutation.mutate();
   };
+
+  const currentlyAssigned = refereeListData.filter(ref => ref.is_assigned_to_this_slot);
 
   return (
     <Modal
@@ -230,130 +268,147 @@ const ScheduleAddModal = ({
         activeKey={activeTab}
         onChange={(key) => {
           if (key === "referees" && hasCrewAssigned) {
-            Swal.fire({
-              icon: "warning",
-              title: "Cannot Assign Individual Referees",
-              text: "This time slot already has a crew assigned. Remove the crew first.",
-              confirmButtonColor: "#00AEEF",
-            });
+            Swal.fire("Blocked", "Remove the assigned crew first to assign individual referees.", "warning");
             return;
           }
           if (key === "crew" && hasIndividualReferees) {
-            Swal.fire({
-              icon: "warning",
-              title: "Cannot Assign Crew",
-              text: "This time slot already has individual referees assigned. Remove them first.",
-              confirmButtonColor: "#00AEEF",
-            });
+            Swal.fire("Blocked", "Remove the assigned individual referees first to assign a crew.", "warning");
             return;
           }
           setActiveTab(key);
         }}
         className="mt-4"
       >
-        {/* Referees Tab */}
+        {/* ========== REFEREES TAB ========== */}
         <TabPane tab="Assign Referees" key="referees">
           <div className="mt-4 space-y-5">
             {hasCrewAssigned && (
-              <div className="mb-6 p-4 bg-orange-50 border border-orange-300 rounded-lg text-orange-800 flex items-center gap-3">
-                <ImBlocked className="text-xl" />
-                <div>
-                  <p className="font-medium">Crew Already Assigned</p>
-                  <p className="text-sm">
-                    You cannot assign individual referees when a crew is
-                    assigned.
-                  </p>
+              <div className="p-4 bg-orange-50 border border-orange-300 rounded-lg text-orange-800">
+                <p className="font-medium flex items-center gap-2">
+                  <ImBlocked /> Crew Already Assigned
+                </p>
+                <p className="text-sm mt-1">Remove crew to assign individual referees.</p>
+              </div>
+            )}
+
+            {currentlyAssigned.length > 0 && (
+              <div className="p-4 bg-green-50 border border-green-300 rounded-lg">
+                <p className="font-medium text-green-800 mb-3">
+                  Currently Assigned ({currentlyAssigned.length})
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {currentlyAssigned.map(ref => (
+                    <div key={ref.id} className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border">
+                      <img
+                        src={ref.avatar || "/default-avatar.png"}
+                        alt={ref.name}
+                        className="w-8 h-8 rounded-full object-cover"
+                        onError={e => e.target.src = "/default-avatar.png"}
+                      />
+                      <span className="font-medium text-sm">{ref.name}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
             <Search
-              placeholder="Search referees by name..."
+              placeholder="Search by name or email..."
               allowClear
               size="large"
               prefix={<BiSearch className="text-gray-400" />}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
+              onChange={e => setSearchTerm(e.target.value)}
+              value={searchTerm}
               disabled={hasCrewAssigned}
             />
 
-            <div className="flex justify-between items-center">
-              <p className="font-medium">
-                Available Referees ({filteredReferees.length})
-              </p>
-              <p className="text-sm font-semibold text-[#00AEEF]">
+            <div className="flex justify-between text-sm">
+              <span className="font-medium">Available ({filteredReferees.length})</span>
+              <span className="font-semibold text-[#00AEEF]">
                 Selected: {selectedReferees.length}/{maxReferees}
-              </p>
+              </span>
             </div>
 
-            <div className="max-h-[460px] overflow-y-auto space-y-3 pr-2">
+            <div className="max-h-[460px] overflow-y-auto space-y-3 pr-1">
               {loadingReferees ? (
-                <div className="text-center py-12">
-                  <Spin />
-                </div>
+                <div className="text-center py-12"><Spin /></div>
               ) : filteredReferees.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  {searchTerm
-                    ? "No referees match your search"
-                    : "No available referees"}
+                  {searchTerm ? "No matching referees" : "No referees available"}
                 </div>
               ) : (
-                filteredReferees.map((ref) => {
-                  const isSelected = selectedReferees.some(
-                    (r) => r.id === ref.id
-                  );
-                  const disabled =
-                    !isSelected && selectedReferees.length >= maxReferees;
+                filteredReferees.map(ref => {
+                  const isSelected = selectedReferees.some(r => r.id === ref.id);
+                  const conflictType = getConflictType(ref);
+                  const isHardConflict = conflictType === "hard";
+                  const isSoftRisk = conflictType === "soft";
+                  const disabled = !isSelected && selectedReferees.length >= maxReferees;
 
                   return (
                     <div
                       key={ref.id}
-                      onClick={() =>
-                        !disabled &&
-                        !hasCrewAssigned &&
-                        handleRefereeToggle(ref)
-                      }
+                      onClick={() => !hasCrewAssigned && !disabled && !isHardConflict && handleRefereeToggle(ref)}
                       className={`
                         border rounded-xl p-4 flex items-center justify-between transition-all
-                        ${
-                          hasCrewAssigned
-                            ? "opacity-60 cursor-not-allowed bg-gray-50"
-                            : isSelected
-                            ? "border-[#00AEEF] bg-blue-50 shadow-md"
-                            : disabled
-                            ? "bg-gray-50 opacity-60 cursor-not-allowed"
-                            : "hover:border-[#00AEEF] hover:shadow-md border-gray-200 cursor-pointer"
+                        ${hasCrewAssigned || disabled || isHardConflict
+                          ? "opacity-60 cursor-not-allowed"
+                          : "cursor-pointer hover:shadow-md"}
+                        ${isSelected
+                          ? isSoftRisk
+                            ? "border-orange-400 bg-orange-50 ring-2 ring-orange-200 shadow-md"
+                            : "border-[#00AEEF] bg-blue-50 shadow-md"
+                          : isHardConflict
+                            ? "border-red-400 bg-red-50"
+                            : isSoftRisk
+                              ? "border-orange-300 bg-orange-50/60 hover:border-orange-400"
+                              : "border-gray-200 hover:border-[#00AEEF]"
                         }
                       `}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-1">
                         <img
                           src={ref.avatar || "/default-avatar.png"}
                           alt={ref.name}
                           className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                          onError={(e) =>
-                            (e.target.src = "/default-avatar.png")
-                          }
+                          onError={e => e.target.src = "/default-avatar.png"}
                         />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">
-                              {ref.name || "Unnamed Referee"}
-                            </p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium">{ref.name || "Unnamed Referee"}</p>
                             {ref.is_assigned_to_this_slot && (
-                              <span className="text-xs bg-[#00AEEF]/10 text-[#00AEEF] px-2 py-1 rounded-full">
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">
                                 Currently Assigned
+                              </span>
+                            )}
+                            {isHardConflict && (
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
+                                Conflicting Assignment
+                              </span>
+                            )}
+                            {isSoftRisk && (
+                              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">
+                                Fatigue Risk
                               </span>
                             )}
                           </div>
                           <p className="text-sm text-gray-500">{ref.email}</p>
+                          {ref.status_message && (
+                            <p className={`text-xs mt-1 ${isHardConflict ? "text-red-600" : "text-orange-600"}`}>
+                              {ref.status_message}
+                            </p>
+                          )}
                         </div>
                       </div>
+
                       <input
                         type="checkbox"
                         checked={isSelected}
                         readOnly
-                        className="w-5 h-5 text-[#00AEEF] rounded focus:ring-[#00AEEF]"
+                        className={`w-5 h-5 rounded ${
+                          isHardConflict ? "text-red-500" :
+                          isSoftRisk ? "text-orange-500" :
+                          "text-[#00AEEF]"
+                        } focus:ring-2`}
                       />
                     </div>
                   );
@@ -363,62 +418,46 @@ const ScheduleAddModal = ({
           </div>
         </TabPane>
 
-        {/* Crew Tab */}
+        {/* ========== CREW TAB ========== */}
         <TabPane tab="Assign Crew" key="crew">
           <div className="mt-6">
             {hasIndividualReferees && (
-              <div className="mb-6 p-4 bg-orange-50 border border-orange-300 rounded-lg text-orange-800 flex items-center gap-3">
-                <ImBlocked className="text-xl" />
-                <div>
-                  <p className="font-medium">
-                    Individual Referees Already Assigned
-                  </p>
-                  <p className="text-sm">
-                    You cannot assign a crew when individuals are already
-                    assigned.
-                  </p>
-                </div>
+              <div className="p-4 bg-orange-50 border border-orange-300 rounded-lg text-orange-800">
+                <p className="font-medium flex items-center gap-2">
+                  <ImBlocked /> Individual Referees Already Assigned
+                </p>
+                <p className="text-sm mt-1">Remove individual referees to assign a crew.</p>
               </div>
             )}
 
             <p className="text-sm text-gray-600 mb-6">
-              Select one pre-made crew to assign all its members to this time
-              slot.
+              Select one pre-made crew to assign all its members to this time slot.
             </p>
 
             {loadingCrews ? (
-              <div className="text-center py-16">
-                <Spin size="large" />
-              </div>
+              <div className="text-center py-16"><Spin size="large" /></div>
             ) : crewListData.length === 0 ? (
               <div className="text-center py-16 text-gray-500 bg-gray-50 rounded-xl">
                 No crews available for this camp.
               </div>
             ) : (
-              <Radio.Group
-                value={selectedCrew}
-                onChange={(e) => setSelectedCrew(e.target.value)}
-                className="w-full space-y-4 h-[460px] overflow-y-auto"
-                disabled={hasIndividualReferees}
-              >
-                {crewListData.map((crew) => (
+              <div className={`space-y-4 h-[460px] overflow-y-auto ${hasIndividualReferees ? "opacity-60" : ""}`}>
+                {crewListData.map(crew => (
                   <div
                     key={crew.id}
-                    onClick={() =>
-                      !hasIndividualReferees &&
-                      setSelectedCrew(selectedCrew === crew.id ? null : crew.id)
-                    }
-                    className={`
-                      border-2 rounded-xl p-6 transition-all cursor-pointer
-                      ${
-                        hasIndividualReferees
-                          ? "opacity-60 cursor-not-allowed"
-                          : ""
+                    onClick={() => {
+                      if (hasIndividualReferees) {
+                        toast.error("Remove assigned individual referees first");
+                        return;
                       }
-                      ${
-                        selectedCrew === crew.id
-                          ? "border-[#00AEEF] bg-blue-50 shadow-lg ring-2 ring-[#00AEEF]/20"
-                          : "border-gray-200 hover:border-[#00AEEF] hover:shadow-md"
+                      setSelectedCrew(selectedCrew === crew.id ? null : crew.id);
+                    }}
+                    className={`
+                      border-2 rounded-xl p-6 transition-all
+                      ${hasIndividualReferees ? "cursor-not-allowed" : "cursor-pointer hover:shadow-md"}
+                      ${selectedCrew === crew.id
+                        ? "border-[#00AEEF] bg-blue-50 shadow-lg ring-2 ring-[#00AEEF]/20"
+                        : "border-gray-200 hover:border-[#00AEEF]"
                       }
                     `}
                   >
@@ -426,43 +465,36 @@ const ScheduleAddModal = ({
                       <div className="flex items-start gap-4 flex-1">
                         <Radio
                           value={crew.id}
-                          className="mt-1.5"
+                          checked={selectedCrew === crew.id}
                           disabled={hasIndividualReferees}
+                          className="mt-1.5"
                         />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <h4 className="font-bold text-lg">{crew.name}</h4>
-                            <span
-                              className={`text-xs px-3 py-1 rounded-full font-medium capitalize
-                                ${
-                                  crew.status === "active"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-gray-100 text-gray-600"
-                                }`}
-                            >
+                            <span className={`text-xs px-3 py-1 rounded-full font-medium capitalize
+                              ${crew.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}
+                            `}>
                               {crew.status}
                             </span>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
-                            {crew.member_count || crew.members?.length || 0}{" "}
-                            members
+                            {crew.member_count || crew.members?.length || 0} members
                           </p>
                           <div className="flex flex-wrap gap-2 mt-5 -space-x-3">
-                            {(crew.members || []).slice(0, 10).map((member) => (
+                            {(crew.members || []).slice(0, 10).map(member => (
                               <img
                                 key={member.id}
                                 src={member.avatar || "/default-avatar.png"}
                                 alt={member.name}
                                 title={member.name || "Referee"}
                                 className="w-11 h-11 rounded-full border-3 border-white shadow-md object-cover"
-                                onError={(e) =>
-                                  (e.target.src = "/default-avatar.png")
-                                }
+                                onError={e => e.target.src = "/default-avatar.png"}
                               />
                             ))}
                             {(crew.members || []).length > 10 && (
                               <div className="w-11 h-11 rounded-full bg-gray-200 border-3 border-white flex items-center justify-center text-sm font-bold text-gray-600 shadow-md">
-                                +{crew.members.length - 10}
+                                +{(crew.members || []).length - 10}
                               </div>
                             )}
                           </div>
@@ -471,21 +503,20 @@ const ScheduleAddModal = ({
                     </div>
                   </div>
                 ))}
-              </Radio.Group>
+              </div>
             )}
           </div>
         </TabPane>
       </Tabs>
 
-      {/* Footer */}
+      {/* ========== FOOTER ========== */}
       <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
         <div className="flex gap-3">
           <CommonSubmitBtn variant="secondary" onClick={handleCloseModal}>
             Cancel
           </CommonSubmitBtn>
           <CommonSubmitBtn variant="danger" onClick={handleBlockCourt}>
-            <ImBlocked className="mr-2" />
-            Block Court
+            <ImBlocked className="mr-2" /> Block Court
           </CommonSubmitBtn>
         </div>
 
@@ -494,7 +525,11 @@ const ScheduleAddModal = ({
           disabled={primaryButtonDisabled}
           loading={primaryButtonLoading}
           variant="primary"
-          className="min-w-[180px]"
+          className={`min-w-[200px] ${
+            activeTab === "referees" && selectedReferees.some(r => getConflictType(r) === "soft")
+              ? "ring-2 ring-orange-400"
+              : ""
+          }`}
         >
           {primaryButtonText()}
         </CommonSubmitBtn>

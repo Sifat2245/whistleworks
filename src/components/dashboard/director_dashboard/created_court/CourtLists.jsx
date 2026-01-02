@@ -21,7 +21,7 @@ const CourtLists = ({ campData }) => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
 
   // Editing state
-  const [editingSlotId, setEditingSlotId] = useState(null);
+  const [editingCourtId, setEditingCourtId] = useState(null);
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef(null);
 
@@ -64,12 +64,13 @@ const CourtLists = ({ campData }) => {
   const maxReferees = data?.schedule?.max_referees_per_slot;
   const scheduleId = data?.schedule?.schedule_id;
   const timeSlots = data?.time_slots || [];
+  console.log(courtHeaders,'headers');
 
   // Mutation to update court name
   const updateCourtNameMutation = useMutation({
-    mutationFn: async ({ slotId, court_name }) => {
+    mutationFn: async ({ court_number, court_name }) => {
       const res = await axiosInstance.patch(
-        `/v1/slot/${slotId}/update-court-name`,
+        `/v1/slot/${court_number}/update-court-name`,
         { court_name }
       );
       return res?.data;
@@ -88,8 +89,8 @@ const CourtLists = ({ campData }) => {
   });
 
   // Start editing
-  const startEditing = (slotId, currentName) => {
-    setEditingSlotId(slotId);
+  const startEditing = (court_number, currentName) => {
+    setEditingCourtId(court_number);
     setEditValue(currentName || "");
     setTimeout(() => inputRef.current?.focus(), 0);
   };
@@ -101,19 +102,19 @@ const CourtLists = ({ campData }) => {
       return;
     }
 
-    if (editingSlotId) {
+    if (editingCourtId) {
       updateCourtNameMutation.mutate({
-        slotId: editingSlotId,
+        court_number: editingCourtId,
         court_name: editValue.trim(),
       });
     }
-    setEditingSlotId(null);
+    setEditingCourtId(null);
     setEditValue("");
   };
 
   // Cancel edit
   const cancelEdit = () => {
-    setEditingSlotId(null);
+    setEditingCourtId(null);
     setEditValue("");
   };
 
@@ -260,7 +261,7 @@ const CourtLists = ({ campData }) => {
 
                     {/* Editable Court Name */}
                     <div className="mt-2">
-                      {editingSlotId === court.slot_id ? (
+                      {editingCourtId === court.court_number ? (
                         <input
                           ref={inputRef}
                           type="text"
@@ -273,7 +274,7 @@ const CourtLists = ({ campData }) => {
                         />
                       ) : (
                         <div
-                          onClick={() => startEditing(court.slot_id, court.court_name)}
+                          onClick={() => startEditing(court.court_number, court.court_name)}
                           className="text-[#00AEEF] font-bold text-xl cursor-pointer hover:opacity-80 transition-opacity"
                           title="Click to edit court name"
                         >
@@ -316,6 +317,7 @@ const CourtLists = ({ campData }) => {
                     {slot.courts.map((court) => {
                       const isBlocked = court?.is_blocked;
                       const referees = court?.assignments || [];
+                      console.log(referees, "court");
 
                       return (
                         <CourtSlotBox

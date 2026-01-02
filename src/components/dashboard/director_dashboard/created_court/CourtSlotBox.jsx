@@ -20,7 +20,7 @@ const CourtSlotBox = ({
 }) => {
   const axiosInstance = useAxiosSecure();
   const queryClient = useQueryClient();
-
+  console.log(incomingReferees,"refereeeeeeeeeeeeeeee");
   // Determine if there's a crew assignment
   const crewAssignment = incomingReferees.find((a) => a.type === "crew");
   const individualReferees = incomingReferees.filter((a) => a.type === "individual");
