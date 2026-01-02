@@ -76,6 +76,7 @@ const AuthProvider = ({ children }) => {
             queryClient.clear()
         }
     });
+    
 
     // note: handle logout
     const handleLogout = async () => {
