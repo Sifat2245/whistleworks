@@ -1,11 +1,12 @@
 // components/schedule/ScheduleActionButtons.jsx
+import { useState } from "react";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import useCampSchedule from "@/hooks/useCampSchedule";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2"; // For beautiful confirmation
+import Swal from "sweetalert2";
 
 const ScheduleActionButtons = ({ campId }) => {
   const axiosInstance = useAxiosSecure();
@@ -13,14 +14,13 @@ const ScheduleActionButtons = ({ campId }) => {
   const { scheduleData } = useCampSchedule(campId);
 
   const scheduleId = scheduleData?.id;
-  // console.log(scheduleId, "schedule id");
 
-  // === Publish Schedule Mutation ===
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  // === Mutations ===
   const publishMutation = useMutation({
     mutationFn: async () => {
-      const res = await axiosInstance.post(
-        `/v1/camp/${campId}/schedule/publish`
-      );
+      const res = await axiosInstance.post(`/v1/camp/${campId}/schedule/publish`);
       return res?.data;
     },
     onSuccess: (data) => {
@@ -28,15 +28,10 @@ const ScheduleActionButtons = ({ campId }) => {
       navigate("/director-dashboard");
     },
     onError: (error) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to publish schedule";
-      toast.error(message);
+      toast.error(error?.response?.data?.message || "Failed to publish schedule");
     },
   });
 
-  // === Delete Schedule Mutation ===
   const clearSchedule = useMutation({
     mutationFn: async () => {
       const res = await axiosInstance.delete(
@@ -45,19 +40,14 @@ const ScheduleActionButtons = ({ campId }) => {
       return res?.data;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "Schedule Cleared successfully!");
+      toast.success(data?.message || "Schedule cleared successfully!");
       window.location.reload();
     },
     onError: (error) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to delete schedule";
-      toast.error(message);
+      toast.error(error?.response?.data?.message || "Failed to clear schedule");
     },
   });
 
-  // == clear schedule mutation ==
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const res = await axiosInstance.delete(`/v1/camp/${campId}/schedule`);
@@ -68,15 +58,10 @@ const ScheduleActionButtons = ({ campId }) => {
       navigate("/director-dashboard");
     },
     onError: (error) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to delete schedule";
-      toast.error(message);
+      toast.error(error?.response?.data?.message || "Failed to delete schedule");
     },
   });
 
-  // == clear schedule mutation ==
   const autoAssign = useMutation({
     mutationFn: async () => {
       const res = await axiosInstance.post(
@@ -85,21 +70,15 @@ const ScheduleActionButtons = ({ campId }) => {
       return res?.data;
     },
     onSuccess: (data) => {
-      toast.success(
-        data?.message || "All available referees assigned successfully!"
-      );
+      toast.success(data?.message || "All available referees assigned successfully!");
       window.location.reload();
     },
     onError: (error) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to delete schedule";
-      toast.error(message);
+      toast.error(error?.response?.data?.message || "Failed to auto-assign referees");
     },
   });
 
-  // Confirm before publishing
+  // === Confirmations ===
   const handlePublish = () => {
     Swal.fire({
       title: "Publish Schedule?",
@@ -109,13 +88,10 @@ const ScheduleActionButtons = ({ campId }) => {
       cancelButtonText: "Cancel",
       confirmButtonColor: "#00AEEF",
     }).then((result) => {
-      if (result.isConfirmed) {
-        publishMutation.mutate();
-      }
+      if (result.isConfirmed) publishMutation.mutate();
     });
   };
 
-  // Confirm before deleting
   const handleDelete = () => {
     Swal.fire({
       title: "Delete Schedule?",
@@ -127,15 +103,14 @@ const ScheduleActionButtons = ({ campId }) => {
       confirmButtonColor: "#d33",
       reverseButtons: true,
     }).then((result) => {
-      if (result.isConfirmed) {
-        deleteMutation.mutate();
-      }
+      if (result.isConfirmed) deleteMutation.mutate();
     });
   };
+
   const handleClearSchedule = () => {
     Swal.fire({
       title: "Clear Schedule?",
-      text: "Are you sure you want to clear the schedule?",
+      text: "This will remove all current assignments.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, Clear",
@@ -143,26 +118,21 @@ const ScheduleActionButtons = ({ campId }) => {
       confirmButtonColor: "#d33",
       reverseButtons: true,
     }).then((result) => {
-      if (result.isConfirmed) {
-        clearSchedule.mutate();
-      }
+      if (result.isConfirmed) clearSchedule.mutate();
     });
   };
 
   const handleAutoAssign = () => {
     Swal.fire({
-      title: "Assign Referees?",
-      text: "Assign all available referees to the schedule?",
-      icon: "warning",
+      title: "Auto-Assign Referees?",
+      text: "This will automatically assign available referees following the rules below.",
+      icon: "info",
       showCancelButton: true,
       confirmButtonText: "Proceed",
       cancelButtonText: "Cancel",
-      confirmButtonColor: "#d33",
-      reverseButtons: true,
+      confirmButtonColor: "#00AEEF",
     }).then((result) => {
-      if (result.isConfirmed) {
-        autoAssign.mutate();
-      }
+      if (result.isConfirmed) autoAssign.mutate();
     });
   };
 
@@ -181,25 +151,59 @@ const ScheduleActionButtons = ({ campId }) => {
 
         <CommonSubmitBtn
           onClick={handleClearSchedule}
-          isLoading={clearSchedule.isPending}
+          loading={clearSchedule.isPending}
           disabled={clearSchedule.isPending}
           className="border border-primary bg-white text-primary px-8 py-4 hover:bg-gray-50"
-          // onClick={handleClear} // Add later
         >
           Clear Schedule
         </CommonSubmitBtn>
       </div>
 
       {/* Right Side */}
-      <div className="flex gap-6">
-        <CommonSubmitBtn
-          onClick={handleAutoAssign}
-          variant="primary"
-          isLoading={autoAssign.isPending}
-          disabled={autoAssign.isPending}
+      <div className="flex gap-6 items-center relative">
+        {/* Auto-Assign Button with Tooltip */}
+        <div
+          className="relative"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
         >
-          Auto-Assign Referees
-        </CommonSubmitBtn>
+          <CommonSubmitBtn
+            onClick={handleAutoAssign}
+            variant="primary"
+            loading={autoAssign.isPending}
+            disabled={autoAssign.isPending}
+          >
+            Auto-Assign Referees
+          </CommonSubmitBtn>
+
+          {/* Tooltip */}
+          {showTooltip && (
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 z-50">
+              <div className="bg-gray-800 text-white text-sm rounded-lg shadow-2xl p-5 border border-gray-700">
+                <h4 className="font-bold text-lg mb-3 text-center">Auto Assign Rules</h4>
+                <ol className="list-decimal list-inside space-y-3 text-left">
+                  <li>
+                    A <strong>MINIMUM of 1 game rest</strong> between games
+                  </li>
+                  <li>
+                    Referees will <strong>not be assigned</strong> to previously assigned court unless no other courts are available
+                  </li>
+                  <li>
+                    Referees will be assigned <strong>similar number of games</strong>
+                  </li>
+                </ol>
+                <p className="mt-4 text-xs italic text-gray-300 text-center">
+                  Note: Manual adjustments can be made after auto-assignment
+                </p>
+
+                {/* Arrow */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
+                  <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-gray-800"></div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         <CommonSubmitBtn
           variant="primary"

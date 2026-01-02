@@ -38,6 +38,7 @@ import PaymentCancel from "@/page/RefereeDashboard/PaymentCancel";
 import MyCamps from "@/page/EvolatorDashboard/MyCamp";
 import CrewDetailsPage from "@/page/DirectorDashboard/CrewDetailsPage";
 import MakeAnnouncement from "@/page/DirectorDashboard/MakeAnnouncement";
+import AllCamps from "@/page/AllCamps";
 
 const router = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
       {
         path: "about-us",
         element: <AboutUs />,
+      },
+      {
+        path:'all-camps',
+        element: <AllCamps/>
       },
     ],
   },
