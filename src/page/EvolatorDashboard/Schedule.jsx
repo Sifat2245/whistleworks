@@ -95,6 +95,7 @@ export default function Schedule({ camp_id }) {
     );
   }, [games, searchQuery]);
 
+  // Note: infinity scroll hook
   const {
     visibleCount,
     loaderRef,
@@ -111,45 +112,6 @@ export default function Schedule({ camp_id }) {
     reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
-
-
-  // Note: scroll observer
-  // const isLoadingMoreRef = useRef(false);
-
-  // useEffect(() => {
-  //   if (!loaderRef.current || !scrollContainerRef.current) return;
-
-  //   const observer = new IntersectionObserver(
-  //     (entries) => {
-  //       if (
-  //         entries[0].isIntersecting &&
-  //         visibleCount < filteredGames.length &&
-  //         !isLoadingMoreRef.current
-  //       ) {
-  //         isLoadingMoreRef.current = true;
-
-  //         setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
-
-  //         setTimeout(() => {
-  //           isLoadingMoreRef.current = false;
-  //         }, 200);
-  //       }
-  //     },
-  //     {
-  //       root: scrollContainerRef.current,
-  //       threshold: 0.1,
-  //     }
-  //   );
-
-  //   observer.observe(loaderRef.current);
-
-  //   return () => observer.disconnect();
-  // }, [filteredGames.length, visibleCount]);
-
-  // useEffect(() => {
-  //   setVisibleCount(ITEMS_PER_PAGE);
-  // }, [searchQuery]);
-
 
   const totalGames = games.length;
   const displayedGames = filteredGames.length;
