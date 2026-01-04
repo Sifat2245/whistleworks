@@ -4,9 +4,10 @@ import { CiFilter, CiSearch } from "react-icons/ci";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import { Spin } from "antd";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import useInfiniteScroll from "@/hooks/infinity-scroll-hook";
 
-export default function Schedule({camp_id}) {
+export default function Schedule({ camp_id }) {
   const axiosSecure = useAxiosSecure();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -81,6 +82,7 @@ export default function Schedule({camp_id}) {
     });
   }, [campData]);
 
+  // Note: filtered Games
   const filteredGames = useMemo(() => {
     if (!searchQuery.trim()) return games;
     const query = searchQuery.toLowerCase();
@@ -92,6 +94,62 @@ export default function Schedule({camp_id}) {
       )
     );
   }, [games, searchQuery]);
+
+  const {
+    visibleCount,
+    loaderRef,
+    scrollContainerRef,
+    reset
+  } = useInfiniteScroll(filteredGames.length, 10);
+
+  // Note: infinity scroll function
+  const visibleGames = useMemo(() => {
+    return filteredGames.slice(0, visibleCount);
+  }, [filteredGames, visibleCount]);
+
+  useEffect(() => {
+    reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+
+  // Note: scroll observer
+  // const isLoadingMoreRef = useRef(false);
+
+  // useEffect(() => {
+  //   if (!loaderRef.current || !scrollContainerRef.current) return;
+
+  //   const observer = new IntersectionObserver(
+  //     (entries) => {
+  //       if (
+  //         entries[0].isIntersecting &&
+  //         visibleCount < filteredGames.length &&
+  //         !isLoadingMoreRef.current
+  //       ) {
+  //         isLoadingMoreRef.current = true;
+
+  //         setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
+
+  //         setTimeout(() => {
+  //           isLoadingMoreRef.current = false;
+  //         }, 200);
+  //       }
+  //     },
+  //     {
+  //       root: scrollContainerRef.current,
+  //       threshold: 0.1,
+  //     }
+  //   );
+
+  //   observer.observe(loaderRef.current);
+
+  //   return () => observer.disconnect();
+  // }, [filteredGames.length, visibleCount]);
+
+  // useEffect(() => {
+  //   setVisibleCount(ITEMS_PER_PAGE);
+  // }, [searchQuery]);
+
 
   const totalGames = games.length;
   const displayedGames = filteredGames.length;
@@ -190,17 +248,25 @@ export default function Schedule({camp_id}) {
             <div className="text-center">Assigned Referees</div>
           </div>
 
-          <div className="divide-y divide-gray-100 h-[650px] overflow-y-auto">
-            {filteredGames.length === 0 ? (
-              <div className="text-center py-16 text-gray-500">
-                <p className="text-lg">No games match your search.</p>
-              </div>
-            ) : (
-              filteredGames.map((game) => (
-                <GameRow key={game.id} game={game} />
-              ))
-            )}
+          <div
+            ref={scrollContainerRef}
+            className="divide-y divide-gray-100 h-[650px] overflow-y-auto"
+          >
+            {visibleGames.map((game) => (
+              <GameRow key={game.id} game={game} />
+            ))}
+
+            <div ref={loaderRef} className="py-6 text-center">
+              {visibleCount < filteredGames.length ? (
+                <Spin />
+              ) : (
+                <p className="text-sm text-gray-400">
+                  All games loaded
+                </p>
+              )}
+            </div>
           </div>
+
         </div>
       </div>
     </section>
