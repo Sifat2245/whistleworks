@@ -50,7 +50,7 @@ const Header = () => {
           {/* Right Side - User or Auth Buttons */}
           {userData ? (
             <div className="flex items-center gap-4">
-              <NotificationBell badgeCount={2} />
+              <NotificationBell />
               <Popover
                 placement="bottomRight"
                 trigger="click"
