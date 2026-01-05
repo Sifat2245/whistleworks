@@ -127,7 +127,7 @@ const MakeAnnouncement = ({ camp_id }) => {
                     { value: "all", label: "All Members" },
                     { value: "evaluators", label: "All Evaluators" },
                     { value: "referees", label: "All Referees" },
-                    { value: "specific", label: "Specific Users" },
+                    // { value: "specific", label: "Specific Users" },
                   ].map((option) => (
                     <label
                       key={option.value}
