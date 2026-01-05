@@ -3,13 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MdEmail, MdPhone, MdLocationOn, MdClose } from "react-icons/md";
 
 const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
-  console.log(activeEvaluatorData, 'data');
+  console.log(activeEvaluatorData, "data");
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvaluator, setSelectedEvaluator] = useState(null);
 
-  console.log(selectedEvaluator, 'selected');
+  console.log(selectedEvaluator, "selected");
 
   const openModal = (evaluator) => {
     setSelectedEvaluator(evaluator);
@@ -60,7 +60,9 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
             {/* Info Section */}
             <div className="space-y-3 text-sm flex-1">
               <div className="flex items-center gap-2 text-gray-600">
-                <span className="font-medium text-gray-500 min-w-12">Email:</span>
+                <span className="font-medium text-gray-500 min-w-12">
+                  Email:
+                </span>
                 <span className="text-[#00AEEF] truncate hover:underline">
                   {evaluator.evaluatorMail || "N/A"}
                 </span>
@@ -68,14 +70,18 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
 
               {evaluator.evaluatorNumber && (
                 <div className="flex items-center gap-2 text-gray-600">
-                  <span className="font-medium text-gray-500 min-w-12">Phone:</span>
+                  <span className="font-medium text-gray-500 min-w-12">
+                    Phone:
+                  </span>
                   <span className="truncate">{evaluator.evaluatorNumber}</span>
                 </div>
               )}
 
               {evaluator.evaluatorAddress && (
                 <div className="flex items-start gap-2 text-gray-600">
-                  <span className="font-medium text-gray-500 min-w-12 mt-0.5">Address:</span>
+                  <span className="font-medium text-gray-500 min-w-12 mt-0.5">
+                    Address:
+                  </span>
                   <span className="text-gray-700 line-clamp-2 flex-1">
                     {evaluator.evaluatorAddress}
                   </span>
@@ -92,10 +98,14 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
                 </div>
                 {evaluator.approvedAt && (
                   <span className="text-gray-500">
-                    Since {new Date(evaluator.approvedAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    Since{" "}
+                    {new Date(evaluator.approvedAt).toLocaleDateString(
+                      "en-US",
+                      {
+                        month: "short",
+                        year: "numeric",
+                      }
+                    )}
                   </span>
                 )}
               </div>
@@ -108,8 +118,17 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
       {activeEvaluatorData.length === 0 && (
         <div className="w-full border-2 border-dashed border-gray-300 rounded-2xl p-10 sm:p-16 text-center bg-gray-50/50">
           <div className="w-20 h-20 mx-auto mb-6 bg-gray-200 rounded-full flex items-center justify-center">
-            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0A5.002 5.002 0 019 5c0-1.052-.143-2.074-.414-3.006m4.828 0A5.002 5.002 0 0113 5c0 1.052.143 2.074.414 3.006m-6.828 0A5.002 5.002 0 017 15c0 1.052.143 2.074.414 3.006" />
+            <svg
+              className="w-10 h-10 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeWidth="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0A5.002 5.002 0 019 5c0-1.052-.143-2.074-.414-3.006m4.828 0A5.002 5.002 0 0113 5c0 1.052.143 2.074.414 3.006m-6.828 0A5.002 5.002 0 017 15c0 1.052.143 2.074.414 3.006"
+              />
             </svg>
           </div>
           <h3 className="text-xl font-semibold text-gray-700 mb-3">
@@ -140,13 +159,15 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
                 type: "spring",
                 stiffness: 300,
                 damping: 30,
-                duration: 0.4
+                duration: 0.4,
               }}
               className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Evaluator Details</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Evaluator Details
+                </h2>
                 <button
                   onClick={closeModal}
                   className="text-gray-400 hover:text-gray-600 transition"
@@ -174,7 +195,15 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
                     Evaluator ID: #{selectedEvaluator.id}
                   </p>
                   <span className="mt-3 inline-block bg-green-100 text-green-700 text-sm font-medium px-4 py-1.5 rounded-full">
-                    Active Since {selectedEvaluator.approvedAt ? new Date(selectedEvaluator.approvedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "N/A"}
+                    Active Since{" "}
+                    {selectedEvaluator.approvedAt
+                      ? new Date(
+                          selectedEvaluator.approvedAt
+                        ).toLocaleDateString("en-US", {
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "N/A"}
                   </span>
                 </div>
 
@@ -195,7 +224,9 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
                       <MdPhone className="text-gray-400 text-xl" />
                       <div>
                         <p className="text-sm text-gray-500">Phone</p>
-                        <p className="font-medium text-gray-900">{selectedEvaluator.evaluatorNumber}</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedEvaluator.evaluatorNumber}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -205,7 +236,9 @@ const ActiveEvalutorList2 = ({ activeEvaluatorData = [] }) => {
                       <MdLocationOn className="text-gray-400 text-xl" />
                       <div>
                         <p className="text-sm text-gray-500">Address</p>
-                        <p className="font-medium text-gray-900">{selectedEvaluator.evaluatorAddress}</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedEvaluator.evaluatorAddress}
+                        </p>
                       </div>
                     </div>
                   )}

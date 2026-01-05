@@ -127,7 +127,7 @@ const CampDetailsPageForNoAuth = () => {
           <div className="bg-white rounded-xl shadow-lg p-6 text-center">
             <FiCalendar className="w-12 h-12 text-primary mx-auto mb-3" />
             <p className="text-gray-600">Dates</p>
-            <p className="text-xl font-semibold">
+            <p className="text-lg font-semibold">
               {formatDate(campDetails.start_date)} -{" "}
               {formatDate(campDetails.end_date)}
             </p>
@@ -140,7 +140,7 @@ const CampDetailsPageForNoAuth = () => {
           <div className="bg-white rounded-xl shadow-lg p-6 text-center">
             <FiDollarSign className="w-12 h-12 text-yellow-600 mx-auto mb-3" />
             <p className="text-gray-600">Price</p>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-xl font-bold ">
               ${campDetails.price}
             </p>
           </div>
@@ -213,7 +213,7 @@ const CampDetailsPageForNoAuth = () => {
         <div className="mt-12 text-center">
           <button
             onClick={handleRegisterClick}
-            className="bg-primary hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-full text-xl shadow-lg transition transform hover:scale-105"
+            className="bg-primary cursor-pointer text-white font-bold py-4 px-12 rounded-full text-xl shadow-lg transition transform hover:scale-105"
           >
             Register Now
           </button>

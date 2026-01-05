@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,6 +9,7 @@ import { BsTrophy } from "react-icons/bs";
 import { useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { Avatar } from "antd";
+import RefereeDetailsModal from "./RefereeDetailsModal";
 
 const Rankings = ({ campId }) => {
   const axiosInstance = useAxiosSecure();
@@ -52,7 +53,9 @@ const Rankings = ({ campId }) => {
           call_accuracy: Math.round(averages.call_accuracy || 0),
           communication_skills: Math.round(averages.communication_skills || 0),
           consistency_of_calls: Math.round(averages.consistency_of_calls || 0),
-          court_position_mechanics: Math.round(averages.court_position_mechanics || 0),
+          court_position_mechanics: Math.round(
+            averages.court_position_mechanics || 0
+          ),
           fitness_mobility: Math.round(averages.fitness_mobility || 0),
           game_awareness: Math.round(averages.game_awareness || 0),
           overall_percentage: overallPercentage,
@@ -73,17 +76,47 @@ const Rankings = ({ campId }) => {
     if (processedData.length === 0) return [];
 
     const avgOverall = Math.round(
-      processedData.reduce((sum, r) => sum + r.overall_percentage, 0) / processedData.length
+      processedData.reduce((sum, r) => sum + r.overall_percentage, 0) /
+        processedData.length
     );
     const topPerformer = processedData[0]?.name || "N/A";
 
     return [
-      { value: avgOverall + "%", label: "Camp Average Score", color: "text-cyan-600" },
+      {
+        value: avgOverall + "%",
+        label: "Camp Average Score",
+        color: "text-cyan-600",
+      },
       { value: topPerformer, label: "Top Performer", color: "text-green-600" },
-      { value: rawEvaluations.reduce((sum, r) => sum + (r.total_evaluations || 0), 0), label: "Total Evaluations", color: "text-purple-600" },
-      { value: processedData.length, label: "Referees Evaluated", color: "text-orange-600" },
+      {
+        value: rawEvaluations.reduce(
+          (sum, r) => sum + (r.total_evaluations || 0),
+          0
+        ),
+        label: "Total Evaluations",
+        color: "text-purple-600",
+      },
+      {
+        value: processedData.length,
+        label: "Referees Evaluated",
+        color: "text-orange-600",
+      },
     ];
   }, [processedData, rawEvaluations]);
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedReferee, setSelectedReferee] = useState(null);
+
+  const openModal = (referee) => {
+    setSelectedReferee(referee);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedReferee(null);
+  };
 
   const columns = useMemo(
     () => [
@@ -120,13 +153,15 @@ const Rankings = ({ campId }) => {
                 .toUpperCase()}
             </Avatar>
             <div>
-              <div
-                className="font-semibold"
+              <button
+                onClick={() => openModal(row.original)}
+                className="font-semibold text-blue-600 hover:underline cursor-pointer focus:outline-none"
               >
                 {row.original.name}
-              </div>
+              </button>
               <div className="text-xs text-gray-500">
-                {row.original.count} evaluation{row.original.count > 1 ? "s" : ""}
+                {row.original.count} evaluation
+                {row.original.count > 1 ? "s" : ""}
               </div>
             </div>
           </div>
@@ -293,7 +328,12 @@ const Rankings = ({ campId }) => {
         <div className="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
           <h2 className="text-2xl font-bold text-gray-900">Referee Rankings</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Based on {rawEvaluations.reduce((sum, r) => sum + (r.total_evaluations || 0), 0)} submitted evaluations
+            Based on{" "}
+            {rawEvaluations.reduce(
+              (sum, r) => sum + (r.total_evaluations || 0),
+              0
+            )}{" "}
+            submitted evaluations
           </p>
         </div>
 
@@ -354,6 +394,13 @@ const Rankings = ({ campId }) => {
           </div>
         </div>
       </div>
+
+      {/* Referee Details Modal */}
+      <RefereeDetailsModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        referee={selectedReferee}
+      />
     </div>
   );
 };

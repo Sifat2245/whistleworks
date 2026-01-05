@@ -4,10 +4,10 @@ import PendingEvaluator2 from "./PendingEvaluator2";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { Spin } from "antd"; // Optional: for loading state
+import { Spin } from "antd"; 
 
 const ActiveEvaluate = () => {
-  const { id } = useParams(); // Camp ID
+  const { id } = useParams(); 
   const axiosInstance = useAxiosSecure();
 
   const {
@@ -25,17 +25,18 @@ const ActiveEvaluate = () => {
     enabled: !!id,
   });
 
+  console.log(registrations, 'data');
+
   // Separate approved and pending evaluators
   const approvedEvaluators = registrations
     .filter((reg) => reg.status === "approved")
     .map((reg) => ({
       id: reg.id,
-      image: reg.evaluator.avatar, // fallback to default image
+      image: reg.evaluator.avatar,
       name: reg.evaluator.name?.trim() || "Unnamed Evaluator",
       evaluatorMail: reg.evaluator.email,
-      // You can add more fields if available in the future (address, phone, etc.)
-      evaluatorAddress: "", // Not in current API response
-      evaluatorNumber: "", // Not in current API response
+      evaluatorAddress: reg.evaluator.address,
+      evaluatorNumber: reg.evaluator.phone,
       registeredAt: reg.registered_at,
       approvedAt: reg.approved_at,
     }));
