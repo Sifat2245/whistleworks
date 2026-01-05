@@ -24,6 +24,7 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
     id: campId,
     camp_name = "Untitled Camp",
     camp_logo,
+    director = {}, // fallback to empty object
     location: campLocation = "Location not specified",
     start_date,
     end_date,
@@ -34,6 +35,15 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
     evaluator_registration_status: evaluatorStatus,
   } = campData || {};
 
+  // Destructure director info with fallbacks
+  const {
+    name: directorName = "Director name not available",
+    avatar: directorAvatar,
+    email: directorEmail = "N/A",
+    phone: directorPhone = "N/A",
+    address: directorAddress = "N/A",
+  } = director;
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -43,7 +53,9 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
     });
   };
 
+  // ... (handleAction, showButton, buttonText, statusBadge logic remains exactly the same)
   const handleAction = async () => {
+    // unchanged — keeping your original logic
     let endpoint = "";
     let payload = {};
     let successMessage = "";
@@ -100,7 +112,6 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
       width: 520,
       padding: "2.5rem",
       showLoaderOnConfirm: true,
-      // Fixed button colors with custom classes
       customClass: {
         confirmButton: "bg-[#00AEEF] hover:bg-[#0099d4] text-white font-medium rounded-lg px-8 py-3 text-lg",
         cancelButton: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg px-8 py-3 text-lg ml-3",
@@ -122,7 +133,6 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
 
             toast.success(successMessage);
 
-            // Update the correct status field
             onRegistrationUpdate?.({
               ...campData,
               [newStatusField]: newStatusValue,
@@ -143,7 +153,6 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
     });
   };
 
-  // Current status for badge and button logic
   const currentStatus = isEvaluator ? evaluatorStatus : refereeStatus;
 
   const showButton = (() => {
@@ -262,6 +271,61 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
         <div className="bg-[#F5F5F5] px-3 py-2.5 rounded-md">
           <p className="text-[14px] text-[#666666]">Address</p>
           <p className="text-lg">{campLocation}</p>
+        </div>
+      </div>
+
+      {/* Director Information - Properly Added */}
+      <div className="border border-border p-5 rounded-[10px]">
+        <h3 className="text-xl font-medium mb-5">Director Information</h3>
+
+        {/* Director Avatar + Name */}
+        <div className="flex items-center gap-4 mb-6">
+          <Image
+            src={directorAvatar || dummyImage}
+            alt={directorName}
+            width={60}
+            height={60}
+            preview={false}
+            className="rounded-full object-cover border-2 border-gray-200"
+            fallback={dummyImage}
+          />
+          <div>
+            <p className="text-lg font-semibold">{directorName}</p>
+            <p className="text-sm text-[#666666]">Camp Director</p>
+          </div>
+        </div>
+
+        {/* Director Details */}
+        <div className="space-y-4">
+          {directorEmail !== "N/A" && (
+            <div className="flex gap-3">
+              <Icon src={singleUser} className="size-5 text-primary mt-0.5" />
+              <div>
+                <p className="text-[#666666] text-sm">Email</p>
+                <p className="text-base">{directorEmail}</p>
+              </div>
+            </div>
+          )}
+
+          {directorPhone !== "N/A" && (
+            <div className="flex gap-3">
+              <Icon src={singleUser} className="size-5 text-primary mt-0.5" />
+              <div>
+                <p className="text-[#666666] text-sm">Phone</p>
+                <p className="text-base">{directorPhone}</p>
+              </div>
+            </div>
+          )}
+
+          {directorAddress !== "N/A" && (
+            <div className="flex gap-3">
+              <Icon src={location} className="size-5 text-primary mt-0.5" />
+              <div>
+                <p className="text-[#666666] text-sm">Address</p>
+                <p className="text-base">{directorAddress}</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

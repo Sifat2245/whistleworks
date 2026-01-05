@@ -31,16 +31,39 @@ const VerifyOtp = () => {
       toast.success(data?.message || "OTP verification successful");
       sessionStorage.removeItem("verify_email");
       sessionStorage.removeItem("testing_purpose_otp");
-      setTimeout(() => {
-        // Navigate to signin and replace history
-        navigate("/auth/signin", {
-          replace: true,
-          state: { fromVerification: true }
-        });
-        toast.success("Please Login Your Account.");
-      }, 1500);
+
+      // Check if user came from camp signup flow
+      const intendedCampId = sessionStorage.getItem("intended_camp_id");
+      const fromSignup = sessionStorage.getItem("intended_from_signup");
+
+      if (intendedCampId && fromSignup === "true") {
+        // Clean up and redirect to role-based camp page after login
+        sessionStorage.removeItem("intended_camp_id");
+        sessionStorage.removeItem("intended_from_signup");
+        
+        setTimeout(() => {
+          // Go to signin with special state to handle camp redirect
+          navigate("/auth/signin", {
+            replace: true,
+            state: { 
+              fromVerification: true,
+              campId: intendedCampId 
+            }
+          });
+        }, 1500);
+      } else {
+        // Original behavior - normal signin redirect
+        setTimeout(() => {
+          navigate("/auth/signin", {
+            replace: true,
+            state: { fromVerification: true }
+          });
+          toast.success("Please Login Your Account.");
+        }, 1500);
+      }
     }
   });
+
   // Note: handle otp submit
   const handleOtpSubmit = () => {
     if (otp.length !== 4) return setError(true);

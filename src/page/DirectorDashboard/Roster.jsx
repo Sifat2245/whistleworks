@@ -7,7 +7,7 @@ import ActiveCrews from "./ActiveCrews";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useState, useMemo } from "react"; // ← Added useMemo
+import { useState, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
 import { ImCross } from "react-icons/im";
 import { RxDropdownMenu } from "react-icons/rx";
@@ -18,11 +18,9 @@ const Roster = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosSecure = useAxiosSecure();
-
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(""); // ← Search state
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch camp details
   const {
     data: campData,
     isLoading,

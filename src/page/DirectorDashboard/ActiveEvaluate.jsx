@@ -35,11 +35,10 @@ const ActiveEvaluate = () => {
       evaluatorMail: reg.evaluator.email,
       // You can add more fields if available in the future (address, phone, etc.)
       evaluatorAddress: "", // Not in current API response
-      evaluatorNumber: "",  // Not in current API response
+      evaluatorNumber: "", // Not in current API response
       registeredAt: reg.registered_at,
       approvedAt: reg.approved_at,
     }));
-
 
   const pendingEvaluators = registrations
     .filter((reg) => reg.status === "pending")
@@ -72,8 +71,8 @@ const ActiveEvaluate = () => {
   return (
     <div className="w-full flex flex-col items-start gap-10 mb-16">
       <BackBtn />
-      <ActiveEvalutorList2 activeEvaluatorData={approvedEvaluators} />
       <PendingEvaluator2 pendingEvaluatorData={pendingEvaluators} />
+      <ActiveEvalutorList2 activeEvaluatorData={approvedEvaluators} />
     </div>
   );
 };

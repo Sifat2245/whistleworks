@@ -1,5 +1,4 @@
 /* eslint-disable no-prototype-builtins */
-// Rankings.jsx
 import { useMemo } from "react";
 import {
   useReactTable,
@@ -7,16 +6,14 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import { BsTrophy } from "react-icons/bs";
-import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { Avatar } from "antd";
 
 const Rankings = ({ campId }) => {
-  const navigate = useNavigate();
   const axiosInstance = useAxiosSecure();
 
-  const { data: evaluations = [], isLoading } = useQuery({
+  const { data: rawEvaluations = [], isLoading } = useQuery({
     queryKey: ["rankings", campId],
     queryFn: async () => {
       const res = await axiosInstance.get(`/referee/evaluation/camp/${campId}`);
@@ -24,74 +21,44 @@ const Rankings = ({ campId }) => {
     },
   });
 
-  // Process data: Group by referee, calculate averages (rounded to whole numbers)
   const processedData = useMemo(() => {
-    const refereeMap = {};
-
-    evaluations.forEach((evalItem) => {
-      const ref = evalItem.referee;
-      const perf = evalItem.performance_criteria;
-      const key = ref.id;
-
-      if (!refereeMap[key]) {
-        refereeMap[key] = {
-          referee_id: ref.id,
-          name: ref.name,
-          avatar: ref.avatar,
-          count: 0,
-          totals: {
-            call_accuracy: 0,
-            communication_skills: 0,
-            consistency_of_calls: 0,
-            court_position_mechanics: 0,
-            fitness_mobility: 0,
-            game_awareness: 0,
-          },
-          levels: {
-            "NCAA D1": 0,
-            "NCAA D2": 0,
-            NAIA: 0,
-            JUCO: 0,
-            HS: 0,
-            "JH/ELEM": 0,
-          },
-        };
-      }
-
-      // Sum each criteria
-      Object.keys(refereeMap[key].totals).forEach((criteria) => {
-        refereeMap[key].totals[criteria] += perf[criteria] || 0;
-      });
-
-      refereeMap[key].count += 1;
-
-      // Count recommended levels
-      const level = evalItem.current_recommended_level;
-      if (level && refereeMap[key].levels.hasOwnProperty(level)) {
-        refereeMap[key].levels[level]++;
-      }
-    });
-
-    // Convert to array and round averages to whole numbers
-    return Object.values(refereeMap)
+    return rawEvaluations
       .map((item) => {
-        const avgCriteria = {};
-        let totalSum = 0;
+        const averages = item.averages || {};
 
-        Object.keys(item.totals).forEach((criteria) => {
-          const avg = Math.round(item.totals[criteria] / item.count); // Rounded to nearest whole number
-          avgCriteria[criteria] = avg;
-          totalSum += avg;
+        const levels = {
+          "NCAA D1": 0,
+          "NCAA D2": 0,
+          NAIA: 0,
+          JUCO: 0,
+          HS: 0,
+          "JH/ELEM": 0,
+        };
+
+        (item.recommended_levels || []).forEach((lvl) => {
+          if (levels.hasOwnProperty(lvl.level)) {
+            levels[lvl.level] = lvl.count;
+          }
         });
 
-        const overallPercentage = Math.round((totalSum / 60) * 100);
-        const overallAvg = Math.round(totalSum / 6);
+        const overallAvg = Math.round(averages.overall || 0);
+        const overallPercentage = overallAvg * 10;
 
         return {
-          ...item,
-          ...avgCriteria,
+          referee_id: item.referee_id,
+          name: item.referee_name || "Unknown Referee",
+          avatar: null,
+          count: item.total_evaluations || 0,
+          call_accuracy: Math.round(averages.call_accuracy || 0),
+          communication_skills: Math.round(averages.communication_skills || 0),
+          consistency_of_calls: Math.round(averages.consistency_of_calls || 0),
+          court_position_mechanics: Math.round(averages.court_position_mechanics || 0),
+          fitness_mobility: Math.round(averages.fitness_mobility || 0),
+          game_awareness: Math.round(averages.game_awareness || 0),
           overall_percentage: overallPercentage,
           overall_avg: overallAvg,
+          levels,
+          rank: 0,
         };
       })
       .sort((a, b) => b.overall_percentage - a.overall_percentage)
@@ -99,9 +66,9 @@ const Rankings = ({ campId }) => {
         ...item,
         rank: index + 1,
       }));
-  }, [evaluations]);
+  }, [rawEvaluations]);
 
-  // Stats (also using whole numbers)
+  // Stats
   const stats = useMemo(() => {
     if (processedData.length === 0) return [];
 
@@ -113,10 +80,10 @@ const Rankings = ({ campId }) => {
     return [
       { value: avgOverall + "%", label: "Camp Average Score", color: "text-cyan-600" },
       { value: topPerformer, label: "Top Performer", color: "text-green-600" },
-      { value: evaluations.length, label: "Total Evaluations", color: "text-purple-600" },
+      { value: rawEvaluations.reduce((sum, r) => sum + (r.total_evaluations || 0), 0), label: "Total Evaluations", color: "text-purple-600" },
       { value: processedData.length, label: "Referees Evaluated", color: "text-orange-600" },
     ];
-  }, [processedData, evaluations.length]);
+  }, [processedData, rawEvaluations]);
 
   const columns = useMemo(
     () => [
@@ -145,15 +112,16 @@ const Rankings = ({ campId }) => {
         header: "Referee",
         cell: ({ row }) => (
           <div className="flex items-center gap-4 min-w-[200px]">
-            <Avatar src={row.original.avatar} size={48}>
-              {row.original.name.split(" ").map((n) => n[0]).join("")}
+            <Avatar size={48}>
+              {row.original.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()}
             </Avatar>
             <div>
               <div
-                onClick={() =>
-                  navigate(`/director-dashboard/referee/${row.original.referee_id}`)
-                }
-                className="font-semibold text-blue-600 hover:underline cursor-pointer"
+                className="font-semibold"
               >
                 {row.original.name}
               </div>
@@ -169,11 +137,8 @@ const Rankings = ({ campId }) => {
         header: "Overall",
         cell: ({ row }) => (
           <div className="text-center">
-            <div className="font-bold text-2xl text-gray-800">
+            <div className="font-bold text-xl text-gray-800">
               {row.original.overall_percentage}%
-            </div>
-            <div className="text-sm text-gray-500">
-              avg {row.original.overall_avg}/10
             </div>
           </div>
         ),
@@ -287,7 +252,7 @@ const Rankings = ({ campId }) => {
         ),
       },
     ],
-    [navigate]
+    []
   );
 
   const table = useReactTable({
@@ -328,7 +293,7 @@ const Rankings = ({ campId }) => {
         <div className="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
           <h2 className="text-2xl font-bold text-gray-900">Referee Rankings</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Based on {evaluations.length} submitted evaluations
+            Based on {rawEvaluations.reduce((sum, r) => sum + (r.total_evaluations || 0), 0)} submitted evaluations
           </p>
         </div>
 

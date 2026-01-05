@@ -15,7 +15,7 @@ export default function Evaluator({ camp_id }) {
     <section className="border border-border rounded-xl p-5">
       <div className="flex items-center justify-between border border-border p-5 rounded-[10px] mb-6">
         <h3 className="text-xl font-medium mb-2.5">
-          Camp Roster ({evaluators?.length || "0"})
+          Evaluators ({evaluators?.length || "0"})
         </h3>
         <div className="bg-primary p-3.5 rounded-full">
           <Icon src={singleUser} className="size-5 text-white" />

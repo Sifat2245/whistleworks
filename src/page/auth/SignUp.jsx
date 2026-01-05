@@ -7,12 +7,13 @@ import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { useMutation } from "@tanstack/react-query";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import LoaderV2 from "@/components/common/LoaderV2";
 
 const SignUp = () => {
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Note: react hook form
   const {
@@ -24,7 +25,21 @@ const SignUp = () => {
   } = useForm();
   const password = watch("password");
 
+  const getCampIdFromFromPath = () => {
+    const from = location.state?.from || "";
+    const match = from.match(/\/camp\/details\/(\d+)/);
+    return match ? match[1] : null;
+  };
+
+  const saveIntendedCampRedirect = (campId) => {
+    if (campId) {
+      sessionStorage.setItem("intended_camp_id", campId);
+      sessionStorage.setItem("intended_from_signup", "true");
+    }
+  };
+
   // Note: sign up mutation
+  // Sign up mutation
   const signUpMutation = useMutation({
     mutationKey: ["sign-up"],
     mutationFn: async (formData) => {
@@ -36,10 +51,15 @@ const SignUp = () => {
       return response?.data;
     },
     onSuccess: (data) => {
-      console.log("Sign up data:-->", data)
+      console.log("Sign up data:", data);
       toast.success(data?.message || "Sign up successful");
+
       sessionStorage.setItem("verify_email", data?.data?.email);
       sessionStorage.setItem("testing_purpose_otp", data?.data?.otp);
+
+      const campId = getCampIdFromFromPath();
+      saveIntendedCampRedirect(campId);
+
       navigate("/auth/verify-otp");
     },
     onError: (error) => {
@@ -175,7 +195,7 @@ const SignUp = () => {
           }}
         />
         {/* Biography */}
-        <CommonInputWrapper
+        {/* <CommonInputWrapper
           label="Biography"
           type="textarea"
           placeholder="Enter your biography"
@@ -183,7 +203,7 @@ const SignUp = () => {
           register={register}
           errors={errors}
           validationRules={{ required: "Biography is required" }}
-        />
+        /> */}
 
         {/* Agree Terms */}
         <div className="flex items-start gap-2 mt-3">
