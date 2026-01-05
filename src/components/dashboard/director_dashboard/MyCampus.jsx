@@ -1,26 +1,71 @@
+import { useState } from "react";
 import MyCampusCart from "./MyCampusCart";
 import MyCampCartSkeleton from "./MyCampCartSkeleton";
 import { useGetMyCamp } from "@/hooks/get-my-camp-list";
+import PaginationV2 from "@/components/common/PaginationV2";
 
 const MyCampus = () => {
-    const { getMyCamp, campCartLoading } = useGetMyCamp();
-    // console.log(getMyCamp, "getMyCamp");
+  const [currentPage, setCurrentPage] = useState(1);
 
-    return (
-        <div className="w-full border border-[#E8E8E8] rounded-xl md:p-5 p-3 my-10">
-            <h4 className="text-2xl font-medium text-[#333]">
-                MY Camps <span className="text-lg">({getMyCamp?.length})</span>
-            </h4>
-            {campCartLoading ? (
-                <MyCampCartSkeleton />
-            ) : (
-                <div className="grid grid-cols-1 gap-5 mt-5">
-                    {getMyCamp?.map((league) => (
-                        <MyCampusCart key={league.camp_id} league={league} />
-                    ))}
-                </div>
-            )}
+  // We no longer control perPage from frontend — backend always decides (currently fixed at 8)
+  const { camps, pagination, campCartLoading } = useGetMyCamp(currentPage);
+
+  const handlePageClick = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Use actual values from API response
+  const actualPerPage = pagination?.per_page || 8;
+  const totalCamps = pagination?.total || 0;
+  const hasMultiplePages = pagination?.last_page > 1 || totalCamps > actualPerPage;
+
+  return (
+    <div className="w-full border border-[#E8E8E8] rounded-xl md:p-6 p-4 my-10 bg-white">
+      {/* Header */}
+      <div className="mb-6">
+        <h4 className="text-2xl font-semibold text-[#333]">
+          My Camps
+          <span className="text-lg font-normal text-gray-600 ml-2">
+            ({totalCamps} total)
+          </span>
+        </h4>
+      </div>
+
+      {/* Loading State */}
+      {campCartLoading ? (
+        <MyCampCartSkeleton />
+      ) : camps.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">No camps found.</p>
         </div>
-    );
+      ) : (
+        <>
+          {/* Camps List */}
+          <div className="grid grid-cols-1 gap-5">
+            {camps.map((camp) => (
+              <MyCampusCart key={camp.camp_id} league={camp} />
+            ))}
+          </div>
+
+          {/* Pagination - Only show if needed */}
+          {hasMultiplePages && (
+            <PaginationV2
+              handlePageClick={handlePageClick}
+              currentPage={currentPage}
+              perPage={actualPerPage}          // ← Use real value from backend
+              totalItem={totalCamps}           // ← Total camps
+            />
+          )}
+
+          {/* Accurate "Showing" info */}
+          <div className="mt-4 text-center text-sm text-gray-600">
+            Showing {(currentPage - 1) * actualPerPage + 1} to{" "}
+            {Math.min(currentPage * actualPerPage, totalCamps)} of {totalCamps} camps
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
+
 export default MyCampus;

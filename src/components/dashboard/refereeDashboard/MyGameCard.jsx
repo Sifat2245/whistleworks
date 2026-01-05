@@ -4,11 +4,23 @@ import messageIcon from "@/assets/svg/message.svg";
 import Icon from "@/components/common/Icon";
 import { Avatar, Card, Divider, Tag, Tooltip } from "antd";
 import { format, parseISO } from "date-fns";
+import Swal from "sweetalert2";
 
 export default function MyGameCard({ game }) {
   // Extract clean date (without time) from the ISO string
   const gameDate = parseISO(game.game_details.date);
   const formattedDate = format(gameDate, "MMM d, yyyy");
+
+  const handleMessageClick = () =>{
+    Swal.fire({
+      title: "Coming Soon!!!",
+      text: "This feature is currently not available. Please check back later.",
+      icon: "info",
+      confirmButtonText: "OK"
+    })
+  }
+
+  console.log(game, 'gane');
 
   // Combine date with start/end time correctly
   const startDateTime = new Date(
@@ -117,11 +129,11 @@ export default function MyGameCard({ game }) {
             <Icon src={locationIcon} className="size-5" />
             View Location on Map
           </button>
-{/* 
-          <button className="bg-[#00AEEF] text-white px-6 py-3 rounded-lg hover:bg-blue-600 flex items-center gap-3 font-medium shadow-md">
+
+          <button onClick={handleMessageClick} className="bg-[#00AEEF] text-white px-6 py-3 rounded-lg hover:bg-blue-600 flex items-center gap-3 font-medium shadow-md">
             <Icon src={messageIcon} className="size-5" />
-            Message Crew
-          </button> */}
+            Message
+          </button>
         </div>
       </div>
     </Card>

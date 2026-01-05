@@ -39,6 +39,7 @@ import MyCamps from "@/page/EvolatorDashboard/MyCamp";
 import CrewDetailsPage from "@/page/DirectorDashboard/CrewDetailsPage";
 import MakeAnnouncement from "@/page/DirectorDashboard/MakeAnnouncement";
 import AllCamps from "@/page/AllCamps";
+import CampDetailsPageForNoAuth from "@/page/CampDetailsPageForNoAuth";
 
 const router = createBrowserRouter([
   {
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
         path:'all-camps',
         element: <AllCamps/>
       },
+      {
+        path: "all-camps/:id",
+        element: <CampDetailsPageForNoAuth/>
+      }
     ],
   },
   //

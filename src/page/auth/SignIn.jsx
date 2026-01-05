@@ -7,7 +7,7 @@ import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { useMutation } from "@tanstack/react-query";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import LoaderV2 from "@/components/common/LoaderV2";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -15,34 +15,51 @@ const SignIn = () => {
   const { handleLogin, userRefetch } = useAuth();
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
 
+  const getCampIdFromFromPath = () => {
+    const from = location.state?.from || "";
+    const match = from.match(/\/camp\/details\/(\d+)/);
+    return match ? match[1] : null;
+  };
+
   // Note: redirect function
-   const redirectBasedOnRole = (userRole) => {
-    console.log("User role", userRole)
-    // If role is null or undefined, redirect to account creation
-    if (!userRole) {
+  const redirectAfterLogin = (userRole, campId) => {
+    const role = userRole?.toLowerCase();
+
+    if (campId) {
+      if (role === "evaluator") {
+        navigate(`/evaluator-dashboard/camp/${campId}?tab=camp-details`);
+        return;
+      }
+      if (role === "referee") {
+        navigate(`/referee-dashboard/camp/${campId}?tab=camp-details`);
+        return;
+      }
+      if (role === "director") {
+        navigate(`/director-dashboard/camp-overview/${campId}`);
+        return;
+      }
+    }
+
+    if (!role) {
       navigate("/");
       return;
     }
-    // Note: director
-    if (userRole === "director") {
+    if (role === "director") {
       navigate("/director-dashboard");
-      return;
-    }
-    // Note: evaluator
-    if (userRole === "evaluator") {
+    } else if (role === "evaluator") {
       navigate("/evaluator-dashboard");
-      return;
-    }
-    // Note: referee
-    if (userRole === "referee") {
+    } else if (role === "referee") {
       navigate("/referee-dashboard");
-      return;
+    } else {
+      navigate("/");
     }
   };
 
@@ -55,10 +72,13 @@ const SignIn = () => {
     },
     onSuccess: (res) => {
       toast.success(res?.message || "Sign in successful");
+
       handleLogin(res?.data?.token);
       userRefetch();
+      const campId = getCampIdFromFromPath();
+
       setTimeout(() => {
-        redirectBasedOnRole(res?.data?.user?.role)
+        redirectAfterLogin(res?.data?.user?.role, campId);
       }, 1000);
     },
     onError: (err) => {
@@ -130,7 +150,6 @@ const SignIn = () => {
           </a>
         </div>
 
-
         {/* path="/director-dashboard" */}
         <CommonSubmitBtn
           variant="primary"
@@ -153,7 +172,10 @@ const SignIn = () => {
 
       <p className="text-center text-sm text-neutral-600 mt-6">
         Don’t have an account?{" "}
-        <a href="/auth/signup" className="text-primary font-medium hover:underline">
+        <a
+          href="/auth/signup"
+          className="text-primary font-medium hover:underline"
+        >
           Sign Up
         </a>
       </p>

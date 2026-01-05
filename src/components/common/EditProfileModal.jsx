@@ -118,7 +118,7 @@ const EditProfileModal = ({ open, onClose }) => {
 
                             {/* biography */}
                             <CommonInputWrapper
-                                label="Biography"
+                                label="Biography/Conferences"
                                 type="textarea"
                                 placeholder="Enter your biography"
                                 register_as="biography"

@@ -17,7 +17,7 @@ export default function CampDetailsPage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const data = useLoaderData();
-  const campData = data?.data?.data
+  const campData = data?.data?.data;
 
   const tab = searchParams.get("tab") || "camp-details";
   const { userData } = useAuth();
@@ -31,7 +31,7 @@ export default function CampDetailsPage() {
   const allowedTabs = {
     common: ["camp-details"],
     evaluator: ["ranking-report", "evaluate", "schedule", "roster"],
-    referee: ["performance", "my-games"],
+    referee: ["performance", "my-games", "roster"],
   };
 
   // Check if current tab is allowed for the user
@@ -39,7 +39,6 @@ export default function CampDetailsPage() {
     allowedTabs.common.includes(tab) ||
     (isEvaluator && allowedTabs.evaluator.includes(tab)) ||
     (isReferee && allowedTabs.referee.includes(tab));
-
 
   return (
     <section className="w-full mt-7 mb-18">
@@ -65,10 +64,12 @@ export default function CampDetailsPage() {
           <>
             {/* Common Tabs - Both Roles */}
             {tab === "camp-details" && <CampDetails campData={campData} />}
+            {tab === "roster" && <Roster camp_id={id} />}
 
             {/* Evaluator Only Tabs */}
-            {isEvaluator && tab === "roster" && <Roster camp_id={id} />}
-            {isEvaluator && tab === "ranking-report" && <RankingReport camp_id={id} />}
+            {isEvaluator && tab === "ranking-report" && (
+              <RankingReport camp_id={id} />
+            )}
             {isEvaluator && tab === "evaluate" && <EvaluateV2 camp_id={id} />}
             {isEvaluator && tab === "schedule" && <Schedule camp_id={id} />}
 

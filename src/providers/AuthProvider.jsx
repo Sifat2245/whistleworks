@@ -114,7 +114,7 @@ const AuthProvider = ({ children }) => {
     });
     console.log("User Data-->", userData);
 
-    const isLoggedIn = accessToken && userData
+    const isLoggedIn = !!accessToken && (userData || isFetching || isLoading);
 
     if (isLoading) return <ScreenLoading />
 

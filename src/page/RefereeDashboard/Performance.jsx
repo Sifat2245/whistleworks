@@ -18,6 +18,8 @@ export default function Performance() {
 
   const evaluations = evaluationsData.evaluations || [];
 
+  console.log(evaluations, "evaluations");
+
   // Pass evaluations to child components
   return (
     <section className="space-y-8">
