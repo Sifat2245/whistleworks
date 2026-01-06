@@ -207,7 +207,6 @@ const ScheduleActionButtons = ({ campId }) => {
 
         <CommonSubmitBtn
           variant="primary"
-          className="px-10 py-4"
           onClick={handlePublish}
           loading={publishMutation.isPending}
           disabled={publishMutation.isPending}

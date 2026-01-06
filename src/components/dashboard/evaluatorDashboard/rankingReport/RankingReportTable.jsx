@@ -40,6 +40,8 @@ export default function RankingReportTable({ camp_id }) {
     refetchOnWindowFocus: true
   });
 
+  console.log(data, 'rankings');
+
   // Note: Apply filters
   const filteredData = useMemo(() => {
     const rawData =

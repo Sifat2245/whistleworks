@@ -77,7 +77,7 @@ const CourtSlotBox = ({
   return (
     <div
       onClick={handleBoxClick}
-      className={`shrink-0 w-72 rounded-xl p-6 min-h-[260px] flex flex-col items-center justify-center shadow-lg transition-all
+      className={`shrink-0 w-72 rounded-xl p-6 min-h-[280px] flex flex-col items-center justify-center shadow-lg border border-black/15 transition-all
         ${
           isBlocked
             ? "bg-gray-200 cursor-not-allowed opacity-70"
