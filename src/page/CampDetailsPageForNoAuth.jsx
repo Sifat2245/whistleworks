@@ -162,7 +162,7 @@ const CampDetailsPageForNoAuth = () => {
         </div>
 
         {/* Camp Schedule */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
+        {/* <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
           <h2 className="text-3xl font-bold mb-6">Camp Schedule</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {campDetails.date_range.map((date, index) => (
@@ -176,7 +176,7 @@ const CampDetailsPageForNoAuth = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Camp Director */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-12">

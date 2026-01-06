@@ -1,5 +1,6 @@
 // CourtLists.jsx
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom"; // Added for URL params
 import ScheduleAddModal from "./ScheduleAddModal";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,23 +10,27 @@ import ScheduleSkeleton from "./ScheduleSkeleton";
 import toast from "react-hot-toast";
 import { HiLockClosed, HiLockOpen } from "react-icons/hi2";
 import Swal from "sweetalert2";
+import { MdModeEditOutline } from "react-icons/md";
 
 const CourtLists = ({ campData }) => {
   const axiosInstance = useAxiosSecure();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeFilter, setActiveFilter] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
+  const [selectedLocationId, setSelectedLocationId] = useState(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
 
   // Editing state
-  const [editingCourtId, setEditingCourtId] = useState(null);
+  const [editingSlotId, setEditingSlotId] = useState(null);
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef(null);
 
-  // Fetch available dates
+  // Fetch available dates and locations
   const { data: initialData, isLoading: loadingInitial } = useQuery({
     queryKey: ["available-dates", campData?.id],
     queryFn: async () => {
@@ -38,15 +43,58 @@ const CourtLists = ({ campData }) => {
   });
 
   const availableDates = initialData?.available_dates || [];
+  const availableLocations = initialData?.available_locations || [];
 
-  // Set first date as default
+  // Set defaults from URL or fallback to first items
   useEffect(() => {
-    if (availableDates.length > 0 && !selectedDate) {
-      const firstDate = availableDates[0];
-      setActiveFilter(firstDate.formatted);
-      setSelectedDate(firstDate.date.split("T")[0]);
+    const urlDate = searchParams.get("date");
+    const urlLocation = searchParams.get("location");
+
+    // Set date
+    if (availableDates.length > 0) {
+      const dateItem =
+        urlDate &&
+        availableDates.find((d) => d.date.startsWith(urlDate))
+          ? availableDates.find((d) => d.date.startsWith(urlDate))
+          : availableDates[0];
+
+      setActiveFilter(dateItem.formatted);
+      setSelectedDate(dateItem.date.split("T")[0]);
     }
-  }, [availableDates, selectedDate]);
+
+    // Set location
+    if (availableLocations.length > 0) {
+      const locationId =
+        urlLocation &&
+        availableLocations.some(
+          (l) => l.location_id.toString() === urlLocation
+        )
+          ? parseInt(urlLocation)
+          : availableLocations[0].location_id;
+
+      setSelectedLocationId(locationId);
+    }
+  }, [availableDates, availableLocations, searchParams]);
+
+  // Update URL when filters change
+  const updateUrlParams = (date, locationId) => {
+    setSearchParams({
+      date,
+      location: locationId.toString(),
+    });
+  };
+
+  const handleDateClick = (item) => {
+    const newDate = item.date.split("T")[0];
+    setActiveFilter(item.formatted);
+    setSelectedDate(newDate);
+    updateUrlParams(newDate, selectedLocationId || availableLocations[0]?.location_id);
+  };
+
+  const handleLocationClick = (locationId) => {
+    setSelectedLocationId(locationId);
+    updateUrlParams(selectedDate, locationId);
+  };
 
   // Fetch schedule for selected date
   const { data, isLoading } = useQuery({
@@ -64,13 +112,23 @@ const CourtLists = ({ campData }) => {
   const maxReferees = data?.schedule?.max_referees_per_slot;
   const scheduleId = data?.schedule?.schedule_id;
   const timeSlots = data?.time_slots || [];
-  console.log(courtHeaders,'headers');
 
-  // Mutation to update court name
+  // Filter courts by selected location
+  const filteredCourtHeaders = selectedLocationId
+    ? courtHeaders.filter((h) => h.location_id === selectedLocationId)
+    : courtHeaders;
+
+  const getFilteredCourtsForSlot = (slot) => {
+    return selectedLocationId
+      ? slot.courts.filter((court) => court.location_id === selectedLocationId)
+      : slot.courts;
+  };
+
+  // Mutations
   const updateCourtNameMutation = useMutation({
-    mutationFn: async ({ court_number, court_name }) => {
+    mutationFn: async ({ slot_id, court_name }) => {
       const res = await axiosInstance.patch(
-        `/v1/slot/${court_number}/update-court-name`,
+        `/v1/slot/${slot_id}/update-court-name`,
         { court_name }
       );
       return res?.data;
@@ -88,43 +146,36 @@ const CourtLists = ({ campData }) => {
     },
   });
 
-  // Start editing
-  const startEditing = (court_number, currentName) => {
-    setEditingCourtId(court_number);
+  const startEditing = (slotId, currentName) => {
+    setEditingSlotId(slotId);
     setEditValue(currentName || "");
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  // Save edit
   const saveEdit = () => {
     if (!editValue.trim()) {
       toast.error("Court name cannot be empty");
       return;
     }
 
-    if (editingCourtId) {
+    if (editingSlotId) {
       updateCourtNameMutation.mutate({
-        court_number: editingCourtId,
+        slot_id: editingSlotId,
         court_name: editValue.trim(),
       });
     }
-    setEditingCourtId(null);
+    setEditingSlotId(null);
     setEditValue("");
   };
 
-  // Cancel edit
   const cancelEdit = () => {
-    setEditingCourtId(null);
+    setEditingSlotId(null);
     setEditValue("");
   };
 
-  // Handle Enter/Escape
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      saveEdit();
-    } else if (e.key === "Escape") {
-      cancelEdit();
-    }
+    if (e.key === "Enter") saveEdit();
+    else if (e.key === "Escape") cancelEdit();
   };
 
   const toggleBlockMutation = useMutation({
@@ -141,11 +192,6 @@ const CourtLists = ({ campData }) => {
     },
     onError: () => toast.error("Failed to update block status"),
   });
-
-  const handleDateClick = (item) => {
-    setActiveFilter(item.formatted);
-    setSelectedDate(item.date.split("T")[0]);
-  };
 
   const handleBoxClick = (court, timeSlot) => {
     if (court?.is_blocked) return;
@@ -197,13 +243,14 @@ const CourtLists = ({ campData }) => {
     const slot = timeSlots.find((s) => s.time_24h === time24h);
     if (!slot) return;
 
-    const allBlocked = slot.courts.every((court) => court.is_blocked);
+    const filteredCourts = getFilteredCourtsForSlot(slot);
+    const allBlocked = filteredCourts.every((court) => court.is_blocked);
     const action = allBlocked ? "unblock" : "block";
     const actionText = allBlocked ? "Unblock" : "Block";
 
     const result = await Swal.fire({
-      title: `${actionText} All Courts?`,
-      text: `This will ${action} all courts in the ${slot.time} time slot on ${date}.`,
+      title: `${actionText} All Visible Courts?`,
+      text: `This will ${action} all courts in the ${slot.time} time slot on ${date} for the selected location.`,
       icon: allBlocked ? "question" : "warning",
       showCancelButton: true,
       confirmButtonText: `Yes, ${actionText}`,
@@ -224,8 +271,41 @@ const CourtLists = ({ campData }) => {
   if (availableDates.length === 0)
     return <div className="text-center py-12 text-gray-500">No available dates.</div>;
 
+  const currentLocationName = availableLocations.find(
+    (l) => l.location_id === selectedLocationId
+  )?.location_name;
+
   return (
     <div className="w-full mt-6 mb-16">
+      {/* Location Filter */}
+      {availableLocations.length > 1 && (
+        <div className="flex gap-4 mb-6 overflow-x-auto pb-4">
+          {availableLocations.map((loc) => (
+            <button
+              key={loc.location_id}
+              onClick={() => handleLocationClick(loc.location_id)}
+              className={`border border-[#00AEEF] px-6 py-3 rounded-lg whitespace-nowrap font-medium transition-all cursor-pointer flex items-center gap-3
+                ${selectedLocationId === loc.location_id
+                  ? "bg-[#00AEEF] text-white shadow-lg"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+            >
+              <span>{loc.location_name}</span>
+              <span className="text-xs bg-white/20 px-2 py-1 rounded">
+                {loc.court_count} courts
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Selected Location Title */}
+      {availableLocations.length > 1 && currentLocationName && (
+        <div className="mb-4 text-2xl font-bold text-gray-800">
+          {currentLocationName}
+        </div>
+      )}
+
       {/* Date Filter */}
       <div className="flex gap-4 mb-8 overflow-x-auto pb-6">
         {availableDates.map((item) => (
@@ -253,34 +333,10 @@ const CourtLists = ({ campData }) => {
                 <span>Time</span>
               </div>
               <div className="flex gap-6 py-6">
-                {courtHeaders.map((court) => (
+                {filteredCourtHeaders.map((court) => (
                   <div key={court.court_number} className="shrink-0 w-72 text-center">
                     <div className="text-red-600 text-sm font-medium">
-                      {court?.location}
-                    </div>
-
-                    {/* Editable Court Name */}
-                    <div className="mt-2">
-                      {editingCourtId === court.court_number ? (
-                        <input
-                          ref={inputRef}
-                          type="text"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          onBlur={saveEdit}
-                          className="text-[#00AEEF] font-bold text-xl bg-white border-b-2 border-[#00AEEF] outline-none px-2 py-1 text-center"
-                          placeholder="Court name..."
-                        />
-                      ) : (
-                        <div
-                          onClick={() => startEditing(court.court_number, court.court_name)}
-                          className="text-[#00AEEF] font-bold text-xl cursor-pointer hover:opacity-80 transition-opacity"
-                          title="Click to edit court name"
-                        >
-                          {court?.court_name || `Court ${court.court_number}`}
-                        </div>
-                      )}
+                      {court?.location_name || court?.location}
                     </div>
                   </div>
                 ))}
@@ -289,7 +345,8 @@ const CourtLists = ({ campData }) => {
 
             {/* Rows */}
             {timeSlots.map((slot) => {
-              const allBlocked = slot.courts.every((court) => court.is_blocked);
+              const filteredCourts = getFilteredCourtsForSlot(slot);
+              const allBlocked = filteredCourts.every((court) => court.is_blocked);
 
               return (
                 <div
@@ -314,24 +371,49 @@ const CourtLists = ({ campData }) => {
                   </div>
 
                   <div className="flex gap-6 py-8">
-                    {slot.courts.map((court) => {
+                    {filteredCourts.map((court) => {
                       const isBlocked = court?.is_blocked;
                       const referees = court?.assignments || [];
-                      console.log(referees, "court");
 
                       return (
-                        <CourtSlotBox
-                          key={court.slot_id}
-                          court={court}
-                          timeSlot={slot}
-                          isBlocked={isBlocked}
-                          referees={referees}
-                          campId={campData?.id}
-                          selectedDate={selectedDate}
-                          maxReferees={maxReferees}
-                          onClick={handleBoxClick}
-                          onUndoBlock={handleUndoBlock}
-                        />
+                        <div key={court.slot_id} className="shrink-0 w-72">
+                          {/* Editable Court Name */}
+                          <div className="text-center mb-4">
+                            {editingSlotId === court.slot_id ? (
+                              <input
+                                ref={inputRef}
+                                type="text"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                onBlur={saveEdit}
+                                className="text-[#00AEEF] font-bold text-xl bg-white border-b-2 border-[#00AEEF] outline-none px-2 py-1 text-center w-full"
+                                placeholder="Court name..."
+                              />
+                            ) : (
+                              <div
+                                onClick={() => startEditing(court.slot_id, court.court_name)}
+                                className="text-[#00AEEF] font-bold text-xl cursor-pointer hover:opacity-80 transition-opacity text-center flex justify-center items-center gap-3"
+                                title="Click to edit court name"
+                              >
+                                {court?.court_name || `Court ${court.court_number}`} <MdModeEditOutline />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Court Slot Box */}
+                          <CourtSlotBox
+                            court={court}
+                            timeSlot={slot}
+                            isBlocked={isBlocked}
+                            referees={referees}
+                            campId={campData?.id}
+                            selectedDate={selectedDate}
+                            maxReferees={maxReferees}
+                            onClick={handleBoxClick}
+                            onUndoBlock={handleUndoBlock}
+                          />
+                        </div>
                       );
                     })}
                   </div>

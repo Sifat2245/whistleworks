@@ -375,7 +375,6 @@ const DailyTimeRange = ({ getDateRange }) => {
           <CommonSubmitBtn
             type="submit"
             variant="primary"
-            className="px-14 py-5 text-lg font-medium"
             disabled={createScheduleMutation.isPending}
           >
             {createScheduleMutation.isPending ? <LoaderV2 /> : "Generate Schedule"}
