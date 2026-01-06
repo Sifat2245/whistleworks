@@ -4,9 +4,10 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { MdEmail, MdPhone, MdLocationOn, MdClose } from "react-icons/md";
+import { MdEmail, MdPhone, MdLocationOn, MdClose, MdCheckCircle, MdDelete } from "react-icons/md";
 import { IoCheckboxOutline } from "react-icons/io5";
 import { AnimatePresence, motion } from "framer-motion";
+import Swal from "sweetalert2";
 
 const RosterTable = ({ referees = [] }) => {
   const data = useMemo(() => referees, [referees]);
@@ -27,6 +28,32 @@ const RosterTable = ({ referees = [] }) => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedReferee(null);
+  };
+
+  const handleCheckIn = (refereeId) => {
+    console.log("Check in referee:", refereeId);
+    Swal.fire({
+      title: "Coming Soon!!!",
+      text: "This feature will coming soon",
+      icon: "question",
+      showCancelButton: false,
+      showConfirmButton: false,
+      timer: 2000,
+    })
+    // TODO: Call API to update status to "checked_in"
+  };
+
+  const handleRemove = (refereeId) => {
+    console.log("Remove referee:", refereeId);
+        Swal.fire({
+      title: "Coming Soon!!!",
+      text: "This feature will coming soon",
+      icon: "question",
+      showCancelButton: false,
+      showConfirmButton: false,
+      timer: 2000,
+    })
+    // TODO: Call API to remove from roster
   };
 
   const columns = useMemo(
@@ -107,6 +134,40 @@ const RosterTable = ({ referees = [] }) => {
           );
         },
       },
+      // New Actions Column
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          const isCheckedIn = row.original.status === "checked_in";
+
+          return (
+            <div className="flex flex-col items-center justify-center gap-3">
+              {/* Check In Button - Only if not already checked in */}
+              {!isCheckedIn && (
+                <button
+                  onClick={() => handleCheckIn(row.original.id)}
+                  className="flex items-center cursor-pointer gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 font-medium rounded-lg transition"
+                  title="Check In"
+                >
+                  <MdCheckCircle className="text-lg" />
+                  <span className="hidden sm:inline">Check In</span>
+                </button>
+              )}
+
+              {/* Remove Button */}
+              <button
+                onClick={() => handleRemove(row.original.id)}
+                className="flex items-center cursor-pointer gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-medium rounded-lg transition"
+                title="Remove from Roster"
+              >
+                <MdDelete className="text-lg" />
+                <span className="hidden sm:inline">Remove</span>
+              </button>
+            </div>
+          );
+        },
+      },
     ],
     []
   );
@@ -142,7 +203,7 @@ const RosterTable = ({ referees = [] }) => {
       {/* Table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="max-h-[600px] overflow-y-auto">
-          <table className="w-full min-w-[800px]">
+          <table className="w-full min-w-[900px]">
             <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
@@ -165,7 +226,7 @@ const RosterTable = ({ referees = [] }) => {
             <tbody className="divide-y divide-gray-100">
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-16 text-gray-500">
+                  <td colSpan={6} className="text-center py-16 text-gray-500">
                     No referees found.
                   </td>
                 </tr>
@@ -191,8 +252,8 @@ const RosterTable = ({ referees = [] }) => {
         </div>
       </div>
 
-      {/* Modal */}
-     <AnimatePresence>
+      {/* Modal - unchanged */}
+      <AnimatePresence>
         {isModalOpen && selectedReferee && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -200,7 +261,7 @@ const RosterTable = ({ referees = [] }) => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-            onClick={closeModal} // Close when clicking backdrop
+            onClick={closeModal}
           >
             <motion.div
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
@@ -213,7 +274,7 @@ const RosterTable = ({ referees = [] }) => {
                 duration: 0.4
               }}
               className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()} // Prevent close when clicking inside
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900">Referee Details</h2>
@@ -227,7 +288,6 @@ const RosterTable = ({ referees = [] }) => {
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Avatar + Name */}
                 <div className="flex flex-col items-center text-center">
                   <motion.img
                     whileHover={{ scale: 1.05 }}
@@ -243,7 +303,6 @@ const RosterTable = ({ referees = [] }) => {
                   <p className="text-sm text-gray-500 mt-1">Referee ID: #{selectedReferee.id}</p>
                 </div>
 
-                {/* Details - unchanged */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <MdEmail className="text-gray-400 text-xl" />

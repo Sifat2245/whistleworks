@@ -2,16 +2,31 @@ import ActiveCmpsBackBtn from "@/components/common/ActiveCmpsBackBtn";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import CampCard from "@/components/reusable/CampCard";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PreviousCamps() {
   const axiosInstance = useAxiosSecure();
+  const { userData } = useAuth();
+
+  const role = userData?.role?.toLowerCase();
+
+  // Determine the correct API endpoint based on role
+  const getApiEndpoint = () => {
+    if (role === "evaluator") {
+      return "/evaluator/camp-registration/previous-camps";
+    }
+    // Default to referee endpoint (or any other role)
+    return "/v1/referee/camp/previous-camps";
+  };
 
   const { data: previousCamps = [], isLoading, isError } = useQuery({
-    queryKey: ["previous-camps"],
+    queryKey: ["previous-camps", role],
     queryFn: async () => {
-      const response = await axiosInstance.get("/v1/referee/camp/previous-camps");
+      const endpoint = getApiEndpoint();
+      const response = await axiosInstance.get(endpoint);
       return response?.data?.data?.previous_camps || [];
     },
+    enabled: !!role, // Only run when role is known
   });
 
   if (isLoading) {
@@ -51,12 +66,12 @@ export default function PreviousCamps() {
               start_date: camp.start_date,
               end_date: camp.end_date,
               price: payment.amount || "0.00",
-              referee_registration_status: status, // "checked_in" or "registered"
+              referee_registration_status: status,
             };
 
             return (
               <CampCard
-                key={camp.id} // Use camp.id as key
+                key={camp.id}
                 camp={campDataForCard}
               />
             );

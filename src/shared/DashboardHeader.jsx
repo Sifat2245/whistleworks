@@ -33,7 +33,7 @@ const DashboardHeader = () => {
                         </div>
                     </Popover>
 
-                    <NotificationBell badgeCount={2} />
+                    <NotificationBell />
                 </div>
             </div>
         </header>

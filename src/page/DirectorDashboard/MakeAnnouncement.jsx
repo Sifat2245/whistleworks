@@ -4,13 +4,14 @@ import Swal from "sweetalert2";
 import LoaderV2 from "@/components/common/LoaderV2";
 import useRegisteredReferees from "@/hooks/get-registered-referees";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { Select } from "antd"; // ← Ant Design Select
+import { Select } from "antd";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import BackBtn from "@/components/common/BackBtn";
+import { useMutation } from "@tanstack/react-query";
 
 const MakeAnnouncement = ({ camp_id }) => {
-  const { getRegisterReferess } = useRegisteredReferees(camp_id);
   const axiosInstance = useAxiosSecure();
+  const { getRegisterReferess, isLoading: loadingReferees } = useRegisteredReferees(camp_id);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -29,7 +30,9 @@ const MakeAnnouncement = ({ camp_id }) => {
     },
   });
 
-  // Convert users to Ant Design option format
+  const recipientType = watch("recipientType");
+
+  // Convert referees to Ant Design Select options
   const userOptions = getRegisterReferess?.map((user) => ({
     value: user.id,
     label: (
@@ -37,204 +40,215 @@ const MakeAnnouncement = ({ camp_id }) => {
         <img
           src={user.avatar || "/default-avatar.png"}
           alt={user.name}
-          className="w-8 h-8 rounded-full object-cover"
+          className="w-8 h-8 rounded-full object-cover border border-gray-200"
+          onError={(e) => (e.target.src = "/default-avatar.png")}
         />
-        <span className="text-sm font-medium">{user.name}</span>
+        <div>
+          <div className="font-medium text-gray-900">{user.name}</div>
+          <div className="text-xs text-gray-500">{user.email}</div>
+        </div>
       </div>
     ),
-  }));
+  })) || [];
 
-  const onSubmit = async (data) => {
-    setIsSubmitting(true);
-    try {
-      let payload = {
-        subject: data.subject,
-        message: data.message,
-        announcement_to: data.recipientType,
+  // Mutation to send announcement
+  const sendAnnouncementMutation = useMutation({
+    mutationKey: ["send-announcement"],
+    mutationFn: async (formData) => {
+      const payload = {
+        subject: formData.subject,
+        message: formData.message,
+        announcement_to: formData.recipientType,
       };
 
-      if (
-        data.recipientType === "specific" &&
-        data.specificUserIds.length > 0
-      ) {
-        payload.specific_user_ids = data.specificUserIds;
+      // Add specific user IDs only if "specific" is selected
+      if (formData.recipientType === "specific" && formData.specificUserIds.length > 0) {
+        payload.specific_user_ids = formData.specificUserIds;
       }
 
-      await axiosInstance.post("/director/announcements", payload);
-
+      const response = await axiosInstance.post("/director/announcements", payload);
+      return response.data;
+    },
+    onSuccess: (data) => {
       Swal.fire({
         icon: "success",
-        title: "Announcement Sent!",
-        text: "Your announcement has been successfully delivered to the recipients.",
+        title: "Success!",
+        text: data?.message || "Your announcement has been sent successfully.",
         confirmButtonColor: "#00AEEF",
-        timer: 3500,
+        timer: 4000,
         timerProgressBar: true,
       });
 
-      reset();
-    } catch (error) {
+      // Reset form
+      reset({
+        recipientType: "all",
+        specificUserIds: [],
+        subject: "",
+        message: "",
+      });
+    },
+    onError: (error) => {
+      const message = error?.response?.data?.message || "Failed to send announcement. Please try again.";
       Swal.fire({
         icon: "error",
-        title: "Failed to Send",
-        text:
-          error?.response?.data?.message ||
-          "Something went wrong. Please try again.",
+        title: "Error",
+        text: message,
         confirmButtonColor: "#ef4444",
       });
-    } finally {
+    },
+    onSettled: () => {
       setIsSubmitting(false);
-    }
+    },
+  });
+
+  const onSubmit = (data) => {
+    setIsSubmitting(true);
+    sendAnnouncementMutation.mutate(data);
   };
 
-  const recipientType = watch("recipientType");
-
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
         <BackBtn />
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 mt-10 border border-gray-100">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-          Make an Announcement
-        </h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Recipient Selection */}
-          <div>
-            <label className="block text-lg font-semibold text-gray-800 mb-4">
-              Send To
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition">
-                <input
-                  type="radio"
-                  value="all"
-                  {...register("recipientType")}
-                  className="mr-3 text-[#00AEEF] focus:ring-[#00AEEF]"
-                />
-                <span className="font-medium">All Members</span>
-              </label>
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 mt-8">
+          <div className="p-8 sm:p-10">
+            <h2 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-10">
+              Make an Announcement
+            </h2>
 
-              <label className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition">
-                <input
-                  type="radio"
-                  value="evaluators"
-                  {...register("recipientType")}
-                  className="mr-3 text-[#00AEEF] focus:ring-[#00AEEF]"
-                />
-                <span className="font-medium">All Evaluators</span>
-              </label>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
 
-              <label className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition">
-                <input
-                  type="radio"
-                  value="referees"
-                  {...register("recipientType")}
-                  className="mr-3 text-[#00AEEF] focus:ring-[#00AEEF]"
-                />
-                <span className="font-medium">All Referees</span>
-              </label>
+              {/* Send To */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-5">Send To</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { value: "all", label: "All Members" },
+                    { value: "evaluators", label: "All Evaluators" },
+                    { value: "referees", label: "All Referees" },
+                    // { value: "specific", label: "Specific Users" },
+                  ].map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center p-5 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-all border-2 border-transparent hover:border-[#00AEEF]/30"
+                    >
+                      <input
+                        type="radio"
+                        value={option.value}
+                        {...register("recipientType")}
+                        className="w-5 h-5 text-[#00AEEF] focus:ring-[#00AEEF] focus:ring-2"
+                      />
+                      <span className="ml-4 text-lg font-medium text-gray-800">
+                        {option.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
-              <label className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition">
-                <input
-                  type="radio"
-                  value="specific"
-                  {...register("recipientType")}
-                  className="mr-3 text-[#00AEEF] focus:ring-[#00AEEF]"
-                />
-                <span className="font-medium">Specific Users</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Specific Users - Ant Design Select */}
-          {recipientType === "specific" && (
-            <div>
-              <label className="block text-lg font-semibold text-gray-800 mb-3">
-                Select Recipients
-              </label>
-              <Controller
-                name="specificUserIds"
-                control={control}
-                rules={{
-                  required:
-                    recipientType === "specific"
-                      ? "Please select at least one user"
-                      : false,
-                }}
-                render={({ field }) => (
-                  <Select
-                    mode="multiple"
-                    style={{ width: "100%" }}
-                    placeholder="Search and select users..."
-                    optionLabelProp="label"
-                    {...field}
-                    options={userOptions}
-                    className="ant-select-custom border border-black/15 rounded-xl py-2!"
-                    dropdownClassName="z-50"
-                    allowClear
-                    showSearch
-                    filterOption={(input, option) =>
-                      option.label.props.children[1].props.children
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                  />
-                )}
-              />
-              {errors.specificUserIds && (
-                <p className="text-red-500 text-sm mt-2">
-                  {errors.specificUserIds.message}
-                </p>
+              {/* Specific Recipients */}
+              {recipientType === "specific" && (
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                    Select Recipients
+                  </h3>
+                  {loadingReferees ? (
+                    <div className="text-center py-8">
+                      <LoaderV2 />
+                    </div>
+                  ) : (
+                    <Controller
+                      name="specificUserIds"
+                      control={control}
+                      rules={{
+                        validate: (value) =>
+                          recipientType === "specific" && (!value || value.length === 0)
+                            ? "Please select at least one recipient"
+                            : true,
+                      }}
+                      render={({ field }) => (
+                        <Select
+                          mode="multiple"
+                          placeholder="Search and select users..."
+                          loading={loadingReferees}
+                          options={userOptions}
+                          optionFilterProp="children"
+                          filterOption={(input, option) =>
+                            option.label.props.children[1].props.children[0]
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          className="w-full"
+                          dropdownStyle={{ zIndex: 9999 }}
+                          allowClear
+                          showSearch
+                          size="large"
+                          {...field}
+                        />
+                      )}
+                    />
+                  )}
+                  {errors.specificUserIds && (
+                    <p className="text-red-600 text-sm mt-2">
+                      {errors.specificUserIds.message}
+                    </p>
+                  )}
+                </div>
               )}
-            </div>
-          )}
 
-          {/* Subject */}
-          <div>
-            <label className="block text-lg font-semibold text-gray-800 mb-3">
-              Subject
-            </label>
-            <input
-              type="text"
-              {...register("subject", { required: "Subject is required" })}
-              className="w-full px-5 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:border-[#00AEEF] focus:ring-2 focus:ring-[#00AEEF]/20 transition"
-              placeholder="Enter a clear subject line"
-            />
-            {errors.subject && (
-              <p className="text-red-500 text-sm mt-2">
-                {errors.subject.message}
-              </p>
-            )}
-          </div>
+              {/* Subject */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Subject</h3>
+                <input
+                  type="text"
+                  placeholder="Enter a clear and concise subject"
+                  className="w-full px-6 py-4 text-lg border border-gray-300 rounded-xl focus:outline-none focus:border-[#00AEEF] focus:ring-4 focus:ring-[#00AEEF]/20 transition"
+                  {...register("subject", {
+                    required: "Subject is required",
+                    maxLength: { value: 150, message: "Subject too long (max 150 characters)" },
+                  })}
+                />
+                {errors.subject && (
+                  <p className="text-red-600 text-sm mt-2">{errors.subject.message}</p>
+                )}
+              </div>
 
-          {/* Message */}
-          <div>
-            <label className="block text-lg font-semibold text-gray-800 mb-3">
-              Message
-            </label>
-            <textarea
-              {...register("message", { required: "Message is required" })}
-              rows={6}
-              className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:outline-none focus:border-[#00AEEF] focus:ring-2 focus:ring-[#00AEEF]/20 transition resize-none"
-              placeholder="Write your full announcement here..."
-            />
-            {errors.message && (
-              <p className="text-red-500 text-sm mt-2">
-                {errors.message.message}
-              </p>
-            )}
-          </div>
+              {/* Message */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Message</h3>
+                <textarea
+                  rows={8}
+                  placeholder="Write your announcement message here..."
+                  className="w-full px-6 py-5 text-base border border-gray-300 rounded-xl focus:outline-none focus:border-[#00AEEF] focus:ring-4 focus:ring-[#00AEEF]/20 transition resize-none"
+                  {...register("message", {
+                    required: "Message is required",
+                    minLength: { value: 10, message: "Message too short (min 10 characters)" },
+                  })}
+                />
+                {errors.message && (
+                  <p className="text-red-600 text-sm mt-2">{errors.message.message}</p>
+                )}
+              </div>
 
-          {/* Submit */}
-          <div className="pt-4">
-            <CommonSubmitBtn
-              variant="primary"
-              className="w-full py-4 text-lg font-semibold"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? <LoaderV2 /> : "Send Announcement"}
-            </CommonSubmitBtn>
+              {/* Submit Button */}
+              <div className="pt-6">
+                <CommonSubmitBtn
+                  type="submit"
+                  variant="primary"
+                  className="w-full py-5 text-xl font-bold"
+                  disabled={isSubmitting || sendAnnouncementMutation.isPending}
+                >
+                  {isSubmitting || sendAnnouncementMutation.isPending ? (
+                    <LoaderV2 />
+                  ) : (
+                    "Send Announcement"
+                  )}
+                </CommonSubmitBtn>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
