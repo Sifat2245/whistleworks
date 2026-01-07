@@ -44,25 +44,6 @@ const EvaluatorRefereeList = ({ camp_id }) => {
                     {member?.name}
                   </h3>
 
-                  <div className="flex items-center gap-2 justify-center">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      member.role === 'Evaluator' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {member.role}
-                    </span>
-                    {member.status && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        member.status === 'checked_in' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {member.status.replace('_', ' ').toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-
                   <p className="text-sm text-gray-500">
                     <span className="font-medium text-[#444]">Email:</span> {member?.email}
                   </p>
