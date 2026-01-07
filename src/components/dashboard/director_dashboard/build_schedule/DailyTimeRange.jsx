@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { useNavigate, useParams } from "react-router-dom";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 const libraries = ["places"];
 
@@ -18,7 +18,6 @@ const DailyTimeRange = ({ getDateRange }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { start_date, end_date, dates = [] } = getDateRange || {};
-  const [isMapsLoaded, setIsMapsLoaded] = useState(false);
 
   const {
     handleSubmit,
@@ -112,11 +111,6 @@ const DailyTimeRange = ({ getDateRange }) => {
 
     return (
       <div className="w-full">
-        {!isMapsLoaded ? (
-          <div className="animate-pulse">
-            <div className="h-12 bg-gray-200 rounded-xl w-full"></div>
-          </div>
-        ) : (
           <div className="relative">
             <Autocomplete
               onLoad={(ac) => (autocompleteRef.current = ac)}
@@ -139,7 +133,6 @@ const DailyTimeRange = ({ getDateRange }) => {
             <input type="hidden" {...register(`locations.${index}.latitude`)} />
             <input type="hidden" {...register(`locations.${index}.longitude`)} />
           </div>
-        )}
 
         {errors.locations?.[index]?.location_name && (
           <p className="text-red-600 text-sm mt-2 pl-1">
@@ -154,7 +147,6 @@ const DailyTimeRange = ({ getDateRange }) => {
     <LoadScript
       googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
       libraries={libraries}
-      onLoad={() => setIsMapsLoaded(true)}
     >
       {/* Camp Date Header */}
       <div className="my-12 w-full bg-linear-to-r from-[#00AEEF]/5 to-blue-50 rounded-2xl p-8 border border-[#00AEEF]/20 shadow-sm">
@@ -296,7 +288,7 @@ const DailyTimeRange = ({ getDateRange }) => {
           <CommonSubmitBtn
             type="submit"
             variant="primary"
-            disabled={createScheduleMutation.isPending || !isMapsLoaded}
+            disabled={createScheduleMutation.isPending}
           >
             {createScheduleMutation.isPending ? (
               <>
