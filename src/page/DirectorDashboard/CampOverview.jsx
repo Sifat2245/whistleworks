@@ -11,11 +11,15 @@ import { AiOutlineCalendar } from "react-icons/ai";
 import { BsCheckCircle } from "react-icons/bs";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import Swal from "sweetalert2";
+import { useAuth } from "@/hooks/useAuth";
 
 const CampOverview = () => {
   const campData = useLoaderData();
   const data = campData?.data?.data;
   const axiosInstance = useAxiosSecure();
+  const { userData } = useAuth();
+  const directorEmail = data?.director?.email;
+  const userEmail = userData?.email;
 
   const navigate = useNavigate();
 
@@ -79,36 +83,38 @@ const CampOverview = () => {
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-xl font-medium">Overview</h3>
 
-          <div className="flex items-center gap-6">
-            <Link to={`/director-dashboard/edit-camp/${data?.id}`}>
-              <CommonSubmitBtn
-                variant="primary"
-                className="flex items-center gap-1 py-2!"
+          {directorEmail === userEmail && (
+            <div className="flex items-center gap-6">
+              <Link to={`/director-dashboard/edit-camp/${data?.id}`}>
+                <CommonSubmitBtn
+                  variant="primary"
+                  className="flex items-center gap-1 py-2!"
+                >
+                  <FaEdit />
+                  Edit
+                </CommonSubmitBtn>
+              </Link>
+
+              <Select
+                value={status}
+                size="large"
+                onChange={handleStatusChange}
+                className="w-36 border border-black/15 rounded-lg active p-4!"
+                options={[
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
+                ]}
+              />
+
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-md text-sm cursor-pointer"
               >
-                <FaEdit />
-                Edit
-              </CommonSubmitBtn>
-            </Link>
-
-            <Select
-              value={status}
-              size="large"
-              onChange={handleStatusChange}
-              className="w-36 border border-black/15 rounded-lg active p-4!"
-              options={[
-                { value: "active", label: "Active" },
-                { value: "inactive", label: "Inactive" },
-              ]}
-            />
-
-            <button
-              onClick={handleDelete}
-              className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-md text-sm cursor-pointer"
-            >
-              <FaTrashAlt />
-              Delete
-            </button>
-          </div>
+                <FaTrashAlt />
+                Delete
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 mb-4">

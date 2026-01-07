@@ -15,25 +15,39 @@ export default function PreviousCamps() {
     if (role === "evaluator") {
       return "/evaluator/camp-registration/previous-camps";
     }
-    // Default to referee endpoint (or any other role)
     return "/v1/referee/camp/previous-camps";
   };
 
-  const { data: previousCamps = [], isLoading, isError } = useQuery({
+  const {
+    data: previousCamps = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["previous-camps", role],
     queryFn: async () => {
       const endpoint = getApiEndpoint();
       const response = await axiosInstance.get(endpoint);
-      return response?.data?.data?.previous_camps || [];
+      const rawData = response?.data?.data;
+      let items = [];
+
+      if (role === "evaluator") {
+        items = (rawData?.registrations || []).map((camp) => ({
+          camp,
+          payment: {},
+          registration_status: "completed",
+        }));
+      } else {
+        items = rawData?.previous_camps || [];
+      }
+
+      return items
     },
-    enabled: !!role, // Only run when role is known
+    enabled: !!role,
   });
 
   if (isLoading) {
     return (
-      <div className="text-center py-20 text-lg">
-        Loading previous camps...
-      </div>
+      <div className="text-center py-20 text-lg">Loading previous camps...</div>
     );
   }
 
@@ -69,12 +83,7 @@ export default function PreviousCamps() {
               referee_registration_status: status,
             };
 
-            return (
-              <CampCard
-                key={camp.id}
-                camp={campDataForCard}
-              />
-            );
+            return <CampCard key={camp.id} camp={campDataForCard} />;
           })}
         </div>
       ) : (

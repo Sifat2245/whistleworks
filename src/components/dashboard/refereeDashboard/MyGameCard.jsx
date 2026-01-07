@@ -33,6 +33,15 @@ export default function MyGameCard({ game }) {
   const startTime = format(startDateTime, "h:mm a");
   const endTime = format(endDateTime, "h:mm a");
 
+  const latitude = game.location.latitude;
+  const longitude = game.location.longitude;
+
+  const handleViewLocation = () => {
+    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    window.open(mapUrl, '_blank'); // Opens in new tab
+    // Alternative: window.location.href = mapUrl; for same tab redirect
+  };
+
   return (
     <Card
       className="rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border-t-4 border-[#00AEEF]"
@@ -93,7 +102,7 @@ export default function MyGameCard({ game }) {
                 title={
                   <div className="text-center">
                     <p className="font-medium">{ref.name}</p>
-                    <p className="text-xs text-gray-600">{ref.email}</p>
+                    <p className="text-xs text-gray-600">{ref.phone}</p>
                     {ref.is_me && (
                       <Tag color="green" className="mt-2">
                         YOU
@@ -125,9 +134,12 @@ export default function MyGameCard({ game }) {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-black/15">
-          <button className="flex items-center gap-2 text-primary hover:text-blue-700 font-medium">
+          <button 
+            onClick={handleViewLocation}
+            className="flex items-center gap-2 text-primary cursor-pointer font-medium"
+          >
             <Icon src={locationIcon} className="size-5" />
-            View Location on Map
+            View Location
           </button>
 
           <button onClick={handleMessageClick} className="bg-[#00AEEF] text-white px-6 py-3 rounded-lg hover:bg-blue-600 flex items-center gap-3 font-medium shadow-md">
