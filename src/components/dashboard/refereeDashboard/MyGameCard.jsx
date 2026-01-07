@@ -102,7 +102,7 @@ export default function MyGameCard({ game }) {
                 title={
                   <div className="text-center">
                     <p className="font-medium">{ref.name}</p>
-                    <p className="text-xs text-gray-600">{ref.email}</p>
+                    <p className="text-xs text-gray-600">{ref.phone}</p>
                     {ref.is_me && (
                       <Tag color="green" className="mt-2">
                         YOU
