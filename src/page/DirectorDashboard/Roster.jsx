@@ -57,9 +57,9 @@ const Roster = () => {
     if (!campData?.referees || !isRefereesActive) return [];
 
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return campData.referees;
+    if (!query) return campData?.referees;
 
-    return campData.referees.filter((ref) => {
+    return campData?.referees?.filter((ref) => {
       return (
         ref.name?.toLowerCase().includes(query) ||
         ref.email?.toLowerCase().includes(query) ||

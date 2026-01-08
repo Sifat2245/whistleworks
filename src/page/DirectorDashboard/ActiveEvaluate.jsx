@@ -25,7 +25,6 @@ const ActiveEvaluate = () => {
     enabled: !!id,
   });
 
-  console.log(registrations, 'data');
 
   // Separate approved and pending evaluators
   const approvedEvaluators = registrations
@@ -68,6 +67,8 @@ const ActiveEvaluate = () => {
       </div>
     );
   }
+
+  console.log(approvedEvaluators,'qwerwer');
 
   return (
     <div className="w-full flex flex-col items-start gap-10 mb-16">

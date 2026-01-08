@@ -7,6 +7,8 @@ import Swal from "sweetalert2";
 const ActiveEvaluatorList2 = ({ activeEvaluatorData = [] }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvaluator, setSelectedEvaluator] = useState(null);
+  
+  const [evaluators, setEvaluators] = useState(activeEvaluatorData);
 
   const openModal = (evaluator) => {
     setSelectedEvaluator(evaluator);
@@ -18,18 +20,17 @@ const ActiveEvaluatorList2 = ({ activeEvaluatorData = [] }) => {
     setSelectedEvaluator(null);
   };
 
-  const handleRemove = (id) => {
+  const handleRemove = (evaluatorId) => {
+    setEvaluators(prev => prev.filter(e => e.id !== evaluatorId));
+
     Swal.fire({
-      title: "Coming soon",
-      text: "This feature will be available soon!",
-      icon: "info",
-      showCancelButton: false,
+      title: "Removed!",
+      text: "The evaluator has been successfully removed.",
+      icon: "success",
+      timer: 1800,
       showConfirmButton: false,
-      timer: 2000
-    })
-    console.log("Remove evaluator ID:", id);
-    // TODO: Connect to API to remove evaluator
-  };
+    });
+  };;
 
   return (
     <div className="w-full">
@@ -38,7 +39,7 @@ const ActiveEvaluatorList2 = ({ activeEvaluatorData = [] }) => {
       </h2>
 
       <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
-        {activeEvaluatorData.map((evaluator) => (
+        {evaluators.map((evaluator) => (
           <EvaluatorCard
             key={evaluator.id}
             evaluator={evaluator}
@@ -48,7 +49,7 @@ const ActiveEvaluatorList2 = ({ activeEvaluatorData = [] }) => {
         ))}
       </div>
 
-      {activeEvaluatorData.length === 0 && (
+      {evaluators.length === 0 && (
         <div className="w-full border-2 border-dashed border-gray-300 rounded-2xl p-10 sm:p-16 text-center bg-gray-50/50">
           <div className="w-20 h-20 mx-auto mb-6 bg-gray-200 rounded-full flex items-center justify-center">
             <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
