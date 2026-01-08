@@ -1,5 +1,4 @@
-// components/dashboard/refereeDashboard/Performance/PerformanceBreakdown.jsx
-import { Progress, Spin } from "antd";
+import { Progress } from "antd";
 
 const CRITERIA_LABELS = {
   call_accuracy: "Call/No Call Accuracy",
@@ -12,44 +11,33 @@ const CRITERIA_LABELS = {
 
 const COLORS = ["#34A853", "#C49A2F", "#5C3DCC", "#B03035", "#2CB8B3", "#4CE78A"];
 
-export default function PerformanceBreakdown({ evaluations = [], isLoading }) {
-  if (isLoading) {
-    return (
-      <section className="my-5 border border-border p-5 rounded-[10px] flex justify-center items-center">
-        <Spin />
-      </section>
-    );
-  }
-
-  if (evaluations.length === 0) {
+export default function PerformanceBreakdown({ breakdown, hasEvaluations }) {
+  if (!hasEvaluations) {
     return (
       <section className="my-5 border border-border p-5 rounded-[10px]">
-        <h3 className="text-xl font-medium mb-4">Performance Breakdown</h3>
-        <p className="text-gray-500 text-center py-8">No evaluations available yet.</p>
+        <h3 className="text-xl font-medium mb-6">Performance Breakdown</h3>
+        <div className="space-y-5">
+          {Object.keys(CRITERIA_LABELS).map((key, idx) => (
+            <div key={key} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700 font-medium">{CRITERIA_LABELS[key]}</span>
+                <span className="font-bold text-lg">0.0/10</span>
+              </div>
+              <Progress percent={0} showInfo={false} strokeColor={COLORS[idx % COLORS.length]} strokeWidth={12} />
+            </div>
+          ))}
+        </div>
       </section>
     );
   }
-
-  // Calculate average for each criterion
-  const criteriaAverages = {};
-  const criteriaKeys = Object.keys(CRITERIA_LABELS);
-
-  criteriaKeys.forEach((key) => {
-    const values = evaluations
-      .map((ev) => ev.performance_criteria[key])
-      .filter((v) => v !== undefined);
-    if (values.length > 0) {
-      criteriaAverages[key] = values.reduce((a, b) => a + b, 0) / values.length;
-    }
-  });
 
   return (
     <section className="my-5 border border-border p-5 rounded-[10px]">
       <h3 className="text-xl font-medium mb-6">Performance Breakdown</h3>
       <div className="space-y-5">
-        {criteriaKeys.map((key, idx) => {
-          const avg = criteriaAverages[key]?.toFixed(1) || "—";
-          if (avg === "—") return null;
+        {Object.keys(CRITERIA_LABELS).map((key, idx) => {
+          const score = breakdown[key]?.score || 0;
+          const avg = score.toFixed(1);
 
           return (
             <div key={key} className="space-y-2">
@@ -58,7 +46,7 @@ export default function PerformanceBreakdown({ evaluations = [], isLoading }) {
                 <span className="font-bold text-lg">{avg}/10</span>
               </div>
               <Progress
-                percent={(criteriaAverages[key] / 10) * 100}
+                percent={(score / 10) * 100}
                 showInfo={false}
                 strokeColor={COLORS[idx % COLORS.length]}
                 trailColor="#e5e7eb"

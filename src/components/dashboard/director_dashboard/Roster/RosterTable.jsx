@@ -4,21 +4,49 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { MdEmail, MdPhone, MdLocationOn, MdClose, MdCheckCircle, MdDelete } from "react-icons/md";
+import {
+  MdEmail,
+  MdPhone,
+  MdLocationOn,
+  MdClose,
+  MdCheckCircle,
+  MdDelete,
+} from "react-icons/md";
 import { IoCheckboxOutline } from "react-icons/io5";
 import { AnimatePresence, motion } from "framer-motion";
 import Swal from "sweetalert2";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
+import { useQueryClient } from "@tanstack/react-query";
 
-const RosterTable = ({ referees = [] }) => {
-  const data = useMemo(() => referees, [referees]);
+const RosterTable = ({ referees = [], campId }) => {
+  const axiosInstance = useAxiosSecure();
+  const queryClient = useQueryClient();
+
+  console.log(referees, "asdfasdf");
+
+  // Check-in states
+  const [checkingInId, setCheckingInId] = useState(null);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReferee, setSelectedReferee] = useState(null);
 
+  // Jersey state
+  const [editingJerseyId, setEditingJerseyId] = useState(null);
+  const [jerseyInput, setJerseyInput] = useState("");
+
+  //referee remove state
+  const [removingId, setRemovingId] = useState(null);
+
+  const queryData = queryClient.getQueryData(["referees", campId]) || referees;
+
+  const data = useMemo(() => queryData, [queryData]);
+
   // Calculate stats
   const totalReferees = referees.length;
-  const checkedInCount = referees.filter((ref) => ref.status === "checked_in").length;
+  const checkedInCount = referees.filter(
+    (ref) => ref.status === "checked_in"
+  ).length;
 
   const openModal = (referee) => {
     setSelectedReferee(referee);
@@ -30,30 +58,160 @@ const RosterTable = ({ referees = [] }) => {
     setSelectedReferee(null);
   };
 
-  const handleCheckIn = (refereeId) => {
+  const handleCheckIn = async (refereeId) => {
     console.log("Check in referee:", refereeId);
-    Swal.fire({
-      title: "Coming Soon!!!",
-      text: "This feature will coming soon",
+
+    const result = await Swal.fire({
+      title: "Check In Referee?",
+      text: "This will mark the referee as checked in for the camp.",
       icon: "question",
-      showCancelButton: false,
-      showConfirmButton: false,
-      timer: 2000,
-    })
-    // TODO: Call API to update status to "checked_in"
+      showCancelButton: true,
+      confirmButtonText: "Yes, Check In",
+      cancelButtonText: "Cancel",
+    });
+    if (!result.isConfirmed) return;
+    setCheckingInId(refereeId);
+
+    try {
+      const res = await axiosInstance.put(
+        `/v1/director/camp/${campId}/referee/${refereeId}/manual-checkin`
+      );
+
+      // Use setQueryData to optimistically update
+      queryClient.setQueryData(["referees", campId], (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map((referee) =>
+          referee.id === refereeId
+            ? { ...referee, status: "checked_in" }
+            : referee
+        );
+      });
+
+      if (res?.data?.status === 200 || res?.data?.status === 204) {
+        Swal.fire({
+          title: "Success!",
+          text: res?.data?.message || "Referee checked in successfully",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      console.error("Check-in error:", error);
+      Swal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "Failed to check in referee.",
+        icon: "error",
+      });
+    } finally {
+      setCheckingInId(null);
+    }
   };
 
-  const handleRemove = (refereeId) => {
-    console.log("Remove referee:", refereeId);
-        Swal.fire({
-      title: "Coming Soon!!!",
-      text: "This feature will coming soon",
-      icon: "question",
-      showCancelButton: false,
-      showConfirmButton: false,
-      timer: 2000,
-    })
-    // TODO: Call API to remove from roster
+  const handleRemove = async (refereeId) => {
+    const referee = referees.find((r) => r.id === refereeId);
+    const refereeName = referee?.name || "this referee";
+
+    const result = await Swal.fire({
+      title: "Remove Referee from Roster?",
+      text: `Are you sure you want to remove ${refereeName} from this camp? This action cannot be undone.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, Remove",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    setRemovingId(refereeId);
+
+    try {
+      // Call DELETE API
+      await axiosInstance.delete(
+        `/v1/director/camps/${campId}/referees/${refereeId}`
+      );
+
+      // Optimistically remove from cache
+      queryClient.setQueryData(["referees", campId], (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.filter((ref) => ref.id !== refereeId);
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["referees", campId] });
+
+      Swal.fire({
+        title: "Removed!",
+        text: `${refereeName} has been removed from the roster.`,
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Remove referee error:", error);
+      Swal.fire({
+        title: "Error",
+        text:
+          error.response?.data?.message ||
+          "Failed to remove referee. Please try again.",
+        icon: "error",
+      });
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  const handleUpdateJersey = async (refereeId, jerseyNumber) => {
+    const trimmed = jerseyNumber.trim();
+
+    if (!trimmed) {
+      Swal.fire("Invalid", "Jersey number cannot be empty", "warning");
+      setEditingJerseyId(null);
+      setJerseyInput("");
+      return;
+    }
+
+    // Only allow numbers
+    if (!/^\d+$/.test(trimmed)) {
+      Swal.fire("Invalid", "Jersey number must be numeric", "warning");
+      setEditingJerseyId(null);
+      setJerseyInput("");
+      return;
+    }
+
+    try {
+      await axiosInstance.patch(
+        `/v1/director/camp/${campId}/referee/${refereeId}/update-jourcy-number`,
+        null,
+        { params: { jourcy_number: trimmed } }
+      );
+
+      queryClient.setQueryData(["referees", campId], (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map((ref) =>
+          ref.id === refereeId ? { ...ref, jourcy_number: trimmed } : ref
+        );
+      });
+
+      Swal.fire({
+        title: "Updated!",
+        text: "Jersey number saved",
+        icon: "success",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Jersey update error:", error);
+      Swal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "Failed to update",
+        icon: "error",
+      });
+    } finally {
+      setEditingJerseyId(null);
+      setJerseyInput("");
+    }
   };
 
   const columns = useMemo(
@@ -96,13 +254,58 @@ const RosterTable = ({ referees = [] }) => {
         ),
       },
       {
-        accessorKey: "id",
-        header: "Referee ID",
-        cell: ({ getValue }) => (
-          <div className="font-mono text-sm text-gray-700">
-            #{getValue()}
-          </div>
-        ),
+        accessorKey: "jourcy_number",
+        header: "Jersey ID",
+        cell: ({ row }) => {
+          const referee = row.original;
+          const jersey = referee.jourcy_number?.toString() || "";
+          const isEditing = editingJerseyId === referee.id;
+
+          if (isEditing) {
+            return (
+              <div className="flex justify-center">
+                <input
+                  type="text"
+                  autoFocus
+                  value={jerseyInput}
+                  onChange={(e) => setJerseyInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleUpdateJersey(referee.id, jerseyInput);
+                    } else if (e.key === "Escape") {
+                      setEditingJerseyId(null);
+                      setJerseyInput("");
+                    }
+                  }}
+                  onBlur={() => {
+                    setEditingJerseyId(null);
+                    setJerseyInput("");
+                  }}
+                  className="w-24 px-3 py-1.5 text-center border-2 border-blue-500 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-200 font-mono text-sm transition-all"
+                  placeholder="23"
+                />
+              </div>
+            );
+          }
+
+          return (
+            <div
+              onClick={() => {
+                setEditingJerseyId(referee.id);
+                setJerseyInput(jersey);
+              }}
+              className="text-center cursor-pointer group"
+            >
+              <span className="font-mono text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
+                {jersey || "-"}
+              </span>
+              <p className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to edit
+              </p>
+            </div>
+          );
+        },
       },
       {
         accessorKey: "assigned_games_count",
@@ -134,42 +337,63 @@ const RosterTable = ({ referees = [] }) => {
           );
         },
       },
-      // New Actions Column
       {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => {
           const isCheckedIn = row.original.status === "checked_in";
+          const isLoading = checkingInId === row.original.id;
 
           return (
             <div className="flex flex-col items-center justify-center gap-3">
-              {/* Check In Button - Only if not already checked in */}
               {!isCheckedIn && (
                 <button
                   onClick={() => handleCheckIn(row.original.id)}
-                  className="flex items-center cursor-pointer gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 font-medium rounded-lg transition"
+                  disabled={isLoading}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
+                    isLoading
+                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                      : "bg-green-100 hover:bg-green-200 text-green-700"
+                  }`}
                   title="Check In"
                 >
                   <MdCheckCircle className="text-lg" />
-                  <span className="hidden sm:inline">Check In</span>
+                  <span className="hidden sm:inline">
+                    {isLoading ? "Checking..." : "Check In"}
+                  </span>
                 </button>
               )}
 
-              {/* Remove Button */}
               <button
                 onClick={() => handleRemove(row.original.id)}
-                className="flex items-center cursor-pointer gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-medium rounded-lg transition"
+                disabled={removingId === row.original.id}
+                className={`flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition ${
+                  removingId === row.original.id
+                    ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                    : "bg-red-100 hover:bg-red-200 text-red-700"
+                }`}
                 title="Remove from Roster"
               >
                 <MdDelete className="text-lg" />
-                <span className="hidden sm:inline">Remove</span>
+                <span className="hidden sm:inline">
+                  {removingId === row.original.id ? "Removing..." : "Remove"}
+                </span>
               </button>
             </div>
           );
         },
       },
     ],
-    []
+    [
+      checkingInId,
+      removingId,
+      editingJerseyId,
+      jerseyInput,
+      campId,
+      axiosInstance,
+      queryClient,
+      referees,
+    ]
   );
 
   const table = useReactTable({
@@ -195,7 +419,9 @@ const RosterTable = ({ referees = [] }) => {
             <div className={`text-4xl font-bold ${stat.color} mb-2`}>
               {stat.value}
             </div>
-            <div className="text-base text-gray-600 font-medium">{stat.label}</div>
+            <div className="text-base text-gray-600 font-medium">
+              {stat.label}
+            </div>
           </div>
         ))}
       </div>
@@ -252,7 +478,7 @@ const RosterTable = ({ referees = [] }) => {
         </div>
       </div>
 
-      {/* Modal - unchanged */}
+      {/* Modal */}
       <AnimatePresence>
         {isModalOpen && selectedReferee && (
           <motion.div
@@ -267,17 +493,19 @@ const RosterTable = ({ referees = [] }) => {
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.96 }}
-              transition={{ 
+              transition={{
                 type: "spring",
                 stiffness: 300,
                 damping: 30,
-                duration: 0.4
+                duration: 0.4,
               }}
               className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Referee Details</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Referee Details
+                </h2>
                 <button
                   onClick={closeModal}
                   className="text-gray-400 hover:text-gray-600 transition"
@@ -300,7 +528,9 @@ const RosterTable = ({ referees = [] }) => {
                   <h3 className="text-xl font-semibold text-gray-900">
                     {selectedReferee.name || "Unnamed Referee"}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">Referee ID: #{selectedReferee.id}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Referee ID: #{selectedReferee.id}
+                  </p>
                 </div>
 
                 <div className="space-y-4">
@@ -319,7 +549,9 @@ const RosterTable = ({ referees = [] }) => {
                       <MdPhone className="text-gray-400 text-xl" />
                       <div>
                         <p className="text-sm text-gray-500">Phone</p>
-                        <p className="font-medium text-gray-900">{selectedReferee.phone}</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedReferee.phone}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -329,7 +561,9 @@ const RosterTable = ({ referees = [] }) => {
                       <MdLocationOn className="text-gray-400 text-xl" />
                       <div>
                         <p className="text-sm text-gray-500">Address</p>
-                        <p className="font-medium text-gray-900">{selectedReferee.address}</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedReferee.address}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -345,7 +579,9 @@ const RosterTable = ({ referees = [] }) => {
                             : "text-[#1E40AF]"
                         }`}
                       >
-                        {selectedReferee.status === "checked_in" ? "Checked In" : "Registered"}
+                        {selectedReferee.status === "checked_in"
+                          ? "Checked In"
+                          : "Registered"}
                       </p>
                     </div>
                   </div>

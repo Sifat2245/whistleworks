@@ -42,7 +42,7 @@ const Rankings = ({ campId }) => {
           }
         });
 
-        const overallAvg = Math.round(averages.overall || 0);
+        const overallAvg = averages?.overall || 0;
         const overallPercentage = overallAvg * 10;
 
         return {
@@ -50,14 +50,12 @@ const Rankings = ({ campId }) => {
           name: item.referee_name || "Unknown Referee",
           avatar: null,
           count: item.total_evaluations || 0,
-          call_accuracy: Math.round(averages.call_accuracy || 0),
-          communication_skills: Math.round(averages.communication_skills || 0),
-          consistency_of_calls: Math.round(averages.consistency_of_calls || 0),
-          court_position_mechanics: Math.round(
-            averages.court_position_mechanics || 0
-          ),
-          fitness_mobility: Math.round(averages.fitness_mobility || 0),
-          game_awareness: Math.round(averages.game_awareness || 0),
+          call_accuracy: averages.call_accuracy || 0,
+          communication_skills: averages.communication_skills || 0,
+          consistency_of_calls: averages.consistency_of_calls || 0,
+          court_position_mechanics: averages.court_position_mechanics || 0,
+          fitness_mobility: averages.fitness_mobility || 0,
+          game_awareness: averages.game_awareness || 0,
           overall_percentage: overallPercentage,
           overall_avg: overallAvg,
           levels,
@@ -71,28 +69,32 @@ const Rankings = ({ campId }) => {
       }));
   }, [rawEvaluations]);
 
-  // Stats
+  // Stats with 3 decimal places for average
   const stats = useMemo(() => {
     if (processedData.length === 0) return [];
 
-    const avgOverall = Math.round(
+    const avgOverall = (
       processedData.reduce((sum, r) => sum + r.overall_percentage, 0) /
-        processedData.length
-    );
+      processedData.length
+    ).toFixed(3);
+
     const topPerformer = processedData[0]?.name || "N/A";
+
+    const totalEvals = rawEvaluations.reduce(
+      (sum, r) => sum + (r.total_evaluations || 0),
+      0
+    );
 
     return [
       {
-        value: avgOverall + "%",
+        value: avgOverall,
         label: "Camp Average Score",
         color: "text-cyan-600",
+        suffix: "%",
       },
       { value: topPerformer, label: "Top Performer", color: "text-green-600" },
       {
-        value: rawEvaluations.reduce(
-          (sum, r) => sum + (r.total_evaluations || 0),
-          0
-        ),
+        value: totalEvals,
         label: "Total Evaluations",
         color: "text-purple-600",
       },
@@ -136,7 +138,7 @@ const Rankings = ({ campId }) => {
                 }`}
               />
             )}
-            <span className="font-bold text-xl">#{row.original.rank}</span>
+            <span className="text-xl">#{row.original.rank}</span>
           </div>
         ),
       },
@@ -155,13 +157,12 @@ const Rankings = ({ campId }) => {
             <div>
               <button
                 onClick={() => openModal(row.original)}
-                className="font-semibold text-blue-600 hover:underline cursor-pointer focus:outline-none"
+                className="font-medium text-primary hover:underline cursor-pointer focus:outline-none"
               >
                 {row.original.name}
               </button>
               <div className="text-xs text-gray-500">
-                {row.original.count} evaluation
-                {row.original.count > 1 ? "s" : ""}
+                {row.original.count} evaluation{row.original.count !== 1 ? "s" : ""}
               </div>
             </div>
           </div>
@@ -172,8 +173,8 @@ const Rankings = ({ campId }) => {
         header: "Overall",
         cell: ({ row }) => (
           <div className="text-center">
-            <div className="font-bold text-xl text-gray-800">
-              {row.original.overall_percentage}%
+            <div className="text-xl font-medium">
+              {Number(row.original.overall_percentage)?.toFixed(3) || "0.000"}
             </div>
           </div>
         ),
@@ -182,8 +183,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "call_accuracy",
         header: "Call Acc.",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-lg">
-            {row.original.call_accuracy}
+          <div className="text-center text-lg">
+            {Number(row.original.call_accuracy)?.toFixed(3) || "0.000"}
           </div>
         ),
       },
@@ -191,8 +192,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "communication_skills",
         header: "Comm.",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-lg">
-            {row.original.communication_skills}
+          <div className="text-center text-lg">
+            {Number(row.original.communication_skills)?.toFixed(3) || "0.000"}
           </div>
         ),
       },
@@ -200,8 +201,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "consistency_of_calls",
         header: "Consist.",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-lg">
-            {row.original.consistency_of_calls}
+          <div className="text-center text-lg">
+            {Number(row.original.consistency_of_calls)?.toFixed(3) || "0.000"}
           </div>
         ),
       },
@@ -209,8 +210,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "court_position_mechanics",
         header: "Mechanics",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-lg">
-            {row.original.court_position_mechanics}
+          <div className="text-center text-lg">
+            {Number(row.original.court_position_mechanics)?.toFixed(3) || "0.000"}
           </div>
         ),
       },
@@ -218,8 +219,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "fitness_mobility",
         header: "Fit/Mob",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-lg">
-            {row.original.fitness_mobility}
+          <div className="text-center text-lg">
+            {Number(row.original.fitness_mobility)?.toFixed(3) || "0.000"}
           </div>
         ),
       },
@@ -227,8 +228,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "game_awareness",
         header: "Game Aware",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-lg">
-            {row.original.game_awareness}
+          <div className="text-center text-lg">
+            {Number(row.original.game_awareness)?.toFixed(3) || "0.000"}
           </div>
         ),
       },
@@ -236,8 +237,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "levels.NCAA D1",
         header: "D1",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-green-600 text-lg">
-            {row.original.levels["NCAA D1"]}
+          <div className="text-center text-lg">
+            {row.original.levels["NCAA D1"] || 0}
           </div>
         ),
       },
@@ -245,8 +246,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "levels.NCAA D2",
         header: "D2",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-green-600 text-lg">
-            {row.original.levels["NCAA D2"]}
+          <div className="text-center text-lg">
+            {row.original.levels["NCAA D2"] || 0}
           </div>
         ),
       },
@@ -254,8 +255,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "levels.NAIA",
         header: "NAIA",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-green-600 text-lg">
-            {row.original.levels.NAIA}
+          <div className="text-center text-lg">
+            {row.original.levels.NAIA || 0}
           </div>
         ),
       },
@@ -263,8 +264,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "levels.JUCO",
         header: "JUCO",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-green-600 text-lg">
-            {row.original.levels.JUCO}
+          <div className="text-center text-lg">
+            {row.original.levels.JUCO || 0}
           </div>
         ),
       },
@@ -272,8 +273,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "levels.HS",
         header: "HS",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-green-600 text-lg">
-            {row.original.levels.HS}
+          <div className="text-center text-lg">
+            {row.original.levels.HS || 0}
           </div>
         ),
       },
@@ -281,8 +282,8 @@ const Rankings = ({ campId }) => {
         accessorKey: "levels.JH/ELEM",
         header: "JH/ELEM",
         cell: ({ row }) => (
-          <div className="text-center font-bold text-green-600 text-lg">
-            {row.original.levels["JH/ELEM"]}
+          <div className="text-center text-lg">
+            {row.original.levels["JH/ELEM"] || 0}
           </div>
         ),
       },
@@ -311,10 +312,11 @@ const Rankings = ({ campId }) => {
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-md border border-gray-200 p-8 hover:shadow-xl transition-all text-center"
+            className="bg-linear-to-br from-white to-gray-50 rounded-xl shadow-md border border-gray-200 p-8 hover:shadow-xl transition-all text-center"
           >
             <div className={`text-2xl font-bold ${stat.color} mb-3`}>
               {stat.value}
+              {stat.suffix && <span className="text-xl ml-1">{stat.suffix}</span>}
             </div>
             <div className="text-base font-medium text-gray-700">
               {stat.label}
@@ -325,7 +327,7 @@ const Rankings = ({ campId }) => {
 
       {/* Table */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
+        <div className="px-8 py-6 border-b border-gray-200 bg-linear-to-r from-blue-50 to-cyan-50">
           <h2 className="text-2xl font-bold text-gray-900">Referee Rankings</h2>
           <p className="text-sm text-gray-600 mt-1">
             Based on{" "}
@@ -400,6 +402,7 @@ const Rankings = ({ campId }) => {
         isOpen={isModalOpen}
         onClose={closeModal}
         referee={selectedReferee}
+        campId={campId}
       />
     </div>
   );

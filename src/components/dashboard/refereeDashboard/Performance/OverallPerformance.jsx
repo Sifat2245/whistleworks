@@ -1,30 +1,25 @@
-// components/dashboard/refereeDashboard/Performance/OverallPerformance.jsx
-import { Spin } from "antd";
 import Icon from "@/components/common/Icon";
 import carveArrow from "@/assets/svg/creve-arrow.svg";
 
-export default function OverallPerformance({ evaluations = [], isLoading }) {
-  if (isLoading) {
-    return (
-      <div className="bg-primary p-5 rounded-[10px] flex justify-center items-center">
-        <Spin />
-      </div>
-    );
-  }
-
-  if (evaluations.length === 0) {
+export default function OverallPerformance({ overallPerformance, hasEvaluations }) {
+  if (!hasEvaluations) {
     return (
       <div className="bg-primary p-5 rounded-[10px]">
-        <h3 className="text-xl font-medium text-white">Overall Performance</h3>
-        <p className="text-white mt-4">No evaluations yet</p>
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-medium text-white">Overall Performance</h3>
+          <Icon src={carveArrow} className="size-7 text-white" />
+        </div>
+        <p className="text-[30px] font-medium text-white mt-4 mb-2">
+          0.0<span className="text-xl">/10</span>
+        </p>
+        <p className="text-white">No evaluations yet • Top 100%</p>
       </div>
     );
   }
 
-  const overallAvg =
-    evaluations.reduce((sum, ev) => sum + ev.average_score, 0) / evaluations.length;
-
-  const percentage = ((overallAvg / 10) * 100).toFixed(0);
+  const score = overallPerformance.score || 0;
+  const percentage = overallPerformance.percentage || 0;
+  const rating = overallPerformance.rating || "Needs Improvement";
 
   return (
     <div className="bg-primary p-5 rounded-[10px]">
@@ -33,11 +28,10 @@ export default function OverallPerformance({ evaluations = [], isLoading }) {
         <Icon src={carveArrow} className="size-7 text-white" />
       </div>
       <p className="text-[30px] font-medium text-white mt-4 mb-2">
-        {overallAvg.toFixed(1)}<span className="text-xl">/10</span>
+        {score.toFixed(1)}<span className="text-xl">/10</span>
       </p>
       <p className="text-white">
-        {percentage >= 80 ? "Excellent" : percentage >= 60 ? "Good" : "Needs Improvement"} • Top{" "}
-        {100 - Math.round(percentage)}%
+        {rating} • Top {100 - percentage}%
       </p>
     </div>
   );
