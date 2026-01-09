@@ -12,7 +12,7 @@ export default function CampDetailsTabs() {
     <div className="flex items-center gap-4 overflow-x-auto pb-4 md:pb-0">
       <Link
         to={`?tab=camp-details`}
-        className={`border border-border py-5 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
+        className={`border border-border py-3 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
           tab === "camp-details" ? "bg-primary" : ""
         }`}
       >
@@ -31,7 +31,7 @@ export default function CampDetailsTabs() {
       </Link>
       <Link
         to={`?tab=roster&subTab=evaluator`}
-        className={`border border-border py-5 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
+        className={`border border-border py-3 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
           tab === "roster" ? "bg-primary" : ""
         }`}
       >
@@ -50,7 +50,7 @@ export default function CampDetailsTabs() {
       </Link>
       <Link
         to={`?tab=performance`}
-        className={`border border-border py-5 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
+        className={`border border-border py-3 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
           tab === "performance" ? "bg-primary" : ""
         }`}
       >
@@ -69,7 +69,7 @@ export default function CampDetailsTabs() {
       </Link>
       <Link
         to={`?tab=my-games`}
-        className={`border border-border py-5 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
+        className={`border border-border py-3 px-3 rounded-lg flex items-center gap-2 cursor-pointer w-44 ${
           tab === "my-games" ? "bg-primary" : ""
         }`}
       >
@@ -84,6 +84,25 @@ export default function CampDetailsTabs() {
           }`}
         >
           My Games
+        </span>
+      </Link>
+       <Link
+        to={`?tab=ranking-report`}
+        className={`border border-border py-3 px-3 rounded-lg flex items-center gap-2 cursor-pointer ${
+          tab === "ranking-report" ? "bg-primary" : ""
+        }`}
+      >
+        <Icon
+          src={myGame}
+          alt="camp details icon"
+          className={`${tab === "ranking-report" && "text-white"} size-5`}
+        />
+        <span
+          className={`text-base font-medium whitespace-nowrap ${
+            tab === "ranking-report" && "text-white"
+          }`}
+        >
+          Ranking Report
         </span>
       </Link>
     </div>

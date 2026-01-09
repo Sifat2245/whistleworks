@@ -255,7 +255,10 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
       {/* Camp Description */}
       <div className="border border-border p-5 rounded-[10px]">
         <h3 className="text-xl font-medium mb-5">Camp Description</h3>
-        <p className="max-w-lg text-[#666666] leading-relaxed">{camp_details}</p>
+        <div
+          className="text-gray-600 prose prose-sm sm:prose lg:prose-base max-w-none"
+          dangerouslySetInnerHTML={{ __html: camp_details || "<p>No description available.</p>" }}
+        />
       </div>
 
       {/* Venue Information */}

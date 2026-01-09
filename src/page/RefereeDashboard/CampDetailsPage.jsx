@@ -11,7 +11,7 @@ import CampDetails from "@/components/dashboard/refereeDashboard/CampDetails";
 import MyGames from "@/components/dashboard/refereeDashboard/MyGames";
 import Performance from "./Performance";
 import Roster from "./Roster";
-import RankingReport from "../EvolatorDashboard/RankingReport";
+import RankingReport from "../EvolatorDashboard/RankingReport"; // Reusable for both roles
 import Schedule from "../EvolatorDashboard/Schedule";
 import { useAuth } from "@/hooks/useAuth";
 import EvaluateV2 from "../EvolatorDashboard/EvaluateV2";
@@ -36,14 +36,12 @@ export default function CampDetailsPage() {
   const isRefereeRegistered = refereeRegistrationStatus !== null;
   const isEvaluatorRegistered = evaluatorRegistrationStatus !== null;
 
-  // Define allowed tabs by role
   const allowedTabs = {
     common: ["camp-details"],
     evaluator: ["ranking-report", "evaluate", "schedule", "roster"],
-    referee: ["performance", "my-games", "roster"],
+    referee: ["performance", "my-games", "roster", "ranking-report"],
   };
 
-  // Determine if current tab is allowed
   const isTabAllowed =
     allowedTabs.common.includes(tab) ||
     (isEvaluator && isEvaluatorRegistered && allowedTabs.evaluator.includes(tab)) ||
@@ -82,19 +80,13 @@ export default function CampDetailsPage() {
                       You need to register as an evaluator for this camp to access:
                     </p>
                     <ul className="text-left max-w-md mx-auto mb-6 list-disc pl-5">
-                      {tab === "ranking-report" && <li>Ranking Report</li>}
-                      {tab === "evaluate" && <li>Evaluate Referees</li>}
-                      {tab === "schedule" && <li>Camp Schedule</li>}
-                      {tab === "roster" && <li>Camp Roster</li>}
-                      {/* Show all if trying to access any restricted tab */}
-                      {allowedTabs.evaluator.includes(tab) && tab !== "roster" && tab !== "ranking-report" && tab !== "evaluate" && tab !== "schedule" && (
-                        <>
-                          <li>Ranking Report</li>
-                          <li>Evaluate Referees</li>
-                          <li>Camp Schedule</li>
-                          <li>Camp Roster</li>
-                        </>
-                      )}
+                      {allowedTabs.evaluator.map((t) => {
+                        if (t === "ranking-report") return <li key={t}>Ranking Report</li>;
+                        if (t === "evaluate") return <li key={t}>Evaluate Referees</li>;
+                        if (t === "schedule") return <li key={t}>Camp Schedule</li>;
+                        if (t === "roster") return <li key={t}>Camp Roster</li>;
+                        return null;
+                      })}
                     </ul>
                     <p className="mt-4 text-black">
                       Please complete your registration to view this information.
@@ -114,12 +106,13 @@ export default function CampDetailsPage() {
                     <p>
                       You need to register for this camp to access the following sections:
                     </p>
-                    <ul className="text-left max-w-md mx-auto mt-4">
-                      {tab === "performance" && <li>• Performance Report</li>}
-                      {tab === "my-games" && <li>• My Games Schedule</li>}
-                      {tab === "roster" && <li>• Camp Roster</li>}
+                    <ul className="text-left max-w-md mx-auto mt-4 list-disc pl-5">
+                      {tab === "performance" && <li>Performance Report</li>}
+                      {tab === "my-games" && <li>My Games Schedule</li>}
+                      {tab === "roster" && <li>Camp Roster</li>}
+                      {tab === "ranking-report" && <li>Ranking Report</li>}
                     </ul>
-                    <p className="mt-4 text-black">
+                    <p className="mt-6 text-black">
                       Please complete your registration to view this information.
                     </p>
                   </>
@@ -127,7 +120,7 @@ export default function CampDetailsPage() {
               />
             )}
 
-            {/* General Access Denied (wrong role entirely) */}
+            {/* General Access Denied (wrong role or no access) */}
             {!isEvaluatorNotRegisteredDenial && !isRefereeNotRegisteredDenial && (
               <Result
                 status="403"
@@ -141,28 +134,31 @@ export default function CampDetailsPage() {
             {/* Common Tab */}
             {tab === "camp-details" && <CampDetails campData={campData} />}
 
-            {/* Roster: Only for registered referees OR registered evaluators */}
-            {(isEvaluator && isEvaluatorRegistered) ||
-            (isReferee && isRefereeRegistered) ? (
+            {/* Roster: Available to both registered referees and evaluators */}
+            {(isEvaluator && isEvaluatorRegistered) || (isReferee && isRefereeRegistered) ? (
               tab === "roster" && <Roster camp_id={id} />
             ) : null}
 
-            {/* Evaluator Only Tabs - Require Registration */}
+            {/* Evaluator-Only Tabs */}
             {isEvaluator && isEvaluatorRegistered && (
               <>
-                {tab === "ranking-report" && <RankingReport camp_id={id} />}
                 {tab === "evaluate" && <EvaluateV2 camp_id={id} />}
                 {tab === "schedule" && <Schedule camp_id={id} />}
               </>
             )}
 
-            {/* Referee Only Tabs - Require Registration */}
+            {/* Referee-Only Tabs */}
             {isReferee && isRefereeRegistered && (
               <>
                 {tab === "performance" && <Performance camp_id={id} />}
-                {tab === "my-games" && <MyGames />}
+                {tab === "my-games" && <MyGames camp_id={id} />}
               </>
             )}
+
+            {/* Ranking Report: Available to BOTH registered evaluators AND registered referees */}
+            {(isEvaluator && isEvaluatorRegistered) || (isReferee && isRefereeRegistered) ? (
+              tab === "ranking-report" && <RankingReport camp_id={id} />
+            ) : null}
           </>
         )}
       </div>

@@ -156,27 +156,11 @@ const CampDetailsPageForNoAuth = () => {
         {/* Camp Description */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
           <h2 className="text-3xl font-bold mb-6">About the Camp</h2>
-          <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
-            {campDetails.camp_details}
-          </p>
+          <div
+          className="text-gray-600 prose prose-sm sm:prose lg:prose-base max-w-none"
+          dangerouslySetInnerHTML={{ __html: campDetails?.camp_details || "<p>No description available.</p>" }}
+        />
         </div>
-
-        {/* Camp Schedule */}
-        {/* <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
-          <h2 className="text-3xl font-bold mb-6">Camp Schedule</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {campDetails.date_range.map((date, index) => (
-              <div
-                key={index}
-                className="text-center py-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
-              >
-                <p className="text-xl font-semibold text-blue-800">
-                  {date.day}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div> */}
 
         {/* Camp Director */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-12">

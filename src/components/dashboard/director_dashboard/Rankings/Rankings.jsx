@@ -238,7 +238,7 @@ const Rankings = ({ campId }) => {
         header: "D1",
         cell: ({ row }) => (
           <div className="text-center text-lg">
-            {row.original.levels["NCAA D1"] || 0}
+            {row.original.levels["NCAA D1"] || '-'}
           </div>
         ),
       },
@@ -247,7 +247,7 @@ const Rankings = ({ campId }) => {
         header: "D2",
         cell: ({ row }) => (
           <div className="text-center text-lg">
-            {row.original.levels["NCAA D2"] || 0}
+            {row.original.levels["NCAA D2"] || '-'}
           </div>
         ),
       },
@@ -256,7 +256,7 @@ const Rankings = ({ campId }) => {
         header: "NAIA",
         cell: ({ row }) => (
           <div className="text-center text-lg">
-            {row.original.levels.NAIA || 0}
+            {row.original.levels.NAIA || '-'}
           </div>
         ),
       },
@@ -265,7 +265,7 @@ const Rankings = ({ campId }) => {
         header: "JUCO",
         cell: ({ row }) => (
           <div className="text-center text-lg">
-            {row.original.levels.JUCO || 0}
+            {row.original.levels.JUCO || '-'}
           </div>
         ),
       },
@@ -274,7 +274,7 @@ const Rankings = ({ campId }) => {
         header: "HS",
         cell: ({ row }) => (
           <div className="text-center text-lg">
-            {row.original.levels.HS || 0}
+            {row.original.levels.HS || '-'}
           </div>
         ),
       },
@@ -283,7 +283,7 @@ const Rankings = ({ campId }) => {
         header: "JH/ELEM",
         cell: ({ row }) => (
           <div className="text-center text-lg">
-            {row.original.levels["JH/ELEM"] || 0}
+            {row.original.levels["JH/ELEM"] || '-'}
           </div>
         ),
       },

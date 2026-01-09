@@ -32,6 +32,8 @@ export default function MyCamps() {
   const total = pagination.total || 0;
   const actualPerPage = pagination.per_page || perPage;
 
+  console.log(registrations, 'asd');
+
   const handlePageClick = (page) => {
     setCurrentPage(page);
   };
