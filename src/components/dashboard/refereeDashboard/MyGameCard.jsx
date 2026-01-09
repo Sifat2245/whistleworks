@@ -6,21 +6,21 @@ import { Avatar, Card, Divider, Tag, Tooltip } from "antd";
 import { format, parseISO } from "date-fns";
 import Swal from "sweetalert2";
 
-export default function MyGameCard({ game }) {
+export default function MyGameCard({ game, camp }) {
   // Extract clean date (without time) from the ISO string
   const gameDate = parseISO(game.game_details.date);
   const formattedDate = format(gameDate, "MMM d, yyyy");
 
-  const handleMessageClick = () =>{
+  const handleMessageClick = () => {
     Swal.fire({
       title: "Coming Soon!!!",
       text: "This feature is currently not available. Please check back later.",
       icon: "info",
-      confirmButtonText: "OK"
-    })
-  }
+      confirmButtonText: "OK",
+    });
+  };
 
-  console.log(game, 'gane');
+  console.log(game, "gane");
 
   // Combine date with start/end time correctly
   const startDateTime = new Date(
@@ -38,7 +38,7 @@ export default function MyGameCard({ game }) {
 
   const handleViewLocation = () => {
     const mapUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-    window.open(mapUrl, '_blank'); // Opens in new tab
+    window.open(mapUrl, "_blank"); // Opens in new tab
     // Alternative: window.location.href = mapUrl; for same tab redirect
   };
 
@@ -48,15 +48,16 @@ export default function MyGameCard({ game }) {
       cover={
         <div className="relative">
           <img
-            src={game.camp.logo}
-            alt={game.camp.name}
+            src={camp?.logo || ""} // ← Use camp.logo
+            alt={camp?.name || "Camp"}
             className="h-62 w-full object-cover rounded-t-xl"
-            onError={(e) => (e.target.src = "/default-camp-logo.png")}
           />
           <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-5">
-            <h3 className="text-white text-xl font-bold">{game.camp.name}</h3>
+            <h3 className="text-white text-xl font-bold">
+              {camp?.name || "Camp Name"}
+            </h3>
             <p className="text-white/90 text-sm">
-              {game.location.name} • {game.camp.location}
+              {game.location?.name || "—"} • {camp?.location || "—"}
             </p>
           </div>
         </div>
@@ -102,7 +103,7 @@ export default function MyGameCard({ game }) {
                 title={
                   <div className="text-center">
                     <p className="font-medium">{ref.name}</p>
-                    <p className="text-xs text-gray-600">{ref.phone}</p>
+                    <p className="text-xs text-gray-300">{ref.phone}</p>
                     {ref.is_me && (
                       <Tag color="green" className="mt-2">
                         YOU
@@ -134,7 +135,7 @@ export default function MyGameCard({ game }) {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-black/15">
-          <button 
+          <button
             onClick={handleViewLocation}
             className="flex items-center gap-2 text-primary cursor-pointer font-medium"
           >
@@ -142,7 +143,10 @@ export default function MyGameCard({ game }) {
             View Location
           </button>
 
-          <button onClick={handleMessageClick} className="bg-[#00AEEF] text-white px-6 py-3 rounded-lg hover:bg-blue-600 flex items-center gap-3 font-medium shadow-md">
+          <button
+            onClick={handleMessageClick}
+            className="bg-[#00AEEF] text-white px-6 py-3 rounded-lg hover:bg-blue-600 flex items-center gap-3 font-medium shadow-md"
+          >
             <Icon src={messageIcon} className="size-5" />
             Message
           </button>

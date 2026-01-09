@@ -130,6 +130,15 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
         ),
       },
       {
+        accessorKey: "scores.game_awareness",
+        header: "Game Awareness",
+        cell: ({ row }) => (
+          <div className="text-center font-medium">
+            {row.original.scores.game_awareness}
+          </div>
+        )
+      },
+      {
         accessorKey: "average_score",
         header: "Overall",
         cell: ({ row }) => (

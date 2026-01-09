@@ -140,7 +140,12 @@ const CampOverview = () => {
       {/* ================= Description ================= */}
       <div className="border border-border p-5 rounded-[10px]">
         <h3 className="text-xl font-medium mb-3">Camp Description</h3>
-        <p className="text-gray-600">{data?.camp_details}</p>
+        <div
+          className="text-gray-600 prose prose-sm sm:prose lg:prose-base max-w-none"
+          dangerouslySetInnerHTML={{
+            __html: data?.camp_details || "<p>No description available.</p>",
+          }}
+        />
       </div>
 
       {/* ================= Dates ================= */}
