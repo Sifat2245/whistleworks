@@ -4,6 +4,8 @@ import singleUser from "/referee/single-user-icon.svg";
 import EvaluatorCard from "./EvaluatorCard";
 import useGetRoaseter from "@/hooks/get-roaster";
 import { Modal } from "antd";
+import { MdClose, MdEmail, MdPhone, MdLocationOn } from "react-icons/md";
+import { IoCheckboxOutline } from "react-icons/io5";
 
 export default function Evaluator({ camp_id }) {
   const { roasterData } = useGetRoaseter(camp_id);
@@ -50,57 +52,112 @@ export default function Evaluator({ camp_id }) {
         </div>
       )}
 
-      {/* Modal with Full Evaluator Details */}
+      {/* Modal - EXACTLY YOUR DESIGN */}
       <Modal
-        title="Evaluator Details"
+        title={null}
         open={!!selectedEvaluator}
         onCancel={handleModalClose}
         footer={null}
-        width={600}
+        width={500}
         centered
+        closable={false}
       >
         {selectedEvaluator && (
-          <div className="py-4 space-y-6">
-            {/* Avatar & Name */}
-            <div className="flex items-center gap-6">
-              <img
-                src={selectedEvaluator.avatar || "https://via.placeholder.com/100"}
-                alt={selectedEvaluator.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-gray-100"
-              />
-              <div>
-                <h2 className="text-2xl font-bold">{selectedEvaluator.name}</h2>
-                <p className="text-gray-600">{selectedEvaluator.email}</p>
+          <div className="bg-white rounded-2xl">
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Evaluator Details
+              </h2>
+              <button
+                onClick={handleModalClose}
+                className="text-gray-400 hover:text-gray-600 transition"
+                aria-label="Close modal"
+              >
+                <MdClose className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              <div className="flex flex-col items-center text-center">
+                <img
+                  src={selectedEvaluator.avatar || "https://via.placeholder.com/100"}
+                  alt={selectedEvaluator.name}
+                  className="w-28 h-28 rounded-full object-cover border-4 border-gray-200 mb-4"
+                  onError={(e) => (e.target.src = "https://via.placeholder.com/100")}
+                />
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {selectedEvaluator.name || "Unnamed Evaluator"}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  ID: #{selectedEvaluator.id}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {/* Email */}
+                <div className="flex items-center gap-3">
+                  <MdEmail className="text-gray-400 text-xl" />
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedEvaluator.email || "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Phone */}
+                {selectedEvaluator.phone && (
+                  <div className="flex items-center gap-3">
+                    <MdPhone className="text-gray-400 text-xl" />
+                    <div>
+                      <p className="text-sm text-gray-500">Phone</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedEvaluator.phone}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Address */}
+                {selectedEvaluator.address && (
+                  <div className="flex items-center gap-3">
+                    <MdLocationOn className="text-gray-400 text-xl" />
+                    <div>
+                      <p className="text-sm text-gray-500">Address</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedEvaluator.address}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Status */}
+                <div className="flex items-center gap-3">
+                  <IoCheckboxOutline className="text-gray-400 text-xl" />
+                  <div>
+                    <p className="text-sm text-gray-500">Status</p>
+                    <p className="font-medium text-green-600">
+                      {selectedEvaluator.status || "Registered"}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InfoItem label="Email" value={selectedEvaluator.email} />
-              <InfoItem label="Phone" value={selectedEvaluator.phone || "Not provided"} />
-              <InfoItem label="Address" value={selectedEvaluator.address || "Not provided"} />
-            </div>
-
-            {/* Biography */}
-            <div>
-              <h4 className="text-lg font-semibold mb-2">Biography</h4>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                {selectedEvaluator.biography || "No biography provided."}
-              </p>
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-200">
+              <button
+                onClick={handleModalClose}
+                className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition"
+              >
+                Close
+              </button>
             </div>
           </div>
         )}
       </Modal>
     </section>
-  );
-}
-
-// Reusable Info Item Component
-function InfoItem({ label, value }) {
-  return (
-    <div>
-      <p className="text-sm text-gray-500 mb-1">{label}</p>
-      <p className="font-medium">{value}</p>
-    </div>
   );
 }

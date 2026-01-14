@@ -7,6 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import LoaderV2 from "@/components/common/LoaderV2";
 
 const ScheduleActionButtons = ({ campId }) => {
   const axiosInstance = useAxiosSecure();
@@ -143,7 +144,7 @@ const ScheduleActionButtons = ({ campId }) => {
         <CommonSubmitBtn
           className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-lg transition-colors"
           onClick={handleDelete}
-          loading={deleteMutation.isPending}
+          isLoading={deleteMutation.isPending}
           disabled={deleteMutation.isPending}
         >
           Delete Schedule
@@ -151,11 +152,11 @@ const ScheduleActionButtons = ({ campId }) => {
 
         <CommonSubmitBtn
           onClick={handleClearSchedule}
-          loading={clearSchedule.isPending}
+          isLoading={clearSchedule.isPending}
           disabled={clearSchedule.isPending}
           className="border border-primary bg-white text-primary px-8 py-4 hover:bg-gray-50"
         >
-          Clear Schedule
+          {clearSchedule.isPending ? <LoaderV2/> : "Clear Schedule"}
         </CommonSubmitBtn>
       </div>
 
@@ -170,7 +171,7 @@ const ScheduleActionButtons = ({ campId }) => {
           <CommonSubmitBtn
             onClick={handleAutoAssign}
             variant="primary"
-            loading={autoAssign.isPending}
+            isLoading={autoAssign.isPending}
             disabled={autoAssign.isPending}
           >
             Auto-Assign Referees
@@ -208,7 +209,7 @@ const ScheduleActionButtons = ({ campId }) => {
         <CommonSubmitBtn
           variant="primary"
           onClick={handlePublish}
-          loading={publishMutation.isPending}
+          isLoading={publishMutation.isPending}
           disabled={publishMutation.isPending}
         >
           Publish Schedule

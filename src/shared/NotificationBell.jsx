@@ -141,7 +141,7 @@ const NotificationBell = () => {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
+        <div className="absolute -right-4 mt-3 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
           <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
             <h3 className="font-semibold text-gray-900">Announcements</h3>
             {unreadCount > 0 && (

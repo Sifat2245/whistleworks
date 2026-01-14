@@ -162,13 +162,13 @@ const SignIn = () => {
       </form>
 
       {/* OR Separator */}
-      <div className="flex items-center gap-4 my-6">
+      {/* <div className="flex items-center gap-4 my-6">
         <div className="grow h-px bg-neutral-300"></div>
         <span className="text-neutral-500 text-sm font-medium">or</span>
         <div className="grow h-px bg-neutral-300"></div>
       </div>
 
-      <SocialLogin />
+      <SocialLogin /> */}
 
       <p className="text-center text-sm text-neutral-600 mt-6">
         Don’t have an account?{" "}

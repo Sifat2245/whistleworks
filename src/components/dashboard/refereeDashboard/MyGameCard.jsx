@@ -57,7 +57,7 @@ export default function MyGameCard({ game, camp }) {
               {camp?.name || "Camp Name"}
             </h3>
             <p className="text-white/90 text-sm">
-              {game.location?.name || "—"} • {camp?.location || "—"}
+              {game.location?.name || "—"}
             </p>
           </div>
         </div>
@@ -78,10 +78,10 @@ export default function MyGameCard({ game, camp }) {
         {/* Court Info */}
         <div className="text-center py-4 bg-linear-to-r from-blue-50 to-[#E6F7FD] rounded-xl">
           <p className="text-xl font-bold text-gray-800">
-            {game.game_details.court_name}
+            {game.location?.name}
           </p>
           <p className="text-sm text-gray-600 mt-1">
-            Court {game.game_details.court_number} •{" "}
+          {game.game_details.court_name} •{" "}
             <Tag color="green" className="ml-1">
               {game.game_details.status.toUpperCase()}
             </Tag>

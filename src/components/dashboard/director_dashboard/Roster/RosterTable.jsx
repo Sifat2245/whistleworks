@@ -17,6 +17,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Swal from "sweetalert2";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQueryClient } from "@tanstack/react-query";
+import { BiOutline } from "react-icons/bi";
 
 const RosterTable = ({ referees = [], campId }) => {
   const axiosInstance = useAxiosSecure();
@@ -164,21 +165,6 @@ const RosterTable = ({ referees = [], campId }) => {
 
   const handleUpdateJersey = async (refereeId, jerseyNumber) => {
     const trimmed = jerseyNumber.trim();
-
-    if (!trimmed) {
-      Swal.fire("Invalid", "Jersey number cannot be empty", "warning");
-      setEditingJerseyId(null);
-      setJerseyInput("");
-      return;
-    }
-
-    // Only allow numbers
-    if (!/^\d+$/.test(trimmed)) {
-      Swal.fire("Invalid", "Jersey number must be numeric", "warning");
-      setEditingJerseyId(null);
-      setJerseyInput("");
-      return;
-    }
 
     try {
       await axiosInstance.patch(
@@ -486,7 +472,7 @@ const RosterTable = ({ referees = [], campId }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+            className="fixed inset-0 z-50 backdrop-blur-[6px] flex items-center justify-center bg-black/40 px-4"
             onClick={closeModal}
           >
             <motion.div
@@ -529,11 +515,20 @@ const RosterTable = ({ referees = [], campId }) => {
                     {selectedReferee.name || "Unnamed Referee"}
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">
-                    Referee ID: #{selectedReferee.id}
+                    Jersey ID: #{selectedReferee.jourcy_number}
                   </p>
                 </div>
 
                 <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <BiOutline className="text-gray-400 text-xl" />
+                    <div>
+                      <p className="text-sm text-gray-500">Biography</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedReferee.biography || "N/A"}
+                      </p>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-3">
                     <MdEmail className="text-gray-400 text-xl" />
                     <div>

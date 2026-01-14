@@ -1,36 +1,104 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Modal, Input, Button, Avatar, Spin } from "antd";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
   const axiosInstance = useAxiosSecure();
-  const queryClient = useQueryClient(); // Access directly (cleaner than prop drilling)
+  const queryClient = useQueryClient();
 
   const [crewName, setCrewName] = useState("");
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch available referees
+  const refereesListRef = useRef(null);
+
+  // Infinite query for paginated referees
   const {
-    data: responseData,
+    data,
     isLoading: loadingReferees,
     isError,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["available-referees-for-crew", campId],
-    queryFn: async () => {
-      const res = await axiosInstance.get(`/v1/camp/${campId}/available-referees-for-crew`);
-      return res?.data;
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await axiosInstance.get(
+        `/v1/camp/${campId}/available-referees-for-crew`,
+        {
+          params: { page: pageParam },
+        }
+      );
+      return res?.data?.data;
     },
+    getNextPageParam: (lastPage) => {
+      // Critical safety check - prevent crash when lastPage is undefined
+      if (!lastPage || !lastPage.pagination) {
+        return undefined;
+      }
+
+      const current = Number(lastPage.pagination.current_page);
+      const total = Number(lastPage.pagination.last_page);
+
+      // Handle invalid/missing numbers
+      if (isNaN(current) || isNaN(total)) {
+        return undefined;
+      }
+
+      return current < total ? current + 1 : undefined;
+    },
+    initialPageParam: 1,
     enabled: !!campId && openModal,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const refereesData = responseData?.data?.referees || [];
+  // Flatten all loaded pages into one array
+  const allReferees = data?.pages?.flatMap((page) => page?.referees || []) || [];
 
-  const filteredReferees = refereesData.filter((ref) =>
+  // Client-side filtering
+  const filteredReferees = allReferees.filter((ref) =>
     ref?.name?.toLowerCase?.().includes(searchTerm.toLowerCase())
   );
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (
+      !refereesListRef.current ||
+      !hasNextPage ||
+      isFetchingNextPage ||
+      loadingReferees
+    ) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1, rootMargin: "200px" } // trigger earlier
+    );
+
+    const sentinel = document.createElement("div");
+    sentinel.id = "scroll-sentinel";
+    refereesListRef.current.appendChild(sentinel);
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+      if (sentinel.parentNode) {
+        sentinel.parentNode.removeChild(sentinel);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, loadingReferees, fetchNextPage]);
 
   // Toggle referee selection (max 6)
   const handleRefereeToggle = (referee) => {
@@ -50,17 +118,15 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
   // Create crew mutation
   const createCrewMutation = useMutation({
     mutationFn: async (payload) => {
-      const res = await axiosInstance.post(`/v1/camp/${campId}/crew/create`, payload);
+      const res = await axiosInstance.post(
+        `/v1/camp/${campId}/crew/create`,
+        payload
+      );
       return res?.data;
     },
     onSuccess: (data) => {
       toast.success(data?.message || "Crew created successfully!");
-
-      // Invalidate crew list to refresh UI automatically
-      queryClient.invalidateQueries({
-        queryKey: ["crew-groups", campId],
-      });
-
+      queryClient.invalidateQueries({ queryKey: ["crew-groups", campId] });
       handleCloseModal();
     },
     onError: (error) => {
@@ -83,7 +149,6 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
       referee_ids: selectedReferees.map((r) => r.id),
     };
 
-    console.log(payload,"submited data");
     createCrewMutation.mutate(payload);
   };
 
@@ -104,7 +169,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
       footer={null}
       width={900}
       centered
-      destroyOnClose // Ensures fresh state on reopen
+      destroyOnClose
     >
       <div className="mt-4 space-y-6">
         {/* Crew Name */}
@@ -127,9 +192,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
         {/* Referees Selection */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <p className="font-medium text-gray-700">
-              Select Referees (Max 6)
-            </p>
+            <p className="font-medium text-gray-700">Select Referees (Max 6)</p>
             <p className="text-sm font-semibold text-[#00AEEF]">
               Selected: {selectedReferees.length}/6
             </p>
@@ -144,8 +207,11 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
             className="mb-4"
           />
 
-          <div className="max-h-[450px] overflow-y-auto space-y-3 pr-3 scrollbar-thin scrollbar-thumb-gray-400">
-            {loadingReferees ? (
+          <div
+            ref={refereesListRef}
+            className="max-h-[450px] overflow-y-auto space-y-3 pr-3 scrollbar-thin scrollbar-thumb-gray-400"
+          >
+            {loadingReferees && !data ? (
               <div className="text-center py-12">
                 <Spin size="large" tip="Loading referees..." />
               </div>
@@ -155,48 +221,72 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
               </div>
             ) : filteredReferees.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                {searchTerm ? "No referees match your search" : "No available referees"}
+                {searchTerm
+                  ? "No referees match your search"
+                  : "No available referees found"}
               </div>
             ) : (
-              filteredReferees.map((ref) => {
-                const isSelected = selectedReferees.some((r) => r.id === ref.id);
-                const isDisabled = !isSelected && selectedReferees.length >= 6;
+              <>
+                {filteredReferees.map((ref) => {
+                  const isSelected = selectedReferees.some(
+                    (r) => r.id === ref.id
+                  );
+                  const isDisabled =
+                    !isSelected && selectedReferees.length >= 6;
 
-                return (
-                  <div
-                    key={ref.id}
-                    onClick={() => !isDisabled && handleRefereeToggle(ref)}
-                    className={`
-                      border rounded-xl p-4 flex items-center justify-between transition-all
-                      ${isSelected
-                        ? "border-[#00AEEF] bg-blue-50 shadow-md cursor-pointer"
-                        : isDisabled
-                        ? "bg-gray-50 opacity-60 cursor-not-allowed"
-                        : "hover:border-[#00AEEF] hover:shadow-md border-gray-200 cursor-pointer"
-                      }
-                    `}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Avatar
-                        src={ref.avatar || "/default-avatar.png"}
-                        size={48}
-                        className="border-2 border-gray-200"
-                      />
-                      <div>
-                        <p className="font-medium text-gray-800">{ref.name}</p>
-                        <p className="text-sm text-gray-500">{ref.email}</p>
+                    console.log(ref, 'referee');
+
+                  return (
+                    <div
+                      key={ref.id}
+                      onClick={() => !isDisabled && handleRefereeToggle(ref)}
+                      className={`
+                        border rounded-xl p-4 flex items-center justify-between transition-all cursor-pointer
+                        ${
+                          isSelected
+                            ? "border-[#00AEEF] bg-blue-50 shadow-md"
+                            : isDisabled
+                            ? "bg-gray-50 opacity-60 cursor-not-allowed"
+                            : "hover:border-[#00AEEF] hover:shadow-md border-gray-200"
+                        }
+                      `}
+                    >
+                      <div className="flex items-center gap-4">
+                        <Avatar
+                          src={ref.avatar}
+                          size={48}
+                          className="border-2 border-gray-200"
+                        />
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            {ref.name}
+                          </p>
+                          <p className="text-sm text-gray-500">{ref.email}</p>
+                        </div>
                       </div>
-                    </div>
 
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      readOnly
-                      className="w-5 h-5 text-[#00AEEF] rounded focus:ring-[#00AEEF] cursor-pointer"
-                    />
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        readOnly
+                        className="w-5 h-5 text-[#00AEEF] rounded focus:ring-[#00AEEF] pointer-events-none"
+                      />
+                    </div>
+                  );
+                })}
+
+                {isFetchingNextPage && (
+                  <div className="text-center py-8">
+                    <Spin tip="Loading more referees..." />
                   </div>
-                );
-              })
+                )}
+
+                {!hasNextPage && allReferees.length > 0 && !loadingReferees && (
+                  <div className="text-center py-6 text-gray-500 text-sm">
+                    All available referees loaded
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -211,7 +301,11 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
             size="large"
             onClick={handleCreateCrew}
             loading={createCrewMutation.isPending}
-            disabled={!crewName.trim() || selectedReferees.length === 0}
+            disabled={
+              !crewName.trim() ||
+              selectedReferees.length === 0 ||
+              createCrewMutation.isPending
+            }
           >
             {createCrewMutation.isPending ? "Creating..." : "Create Crew"}
           </Button>

@@ -56,7 +56,7 @@ export default function MyGames({ camp_id }) {
 
   // Sort by date descending (most recent first)
   const sortedSlots = [...gameSlots].sort(
-    (a, b) => parseISO(b.game_details.date) - parseISO(a.game_details.date)
+    (a, b) => parseISO(a.game_details.date) - parseISO(b.game_details.date)
   );
 
   const handlePageChange = (page) => {

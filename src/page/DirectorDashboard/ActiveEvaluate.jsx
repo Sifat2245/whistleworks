@@ -68,7 +68,7 @@ const ActiveEvaluate = () => {
     );
   }
 
-  console.log(approvedEvaluators,'qwerwer');
+  // console.log(approvedEvaluators,'qwerwer');
 
   return (
     <div className="w-full flex flex-col items-start gap-10 mb-16">
