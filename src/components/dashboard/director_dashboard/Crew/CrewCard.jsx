@@ -73,7 +73,7 @@ const CrewCard = ({ group }) => {
                 className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 border border-black/15 rounded-xl px-3 py-2 transition"
               >
                 <img
-                  src={m.avatar || "/placeholder.jpg"}
+                  src={m.avatar}
                   className="w-10 h-10 rounded-full object-cover border"
                 />
                 <div>

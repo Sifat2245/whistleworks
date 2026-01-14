@@ -14,7 +14,7 @@ const EvaluatorRefereeList = ({ camp_id }) => {
     ...evaluators.map(e => ({ ...e, role: 'Evaluator', status: 'registered' }))
   ];
 
-  console.log(allMembers, "referee");
+  // console.log(allMembers, "referee");
 
   const handleCardClick = (member) => {
     setSelectedMember(member);
@@ -96,14 +96,6 @@ const EvaluatorRefereeList = ({ camp_id }) => {
             >
               <Descriptions.Item label="Full Name" span={2}>
                 {selectedMember.name}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Role">
-                {selectedMember.role}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Status">
-                {selectedMember.status || "—"}
               </Descriptions.Item>
 
               <Descriptions.Item label="Email">

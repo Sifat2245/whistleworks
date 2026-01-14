@@ -62,7 +62,7 @@ const EditProfileModal = ({ open, onClose }) => {
     // formData.append("latitude", data.latitude);
     // formData.append("longitude", data.longitude);
 
-    console.log("Onsubmit data : ---->", data);
+    // console.log("Onsubmit data : ---->", data);
     updateProfilInfoMutation.mutate(formData);
   };
 

@@ -49,8 +49,7 @@ const Header = () => {
 
           {/* Right Side - User or Auth Buttons */}
           {userData ? (
-            <div className="flex items-center gap-4">
-              <NotificationBell />
+            <div className="flex items-center gap-2">
               <Popover
                 placement="bottomRight"
                 trigger="click"
@@ -69,6 +68,7 @@ const Header = () => {
                   </span>
                 </div>
               </Popover>
+              <NotificationBell />
             </div>
           ) : (
             <div className="hidden lg:flex items-center gap-3">

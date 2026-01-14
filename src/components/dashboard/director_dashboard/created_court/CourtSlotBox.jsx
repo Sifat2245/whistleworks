@@ -145,6 +145,7 @@ const CourtSlotBox = ({
           <div className="space-y-3">
             {individualReferees.map((item, idx) => {
               const refereeName = item?.referee_name || "Unknown Referee";
+              console.log(item, 'referee');
 
               return (
                 <div
@@ -153,7 +154,7 @@ const CourtSlotBox = ({
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <img
-                      src={item?.avatar || ""}
+                      src={item?.avatar}
                       alt={refereeName}
                       className="w-9 h-9 rounded-full object-cover border border-gray-200"
                     />

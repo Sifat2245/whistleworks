@@ -6,17 +6,27 @@ import CommonSectionTitle from "@/components/dashboard/director_dashboard/Common
 import Rankings from "@/components/dashboard/director_dashboard/Rankings/Rankings";
 import { useParams } from "react-router-dom";
 import SettingsModal from "@/components/dashboard/director_dashboard/Rankings/SettingsModal";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
+import { useQuery } from "@tanstack/react-query";
 
 const Ranking = () => {
   const { id } = useParams();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const axiosInstance = useAxiosSecure()
 
+  const {data: campData} = useQuery({
+    queryKey: ["camp-details"],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/v1/camp/details/${id}`)
+      return response?.data?.data;
+    }
+  })
   return (
     <div className="w-full">
       <BackBtn />
       <div className="flex justify-between items-center mb-8">
         <CommonSectionTitle
-          text="Ranking - Elite Officials Summer Camp 2024"
+          text={`Ranking - ${campData?.camp_name}`}
           subText="Performance rankings based on evaluation scores"
         />
         <CommonSubmitBtn
@@ -29,7 +39,7 @@ const Ranking = () => {
         </CommonSubmitBtn>
       </div>
 
-      <Rankings campId={id} />
+      <Rankings campId={id}/>
 
       <SettingsModal
         isOpen={isSettingsOpen}

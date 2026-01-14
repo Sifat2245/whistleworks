@@ -46,14 +46,12 @@ const MyCampus = () => {
               <MyCampusCart key={camp.camp_id} league={camp} />
             ))}
           </div>
-
-          {/* Pagination - Only show if needed */}
           {hasMultiplePages && (
             <PaginationV2
               handlePageClick={handlePageClick}
               currentPage={currentPage}
-              perPage={actualPerPage}          // ← Use real value from backend
-              totalItem={totalCamps}           // ← Total camps
+              perPage={actualPerPage}         
+              totalItem={totalCamps} 
             />
           )}
 
