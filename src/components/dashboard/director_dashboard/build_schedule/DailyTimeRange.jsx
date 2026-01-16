@@ -206,7 +206,7 @@ const DailyTimeRange = ({ getDateRange }) => {
             <p className="text-xl font-semibold text-[#333] mb-6">Game Duration</p>
             <CommonInputWrapper
               type="number"
-              placeholder="e.g. 40"
+              placeholder="e.g. 60min"
               register={register}
               register_as="game_duration"
               validationRules={{
@@ -217,7 +217,7 @@ const DailyTimeRange = ({ getDateRange }) => {
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-            <p className="text-xl font-semibold text-[#333] mb-6">Max Referees per Slot</p>
+            <p className="text-xl font-semibold text-[#333] mb-6">Referees per Slot</p>
             <CommonInputWrapper
               type="number"
               placeholder="e.g. 3"

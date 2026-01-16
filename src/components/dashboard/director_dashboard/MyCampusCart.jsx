@@ -3,6 +3,7 @@ import useCampSchedule from "@/hooks/useCampSchedule";
 import { BsArrowLeftRight } from "react-icons/bs";
 import { CiCalendar } from "react-icons/ci";
 import { HiOutlineUser } from "react-icons/hi2";
+import { MdSchedule } from "react-icons/md";
 import { PiCourtBasketball, PiSunglassesLight } from "react-icons/pi";
 import { Link } from "react-router-dom";
 
@@ -18,6 +19,12 @@ const actions = [
     label: "Court List",
     icon: <PiCourtBasketball className="text-xl shrink-0" />,
     path: "/director-dashboard/court-list",
+  },
+  {
+    id: "camp-schedules",
+    label: "Camp Schedules",
+    icon: <MdSchedule className="text-xl shrink-0" />,
+    path: "/director-dashboard/camp-schedules",
   },
   {
     id: "evaluate",
@@ -54,9 +61,7 @@ const MyCampusCart = ({ league }) => {
   } = league || {};
   // console.log(league, "league");
 
-  const { scheduleData } = useCampSchedule(
-    total_courts > 0 ? camp_id : null
-  );
+  const { scheduleData } = useCampSchedule(total_courts > 0 ? camp_id : null);
 
   const scheduleStatus = scheduleData?.status;
   // console.log(scheduleData, "schedule data");
@@ -142,7 +147,7 @@ const MyCampusCart = ({ league }) => {
       </div>
 
       {/* action buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 mt-4 sm:mt-5 md:mt-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3 mt-4 sm:mt-5 md:mt-6">
         {filteredActions?.map((action) => (
           <Link
             to={`${action.path}/${camp_id}`}

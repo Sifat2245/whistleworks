@@ -2,6 +2,7 @@ import OtpWrapper from "@/components/auth/OtpWrapper";
 import ResendCode from "@/components/auth/ResendCode";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
+import { useAuth } from "@/hooks/useAuth";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
 import { maskEmail } from "@/utils/maskEmail";
 import { useMutation } from "@tanstack/react-query";
@@ -20,6 +21,8 @@ const VerifyOtp = () => {
   const [resendActive, setResendActive] = useState(false);
   const [testingOtp, setTestingOtp] = useState(get_otp)
 
+  const {handleLogin, userRefetch} = useAuth()
+
   // Note: handle otp submit mutaition
   const handleOtpSubmitMutation = useMutation({
     mutationKey: ["confirmSignUpOtp"],
@@ -29,6 +32,9 @@ const VerifyOtp = () => {
     },
     onSuccess: (data) => {
       toast.success(data?.message || "OTP verification successful");
+      console.log(data, 'verification data');
+      handleLogin(data?.token)
+      userRefetch()
       sessionStorage.removeItem("verify_email");
       sessionStorage.removeItem("testing_purpose_otp");
 
@@ -36,31 +42,6 @@ const VerifyOtp = () => {
       const intendedCampId = sessionStorage.getItem("intended_camp_id");
       const fromSignup = sessionStorage.getItem("intended_from_signup");
 
-      if (intendedCampId && fromSignup === "true") {
-        // Clean up and redirect to role-based camp page after login
-        sessionStorage.removeItem("intended_camp_id");
-        sessionStorage.removeItem("intended_from_signup");
-        
-        setTimeout(() => {
-          // Go to signin with special state to handle camp redirect
-          navigate("/auth/signin", {
-            replace: true,
-            state: { 
-              fromVerification: true,
-              campId: intendedCampId 
-            }
-          });
-        }, 1500);
-      } else {
-        // Original behavior - normal signin redirect
-        setTimeout(() => {
-          navigate("/auth/signin", {
-            replace: true,
-            state: { fromVerification: true }
-          });
-          toast.success("Please Login Your Account.");
-        }, 1500);
-      }
     }
   });
 
