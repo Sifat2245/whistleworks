@@ -17,14 +17,17 @@ export default function Performance({ camp_id }) {
     },
   });
 
+  
   // Destructure properly
   const overallPerformance = data?.overall_performance || {};
   const performanceBreakdown = data?.performance_breakdown || {};
   const ranking = data?.ranking || {};
   const recentFeedback = data?.recent_feedback || [];
   const totalEvaluations = overallPerformance?.total_evaluations || 0;
-
-  console.log(recentFeedback, 'feedback');
+  const recommendedLevel = data?.recommended_levels || [];
+  
+  console.log(data, 'performance data');
+  console.log(recommendedLevel, 'recommended level');
 
   const hasEvaluations = totalEvaluations > 0;
 
@@ -45,6 +48,7 @@ export default function Performance({ camp_id }) {
       />
       <PerformanceBreakdown
         breakdown={performanceBreakdown}
+        recommendedLevel={recommendedLevel}
         hasEvaluations={hasEvaluations}
       />
       <RecentFeedback feedbackList={recentFeedback} />

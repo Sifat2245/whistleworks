@@ -15,7 +15,7 @@ export default function Schedule({ camp_id }) {
     data: campData,
     isLoading,
     isError,
-    error, // ← Add this to see actual error
+    error,
   } = useQuery({
     queryKey: ["evaluator-camp-schedule", camp_id],
     queryFn: async () => {

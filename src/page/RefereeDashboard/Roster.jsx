@@ -6,7 +6,6 @@ import EvaluatorRefereeList from "../EvolatorDashboard/EvaluatorRefereeList";
 export default function Roster({ camp_id }) {
   const [searchParams] = useSearchParams();
   const subTab = searchParams.get("subTab");
-  console.log("Current subTab:", subTab);
   return (
     <section>
       <div className="flex justify-end mb-5">

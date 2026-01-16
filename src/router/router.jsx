@@ -40,6 +40,7 @@ import CrewDetailsPage from "@/page/DirectorDashboard/CrewDetailsPage";
 import MakeAnnouncement from "@/page/DirectorDashboard/MakeAnnouncement";
 import AllCamps from "@/page/AllCamps";
 import CampDetailsPageForNoAuth from "@/page/CampDetailsPageForNoAuth";
+import CampSchedules from "@/page/DirectorDashboard/CampSchedules";
 
 const router = createBrowserRouter([
   {
@@ -107,6 +108,10 @@ const router = createBrowserRouter([
           );
           return response;
         },
+      },
+      {
+        path: "camp-schedules/:id",
+        element: <CampSchedules/>
       },
       {
         path: "ranking/:id",

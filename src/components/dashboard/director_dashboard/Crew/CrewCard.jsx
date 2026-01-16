@@ -12,13 +12,6 @@ const CrewCard = ({ group }) => {
       {/* Gradient header strip */}
       <div className="h-2 w-full bg-linear-to-r from-primary to-sky-600" />
 
-      {/* Crew ID badge */}
-      <div className="absolute top-4 right-4">
-        <div className="bg-primary shadow text-white w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-sm tracking-wide">
-          #{group.id}
-        </div>
-      </div>
-
       {/* Header */}
       <div className="p-6 pb-5 border-b border-black/15 bg-gray-50/60">
         <h3 className="text-xl font-bold text-gray-800 leading-tight">

@@ -55,7 +55,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
     },
     initialPageParam: 1,
     enabled: !!campId && openModal,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 1 * 60 * 1000, // 1 minutes
   });
 
   // Flatten all loaded pages into one array

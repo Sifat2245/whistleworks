@@ -23,8 +23,6 @@ const RosterTable = ({ referees = [], campId }) => {
   const axiosInstance = useAxiosSecure();
   const queryClient = useQueryClient();
 
-  console.log(referees, "asdfasdf");
-
   // Check-in states
   const [checkingInId, setCheckingInId] = useState(null);
 
@@ -43,6 +41,8 @@ const RosterTable = ({ referees = [], campId }) => {
 
   const data = useMemo(() => queryData, [queryData]);
 
+  const CAMP_QUERY_KEY = ["camp-roster-details", campId];
+
   // Calculate stats
   const totalReferees = referees.length;
   const checkedInCount = referees.filter(
@@ -60,8 +60,6 @@ const RosterTable = ({ referees = [], campId }) => {
   };
 
   const handleCheckIn = async (refereeId) => {
-    console.log("Check in referee:", refereeId);
-
     const result = await Swal.fire({
       title: "Check In Referee?",
       text: "This will mark the referee as checked in for the camp.",
@@ -71,34 +69,38 @@ const RosterTable = ({ referees = [], campId }) => {
       cancelButtonText: "Cancel",
     });
     if (!result.isConfirmed) return;
+
     setCheckingInId(refereeId);
+
+    const previous = queryClient.getQueryData(CAMP_QUERY_KEY);
+
+    // Optimistic update: modify referees array inside camp object
+    queryClient.setQueryData(CAMP_QUERY_KEY, (old) => {
+      if (!old?.referees) return old;
+      return {
+        ...old,
+        referees: old.referees.map((ref) =>
+          ref.id === refereeId ? { ...ref, status: "checked_in" } : ref
+        ),
+      };
+    });
 
     try {
       const res = await axiosInstance.put(
         `/v1/director/camp/${campId}/referee/${refereeId}/manual-checkin`
       );
 
-      // Use setQueryData to optimistically update
-      queryClient.setQueryData(["referees", campId], (oldData) => {
-        if (!oldData) return oldData;
-        return oldData.map((referee) =>
-          referee.id === refereeId
-            ? { ...referee, status: "checked_in" }
-            : referee
-        );
-      });
+      queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
 
-      if (res?.data?.status === 200 || res?.data?.status === 204) {
-        Swal.fire({
-          title: "Success!",
-          text: res?.data?.message || "Referee checked in successfully",
-          icon: "success",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-      }
+      Swal.fire({
+        title: "Success!",
+        text: res?.data?.message || "Referee checked in successfully",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
     } catch (error) {
-      console.error("Check-in error:", error);
+      queryClient.setQueryData(CAMP_QUERY_KEY, previous);
       Swal.fire({
         title: "Error",
         text: error.response?.data?.message || "Failed to check in referee.",
@@ -113,34 +115,36 @@ const RosterTable = ({ referees = [], campId }) => {
     const referee = referees.find((r) => r.id === refereeId);
     const refereeName = referee?.name || "this referee";
 
-    const result = await Swal.fire({
+    const confirmed = await Swal.fire({
       title: "Remove Referee from Roster?",
-      text: `Are you sure you want to remove ${refereeName} from this camp? This action cannot be undone.`,
+      text: `Are you sure you want to remove ${refereeName}? This cannot be undone.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, Remove",
-      cancelButtonText: "Cancel",
     });
 
-    if (!result.isConfirmed) return;
+    if (!confirmed.isConfirmed) return;
 
     setRemovingId(refereeId);
 
+    const previous = queryClient.getQueryData(CAMP_QUERY_KEY);
+
+    // Optimistic remove
+    queryClient.setQueryData(CAMP_QUERY_KEY, (old) => {
+      if (!old?.referees) return old;
+      return {
+        ...old,
+        referees: old.referees.filter((ref) => ref.id !== refereeId),
+      };
+    });
+
     try {
-      // Call DELETE API
       await axiosInstance.delete(
         `/v1/director/camps/${campId}/referees/${refereeId}`
       );
 
-      // Optimistically remove from cache
-      queryClient.setQueryData(["referees", campId], (oldData) => {
-        if (!oldData) return oldData;
-        return oldData.filter((ref) => ref.id !== refereeId);
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["referees", campId] });
+      queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
 
       Swal.fire({
         title: "Removed!",
@@ -150,12 +154,10 @@ const RosterTable = ({ referees = [], campId }) => {
         showConfirmButton: false,
       });
     } catch (error) {
-      console.error("Remove referee error:", error);
+      queryClient.setQueryData(CAMP_QUERY_KEY, previous);
       Swal.fire({
         title: "Error",
-        text:
-          error.response?.data?.message ||
-          "Failed to remove referee. Please try again.",
+        text: error.response?.data?.message || "Failed to remove referee.",
         icon: "error",
       });
     } finally {
@@ -166,6 +168,19 @@ const RosterTable = ({ referees = [], campId }) => {
   const handleUpdateJersey = async (refereeId, jerseyNumber) => {
     const trimmed = jerseyNumber.trim();
 
+    const previous = queryClient.getQueryData(CAMP_QUERY_KEY);
+
+    // Optimistic update
+    queryClient.setQueryData(CAMP_QUERY_KEY, (old) => {
+      if (!old?.referees) return old;
+      return {
+        ...old,
+        referees: old.referees.map((ref) =>
+          ref.id === refereeId ? { ...ref, jourcy_number: trimmed } : ref
+        ),
+      };
+    });
+
     try {
       await axiosInstance.patch(
         `/v1/director/camp/${campId}/referee/${refereeId}/update-jourcy-number`,
@@ -173,12 +188,7 @@ const RosterTable = ({ referees = [], campId }) => {
         { params: { jourcy_number: trimmed } }
       );
 
-      queryClient.setQueryData(["referees", campId], (oldData) => {
-        if (!oldData) return oldData;
-        return oldData.map((ref) =>
-          ref.id === refereeId ? { ...ref, jourcy_number: trimmed } : ref
-        );
-      });
+      queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
 
       Swal.fire({
         title: "Updated!",
@@ -188,10 +198,11 @@ const RosterTable = ({ referees = [], campId }) => {
         showConfirmButton: false,
       });
     } catch (error) {
-      console.error("Jersey update error:", error);
+      queryClient.setQueryData(CAMP_QUERY_KEY, previous);
       Swal.fire({
         title: "Error",
-        text: error.response?.data?.message || "Failed to update",
+        text:
+          error.response?.data?.message || "Failed to update jersey number.",
         icon: "error",
       });
     } finally {
