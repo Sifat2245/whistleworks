@@ -145,6 +145,7 @@ const CourtSlotBox = ({
           <div className="space-y-3">
             {individualReferees.map((item, idx) => {
               const refereeName = item?.referee_name || "Unknown Referee";
+              const jerseyNumber = item?.jourcy_number;
               console.log(item, 'referee');
 
               return (
@@ -159,7 +160,7 @@ const CourtSlotBox = ({
                       className="w-9 h-9 rounded-full object-cover border border-gray-200"
                     />
                     <span className="text-sm font-medium truncate max-w-[140px]">
-                      {refereeName}
+                      {refereeName} {jerseyNumber? `#${jerseyNumber}` : ""}
                     </span>
                   </div>
 

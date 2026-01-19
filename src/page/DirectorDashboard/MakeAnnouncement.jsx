@@ -1,307 +1,257 @@
-// src/components/common/NotificationBell.jsx
+import { useForm, Controller } from "react-hook-form";
+import { useState } from "react";
+import Swal from "sweetalert2";
+import LoaderV2 from "@/components/common/LoaderV2";
+import useRegisteredReferees from "@/hooks/get-registered-referees";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { IoNotificationsOutline, IoClose } from "react-icons/io5";
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
-import toast from "react-hot-toast";
+import { Select } from "antd";
+import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
+import BackBtn from "@/components/common/BackBtn";
+import { useMutation } from "@tanstack/react-query";
 
-const NotificationBell = () => {
+const MakeAnnouncement = ({ camp_id }) => {
   const axiosInstance = useAxiosSecure();
-  const queryClient = useQueryClient();
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const observerRef = useRef(null);
+  const { getRegisterReferess, isLoading: loadingReferees } = useRegisteredReferees(camp_id);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch notification counts (used for badge)
-  const { data: countsData} = useQuery({
-    queryKey: ["notification-counts"],
-    queryFn: async () => {
-      const res = await axiosInstance.get("/notifications/counts");
-      return res?.data?.data || { total_unread: 0 };
-    },
-    refetchInterval: 30000,
-    staleTime: 15000,
-  });
-
-  const unreadCount = countsData?.total_unread || 0;
-
-  // Fetch paginated notifications
   const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useInfiniteQuery({
-    queryKey: ["my-notifications"],
-    queryFn: async ({ pageParam = 1 }) => {
-      const res = await axiosInstance.get("/notifications", {
-        params: { page: pageParam },
-      });
-      return res?.data?.data || { notifications: [], pagination: {} };
+    register,
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      recipientType: "all",
+      specificUserIds: [],
+      subject: "",
+      message: "",
     },
-    getNextPageParam: (lastPage) => {
-      const pagination = lastPage.pagination || {};
-      return pagination.current_page < pagination.last_page
-        ? pagination.current_page + 1
-        : undefined;
-    },
-    refetchInterval: 30000,
-    staleTime: 15000,
   });
 
-  const notifications = data?.pages?.flatMap(page => page.notifications) || [];
+  const recipientType = watch("recipientType");
 
-  // Mutations
-  const markAsReadMutation = useMutation({
-    mutationFn: async (notificationId) => {
-      await axiosInstance.post(`/notifications/${notificationId}/mark-as-read`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["notification-counts"] });
-    },
-    onError: () => toast.error("Failed to mark as read"),
-  });
+  // Convert referees to Ant Design Select options
+  const userOptions = getRegisterReferess?.map((user) => ({
+    value: user.id,
+    label: (
+      <div className="flex items-center gap-3 py-1">
+        <img
+          src={user.avatar || "/default-avatar.png"}
+          alt={user.name}
+          className="w-8 h-8 rounded-full object-cover border border-gray-200"
+          onError={(e) => (e.target.src = "/default-avatar.png")}
+        />
+        <div>
+          <div className="font-medium text-gray-900">{user.name}</div>
+          <div className="text-xs text-gray-500">{user.email}</div>
+        </div>
+      </div>
+    ),
+  })) || [];
 
-  const markAllAsReadMutation = useMutation({
-    mutationFn: async () => {
-      await axiosInstance.post("/notifications/mark-all-as-read");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["notification-counts"] });
-      toast.success("All marked as read");
-    },
-    onError: () => toast.error("Failed to mark all as read"),
-  });
+  // Mutation to send announcement
+  const sendAnnouncementMutation = useMutation({
+    mutationKey: ["send-announcement"],
+    mutationFn: async (formData) => {
+      const payload = {
+        subject: formData.subject,
+        message: formData.message,
+        announcement_to: formData.recipientType,
+      };
 
-  const deleteNotificationMutation = useMutation({
-    mutationFn: async (notificationId) => {
-      await axiosInstance.delete(`/notifications/delete/${notificationId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["notification-counts"] });
-      toast.success("Notification deleted");
-    },
-    onError: () => toast.error("Failed to delete notification"),
-  });
-
-  const clearAllMutation = useMutation({
-    mutationFn: async () => {
-      await axiosInstance.delete("/notifications/clear-read");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["notification-counts"] });
-      toast.success("Read notifications cleared");
-    },
-    onError: () => toast.error("Failed to clear notifications"),
-  });
-
-  // Handlers
-  const handleMarkRead = (id, e) => {
-    e.stopPropagation();
-    markAsReadMutation.mutate(id);
-  };
-
-  const handleDelete = (id, e) => {
-    e.stopPropagation();
-    deleteNotificationMutation.mutate(id);
-  };
-
-  const handleMarkAll = (e) => {
-    e.stopPropagation();
-    if (unreadCount === 0) return;
-    markAllAsReadMutation.mutate();
-  };
-
-  const handleClearAll = (e) => {
-    e.stopPropagation();
-    clearAllMutation.mutate();
-  };
-
-  // Infinite scroll
-  const lastNotificationRef = useCallback(
-    (node) => {
-      if (isFetchingNextPage) return;
-      if (observerRef.current) observerRef.current.disconnect();
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage) fetchNextPage();
-      });
-      if (node) observerRef.current.observe(node);
-    },
-    [isFetchingNextPage, hasNextPage, fetchNextPage]
-  );
-
-  // Close on outside click
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+      // Add specific user IDs only if "specific" is selected
+      if (formData.recipientType === "specific" && formData.specificUserIds.length > 0) {
+        payload.specific_user_ids = formData.specificUserIds;
       }
-    };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
 
-  const formatTimeAgo = (date) => {
-    if (!date) return "Just now";
-    try {
-      return formatDistanceToNow(new Date(date), { addSuffix: true });
-    } catch {
-      return "Some time ago";
-    }
-  };
+      const response = await axiosInstance.post("/director/announcement/store", payload);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: data?.message || "Your announcement has been sent successfully.",
+        confirmButtonColor: "#00AEEF",
+        timer: 4000,
+        timerProgressBar: true,
+      });
 
-  // Helper to get display values safely
-  const getNotificationInfo = (notif) => {
-    const d = notif.data || {};
-    const isAnnouncement = notif.type === "announcement";
+      // Reset form
+      reset({
+        recipientType: "all",
+        specificUserIds: [],
+        subject: "",
+        message: "",
+      });
+    },
+    onError: (error) => {
+      const message = error?.response?.data?.message || "Failed to send announcement. Please try again.";
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: message,
+        confirmButtonColor: "#ef4444",
+      });
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
+    },
+  });
 
-    return {
-      title: isAnnouncement ? (d.subject || "Announcement") : (d.title || "Notification"),
-      message: d.message || "",
-      sender: isAnnouncement
-        ? (d.creator_name || `User #${d.created_by || "N/A"}`)
-        : (d.assigned_by?.name || "System"),
-      senderRole: isAnnouncement ? "Director" : (d.assigned_by?.role || ""),
-      time: isAnnouncement ? d.sent_at : notif.created_at,
-    };
+  const onSubmit = (data) => {
+    setIsSubmitting(true);
+    sendAnnouncementMutation.mutate(data);
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
-        aria-label="Notifications"
-      >
-        <IoNotificationsOutline className="text-2xl text-gray-700" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white border-2 border-white animate-pulse">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
-        )}
-      </button>
+    <div className="min-h-screen  py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <BackBtn />
 
-      {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
-          <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-            <h3 className="font-semibold text-gray-900">Notifications</h3>
-            <div className="flex gap-3">
-              {unreadCount > 0 && (
-                <button
-                  onClick={handleMarkAll}
-                  disabled={markAllAsReadMutation.isPending}
-                  className="text-sm text-blue-600 hover:underline disabled:opacity-50"
-                >
-                  {markAllAsReadMutation.isPending ? "Marking..." : "Mark all read"}
-                </button>
-              )}
-              {notifications.length > 0 && (
-                <button
-                  onClick={handleClearAll}
-                  disabled={clearAllMutation.isPending}
-                  className="text-sm text-red-600 hover:underline disabled:opacity-50"
-                >
-                  {clearAllMutation.isPending ? "Clearing..." : "Clear read"}
-                </button>
-              )}
-            </div>
-          </div>
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 mt-8">
+          <div className="p-8 sm:p-10">
+            <h2 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-10">
+              Make an Announcement
+            </h2>
 
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
 
-
-
-
-
-          
-
-          <div className="max-h-[28rem] overflow-y-auto">
-            {isLoading ? (
-              <div className="py-10 text-center text-gray-500">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-3">Loading...</p>
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="py-12 text-center text-gray-500">
-                <IoNotificationsOutline className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg font-medium">No notifications</p>
-                <p className="text-sm mt-1">New notifications will appear here</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {notifications.map((notif, idx) => {
-                  const isUnread = !notif.is_read;
-                  const { title, message, sender, senderRole, time } = getNotificationInfo(notif);
-
-                  return (
-                    <div
-                      key={notif.id}
-                      ref={idx === notifications.length - 1 ? lastNotificationRef : null}
-                      onClick={(e) => handleMarkRead(notif.id, e)}
-                      className={`group relative p-4 cursor-pointer transition-colors ${
-                        isUnread
-                          ? "bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500"
-                          : "hover:bg-gray-50"
-                      }`}
+              {/* Send To */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-5">Send To</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { value: "all", label: "All Members" },
+                    { value: "evaluators", label: "All Evaluators" },
+                    { value: "referees", label: "All Referees" },
+                    // { value: "specific", label: "Specific Users" },
+                  ].map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center p-5 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-all border-2 border-transparent hover:border-[#00AEEF]/30"
                     >
-                      <button
-                        onClick={(e) => handleDelete(notif.id, e)}
-                        className="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Delete"
-                      >
-                        <IoClose className="w-5 h-5" />
-                      </button>
+                      <input
+                        type="radio"
+                        value={option.value}
+                        {...register("recipientType")}
+                        className="w-5 h-5 text-[#00AEEF] focus:ring-[#00AEEF] focus:ring-2"
+                      />
+                      <span className="ml-4 text-lg font-medium text-gray-800">
+                        {option.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
-                      <div className="flex items-start gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h4 className={`font-medium text-sm truncate ${isUnread ? "text-gray-900" : "text-gray-600"}`}>
-                            {title}
-                          </h4>
-                          <p className={`mt-1 text-sm line-clamp-3 ${isUnread ? "text-gray-700 font-medium" : "text-gray-600"}`}>
-                            {message}
-                          </p>
-                          <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-xs">
-                            <span className="text-gray-600">
-                              {sender} {senderRole && `(${senderRole})`}
-                            </span>
-                            <span className="text-gray-400">
-                              {formatTimeAgo(time)}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <IoNotificationsOutline className="w-5 h-5 text-blue-600" />
-                        </div>
-                      </div>
+              {/* Specific Recipients */}
+              {recipientType === "specific" && (
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                    Select Recipients
+                  </h3>
+                  {loadingReferees ? (
+                    <div className="text-center py-8">
+                      <LoaderV2 />
                     </div>
-                  );
-                })}
+                  ) : (
+                    <Controller
+                      name="specificUserIds"
+                      control={control}
+                      rules={{
+                        validate: (value) =>
+                          recipientType === "specific" && (!value || value.length === 0)
+                            ? "Please select at least one recipient"
+                            : true,
+                      }}
+                      render={({ field }) => (
+                        <Select
+                          mode="multiple"
+                          placeholder="Search and select users..."
+                          loading={loadingReferees}
+                          options={userOptions}
+                          optionFilterProp="children"
+                          filterOption={(input, option) =>
+                            option.label.props.children[1].props.children[0]
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          className="w-full"
+                          dropdownStyle={{ zIndex: 9999 }}
+                          allowClear
+                          showSearch
+                          size="large"
+                          {...field}
+                        />
+                      )}
+                    />
+                  )}
+                  {errors.specificUserIds && (
+                    <p className="text-red-600 text-sm mt-2">
+                      {errors.specificUserIds.message}
+                    </p>
+                  )}
+                </div>
+              )}
 
-                {isFetchingNextPage && (
-                  <div className="py-6 text-center text-gray-500">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-2 text-sm">Loading more...</p>
-                  </div>
-                )}
-
-                {!hasNextPage && notifications.length > 0 && (
-                  <div className="py-4 text-center text-gray-400 text-sm">
-                    End of notifications
-                  </div>
+              {/* Subject */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Subject</h3>
+                <input
+                  type="text"
+                  placeholder="Enter a clear and concise subject"
+                  className="w-full px-6 py-4 text-lg border border-gray-300 rounded-xl focus:outline-none focus:border-[#00AEEF] focus:ring-4 focus:ring-[#00AEEF]/20 transition"
+                  {...register("subject", {
+                    required: "Subject is required",
+                    maxLength: { value: 150, message: "Subject too long (max 150 characters)" },
+                  })}
+                />
+                {errors.subject && (
+                  <p className="text-red-600 text-sm mt-2">{errors.subject.message}</p>
                 )}
               </div>
-            )}
+
+              {/* Message */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Message</h3>
+                <textarea
+                  rows={8}
+                  placeholder="Write your announcement message here..."
+                  className="w-full px-6 py-5 text-base border border-gray-300 rounded-xl focus:outline-none focus:border-[#00AEEF] focus:ring-4 focus:ring-[#00AEEF]/20 transition resize-none"
+                  {...register("message", {
+                    required: "Message is required",
+                    minLength: { value: 10, message: "Message too short (min 10 characters)" },
+                  })}
+                />
+                {errors.message && (
+                  <p className="text-red-600 text-sm mt-2">{errors.message.message}</p>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-6">
+                <CommonSubmitBtn
+                  type="submit"
+                  variant="primary"
+                  className="w-full py-5 text-xl font-bold"
+                  disabled={isSubmitting || sendAnnouncementMutation.isPending}
+                >
+                  {isSubmitting || sendAnnouncementMutation.isPending ? (
+                    <LoaderV2 />
+                  ) : (
+                    "Send Announcement"
+                  )}
+                </CommonSubmitBtn>
+              </div>
+            </form>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
-export default NotificationBell;
+export default MakeAnnouncement;

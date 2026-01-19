@@ -15,7 +15,7 @@ streamline their Referee camp management"
       </div>
 
       <div className="flex justify-center items-center">
-        <CommonSubmitBtn variant="primary">Get Started Now</CommonSubmitBtn>
+        <CommonSubmitBtn link path="/auth/signup" variant="primary">Create Your Account</CommonSubmitBtn>
       </div>
     </div>
   );

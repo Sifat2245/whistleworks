@@ -1,6 +1,6 @@
 import { parseISO } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
-import { Spin } from "antd";
+import { Spin, Alert } from "antd"; // Added Alert import
 import MyGameCard from "./MyGameCard";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import PaginationV2 from "@/components/common/PaginationV2";
@@ -14,6 +14,7 @@ export default function MyGames({ camp_id }) {
     data: response = {},
     isLoading,
     isError,
+    error, // Added error from useQuery
   } = useQuery({
     queryKey: ["my-game-slots", camp_id, currentPage],
     queryFn: async () => {
@@ -24,6 +25,11 @@ export default function MyGames({ camp_id }) {
     },
     keepPreviousData: true, // Smooth page transitions
   });
+
+  // Check for specific 403 error from API response
+  const isScheduleNotPublished = error?.response?.status === 403 && 
+    error?.response?.data?.status === false && 
+    error?.response?.data?.data === "This camp schedule is not published yet!";
 
   const gameSlots = response?.game_slots || [];
   const pagination = response?.pagination || {};
@@ -40,6 +46,25 @@ export default function MyGames({ camp_id }) {
     );
   }
 
+  // Handle the unpublished schedule error
+  if (isScheduleNotPublished) {
+    return (
+      <section className="text-center py-20 min-h-[60vh] max-w-2xl mx-auto">
+        <Alert
+          message="Schedule Not Published"
+          description="This camp schedule is not published yet! You cannot view your assigned games until the schedule is published."
+          type="warning"
+          showIcon
+          className="mb-6"
+        />
+        <p className="text-gray-600 mt-4">
+          Please check back later or contact the camp administrator for more details.
+        </p>
+      </section>
+    );
+  }
+
+  // Existing error handling for general errors or no slots
   if (isError || (!isLoading && gameSlots.length === 0)) {
     return (
       <section className="text-center py-20 min-h-[60vh]">

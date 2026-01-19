@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { BsTrophy } from "react-icons/bs";
 import { MdClose } from "react-icons/md";
-import { Avatar } from "antd";
+import { Avatar, Tooltip } from "antd"; // ← Add Tooltip here
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
@@ -15,7 +15,6 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
   const axiosInstance = useAxiosSecure();
   const refereeId = referee?.referee_id;
 
-  // Infinite Query for paginated evaluations
   const {
     data: historyPages,
     fetchNextPage,
@@ -40,12 +39,10 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
     enabled: !!campId && !!refereeId && isOpen,
   });
 
-  // Flatten all evaluations from pages
   const evaluations = useMemo(() => {
     return historyPages?.pages?.flatMap((page) => page.evaluations || []) || [];
   }, [historyPages]);
 
-  // Observer ref for infinite scroll
   const observerRef = useRef();
 
   const lastEvaluationRef = useCallback(
@@ -136,7 +133,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
           <div className="text-center font-medium">
             {row.original.scores.game_awareness}
           </div>
-        )
+        ),
       },
       {
         accessorKey: "average_score",
@@ -152,20 +149,30 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
       {
         accessorKey: "private_comments",
         header: "Notes for Director",
-        cell: ({ row }) => (
-          <div className="text-xs text-gray-600 max-w-[150px] truncate">
-            {row.original.private_comments || "-"}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const comment = row.original.private_comments || "-";
+          return (
+            <Tooltip title={comment} placement="topLeft" mouseEnterDelay={0.3}>
+              <div className="text-xs text-gray-600 max-w-[150px] truncate cursor-help">
+                {comment}
+              </div>
+            </Tooltip>
+          );
+        },
       },
       {
         accessorKey: "referee_feedback",
         header: "Referee Feedback",
-        cell: ({ row }) => (
-          <div className="text-xs text-gray-700 max-w-[180px] line-clamp-3">
-            {row.original.referee_feedback || "-"}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const feedback = row.original.referee_feedback || "-";
+          return (
+            <Tooltip title={feedback} placement="topLeft" mouseEnterDelay={0.3}>
+              <div className="text-xs text-gray-700 max-w-[180px] line-clamp-3 cursor-help">
+                {feedback}
+              </div>
+            </Tooltip>
+          );
+        },
       },
       {
         accessorKey: "recommended_level",
@@ -216,7 +223,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-linear-to-r from-blue-50 to-cyan-50">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
               <h2 className="text-2xl font-bold text-gray-900">
                 Referee Performance Details
               </h2>
@@ -257,7 +264,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
               </div>
             </div>
 
-            {/* Evaluations Table with Infinite Scroll */}
+            {/* Evaluations Table */}
             <div className="p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4">
                 Evaluation History ({evaluations?.length})
@@ -311,14 +318,12 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                     </tbody>
                   </table>
 
-                  {/* Loading More Indicator */}
                   {isFetchingNextPage && (
                     <div className="py-4 text-center text-gray-500 text-sm">
                       Loading more evaluations...
                     </div>
                   )}
 
-                  {/* End of List */}
                   {!hasNextPage && evaluations.length > 0 && (
                     <div className="py-4 text-center text-gray-400 text-sm">
                       End of evaluation history

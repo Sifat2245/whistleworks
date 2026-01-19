@@ -24,7 +24,6 @@ export default function OverallPerformance({
   }
 
   const score = overallPerformance.score || 0;
-  const rating = overallPerformance.rating || "Needs Improvement";
 
   return (
     <div className="bg-primary p-5 rounded-[10px]">
@@ -33,11 +32,11 @@ export default function OverallPerformance({
         <Icon src={carveArrow} className="size-7 text-white" />
       </div>
       <p className="text-[30px] font-medium text-white mt-4 mb-2">
-        {score.toFixed(1)}
+        {score.toFixed(3)}
         <span className="text-xl">/10</span>
       </p>
       <p className="text-white">
-        {ranking?.position ? `${rating} •  Top ${ranking.position}` : ""}
+        {ranking?.position ? `Top ${ranking.position}` : ""}
       </p>
     </div>
   );
