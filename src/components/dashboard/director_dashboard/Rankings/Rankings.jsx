@@ -43,7 +43,7 @@ const Rankings = ({ campId }) => {
         });
 
         const overallAvg = averages?.overall || 0;
-        const overallPercentage = overallAvg * 10;
+        const overallPercentage = overallAvg;
 
         return {
           referee_id: item.referee_id,

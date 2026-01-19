@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 const actions = [
   {
     id: "schedule",
-    label: "Schedule",
+    label: "Build Schedule",
     icon: <CiCalendar className="text-xl shrink-0" />,
     path: "/director-dashboard/build-schedule",
   },
@@ -22,7 +22,7 @@ const actions = [
   },
   {
     id: "camp-schedules",
-    label: "Camp Schedules",
+    label: "Game Schedules",
     icon: <MdSchedule className="text-xl shrink-0" />,
     path: "/director-dashboard/camp-schedules",
   },

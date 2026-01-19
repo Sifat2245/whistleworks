@@ -4,30 +4,30 @@ import messageIcon from "@/assets/svg/message.svg";
 import Icon from "@/components/common/Icon";
 import { Avatar, Card, Divider, Tag, Tooltip } from "antd";
 import { format, parseISO } from "date-fns";
-import Swal from "sweetalert2";
+import { SlCalender } from "react-icons/sl";
 
 export default function MyGameCard({ game, camp }) {
   // Extract clean date (without time) from the ISO string
   const gameDate = parseISO(game.game_details.date);
   const formattedDate = format(gameDate, "MMM d, yyyy");
 
-  const handleMessageClick = () => {
-    Swal.fire({
-      title: "Coming Soon!!!",
-      text: "This feature is currently not available. Please check back later.",
-      icon: "info",
-      confirmButtonText: "OK",
-    });
-  };
+  // const handleMessageClick = () => {
+  //   Swal.fire({
+  //     title: "Coming Soon!!!",
+  //     text: "This feature is currently not available. Please check back later.",
+  //     icon: "info",
+  //     confirmButtonText: "OK",
+  //   });
+  // };
 
   console.log(game, "gane");
 
   // Combine date with start/end time correctly
   const startDateTime = new Date(
-    `${format(gameDate, "yyyy-MM-dd")}T${game.game_details.start_time}`
+    `${format(gameDate, "yyyy-MM-dd")}T${game.game_details.start_time}`,
   );
   const endDateTime = new Date(
-    `${format(gameDate, "yyyy-MM-dd")}T${game.game_details.end_time}`
+    `${format(gameDate, "yyyy-MM-dd")}T${game.game_details.end_time}`,
   );
 
   const startTime = format(startDateTime, "h:mm a");
@@ -66,8 +66,8 @@ export default function MyGameCard({ game, camp }) {
       <div className="space-y-5 -mt-2">
         {/* Date & Time */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-gray-700">
-            <Icon src={locationIcon} className="size-5 text-[#00AEEF]" />
+          <div className="flex items-center gap-3 text-primary">
+            <SlCalender />
             <span className="font-semibold">{formattedDate}</span>
           </div>
           <Tag color="blue" className="text-sm font-medium px-4 py-1">
@@ -81,7 +81,7 @@ export default function MyGameCard({ game, camp }) {
             {game.location?.name}
           </p>
           <p className="text-sm text-gray-600 mt-1">
-          {game.game_details.court_name} •{" "}
+            {game.game_details.court_name} •{" "}
             <Tag color="green" className="ml-1">
               {game.game_details.status.toUpperCase()}
             </Tag>
@@ -143,13 +143,13 @@ export default function MyGameCard({ game, camp }) {
             View Location
           </button>
 
-          <button
+          {/* <button
             onClick={handleMessageClick}
             className="bg-[#00AEEF] text-white px-6 py-3 rounded-lg hover:bg-blue-600 flex items-center gap-3 font-medium shadow-md"
           >
             <Icon src={messageIcon} className="size-5" />
             Message
-          </button>
+          </button> */}
         </div>
       </div>
     </Card>

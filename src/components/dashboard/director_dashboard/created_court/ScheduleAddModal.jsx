@@ -305,7 +305,7 @@ const ScheduleAddModal = ({
                         className="w-8 h-8 rounded-full object-cover"
                         onError={e => e.target.src = "/default-avatar.png"}
                       />
-                      <span className="font-medium text-sm">{ref.name}</span>
+                      <span className="font-medium text-sm">{ref.name} {ref?.jourcy_number ? `#${ref.jourcy_number}` : ""}</span>
                     </div>
                   ))}
                 </div>
@@ -374,7 +374,7 @@ const ScheduleAddModal = ({
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium">{ref.name || "Unnamed Referee"}</p>
+                            <p className="font-medium">{ref.name || "Unnamed Referee"} {ref?.jourcy_number ? `#${ref.jourcy_number}` : ""}</p>
                             {ref.is_assigned_to_this_slot && (
                               <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">
                                 Currently Assigned
