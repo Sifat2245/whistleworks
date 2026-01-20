@@ -17,7 +17,13 @@ const DailyTimeRange = ({ getDateRange }) => {
   const axiosSecure = useAxiosSecure();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { start_date, end_date, dates = [] } = getDateRange || {};
+  const {
+    start_date,
+    end_date,
+    timezone,
+    timezoneName,
+    dates = [],
+  } = getDateRange || {};
 
   const {
     handleSubmit,
@@ -28,7 +34,9 @@ const DailyTimeRange = ({ getDateRange }) => {
   } = useForm({
     mode: "onChange",
     defaultValues: {
-      locations: [{ location_name: "", court_count: "", latitude: "", longitude: "" }],
+      locations: [
+        { location_name: "", court_count: "", latitude: "", longitude: "" },
+      ],
     },
   });
 
@@ -40,7 +48,10 @@ const DailyTimeRange = ({ getDateRange }) => {
   const createScheduleMutation = useMutation({
     mutationKey: ["create-schedule"],
     mutationFn: async (data) => {
-      const response = await axiosSecure.post(`/v1/camp/${id}/schedule/create`, data);
+      const response = await axiosSecure.post(
+        `/v1/camp/${id}/schedule/create`,
+        data,
+      );
       return response?.data;
     },
     onSuccess: (data) => {
@@ -64,7 +75,8 @@ const DailyTimeRange = ({ getDateRange }) => {
 
   const onSubmit = (data) => {
     const validLocations = data.locations.filter(
-      (loc) => loc.location_name && loc.court_count && loc.latitude && loc.longitude
+      (loc) =>
+        loc.location_name && loc.court_count && loc.latitude && loc.longitude,
     );
 
     if (validLocations.length === 0) {
@@ -78,7 +90,9 @@ const DailyTimeRange = ({ getDateRange }) => {
 
     const body = {
       game_duration: Number(data.game_duration),
-      time_ranges: (data.time_ranges || []).filter((r) => r.start_time && r.end_time),
+      time_ranges: (data.time_ranges || []).filter(
+        (r) => r.start_time && r.end_time,
+      ),
       locations: validLocations.map((loc) => ({
         location_name: loc.location_name,
         court_count: Number(loc.court_count),
@@ -111,28 +125,28 @@ const DailyTimeRange = ({ getDateRange }) => {
 
     return (
       <div className="w-full">
-          <div className="relative">
-            <Autocomplete
-              onLoad={(ac) => (autocompleteRef.current = ac)}
-              onPlaceChanged={onPlaceChanged}
-              options={{
-                fields: ["formatted_address", "geometry", "name"],
-                types: ["establishment", "geocode"],
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Search location (gym, stadium, park...)"
-                className="w-full px-6 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00AEEF] focus:border-[#00AEEF] text-base bg-white shadow-sm transition-all duration-200"
-                {...register(`locations.${index}.location_name`, {
-                  required: "Please select a valid location",
-                })}
-              />
-            </Autocomplete>
+        <div className="relative">
+          <Autocomplete
+            onLoad={(ac) => (autocompleteRef.current = ac)}
+            onPlaceChanged={onPlaceChanged}
+            options={{
+              fields: ["formatted_address", "geometry", "name"],
+              types: ["establishment", "geocode"],
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Search location (gym, stadium, park...)"
+              className="w-full px-6 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00AEEF] focus:border-[#00AEEF] text-base bg-white shadow-sm transition-all duration-200"
+              {...register(`locations.${index}.location_name`, {
+                required: "Please select a valid location",
+              })}
+            />
+          </Autocomplete>
 
-            <input type="hidden" {...register(`locations.${index}.latitude`)} />
-            <input type="hidden" {...register(`locations.${index}.longitude`)} />
-          </div>
+          <input type="hidden" {...register(`locations.${index}.latitude`)} />
+          <input type="hidden" {...register(`locations.${index}.longitude`)} />
+        </div>
 
         {errors.locations?.[index]?.location_name && (
           <p className="text-red-600 text-sm mt-2 pl-1">
@@ -156,7 +170,10 @@ const DailyTimeRange = ({ getDateRange }) => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-10">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full flex flex-col gap-10"
+      >
         {/* Daily Time Ranges */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="bg-[#00AEEF] text-white px-8 py-5">
@@ -203,7 +220,9 @@ const DailyTimeRange = ({ getDateRange }) => {
         {/* Game Duration & Max Referees */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-            <p className="text-xl font-semibold text-[#333] mb-6">Game Duration</p>
+            <p className="text-xl font-semibold text-[#333] mb-6">
+              Game Duration
+            </p>
             <CommonInputWrapper
               type="number"
               placeholder="e.g. 60min"
@@ -217,7 +236,9 @@ const DailyTimeRange = ({ getDateRange }) => {
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-            <p className="text-xl font-semibold text-[#333] mb-6">Referees per Slot</p>
+            <p className="text-xl font-semibold text-[#333] mb-6">
+              Referees per Slot
+            </p>
             <CommonInputWrapper
               type="number"
               placeholder="e.g. 3"
@@ -238,12 +259,41 @@ const DailyTimeRange = ({ getDateRange }) => {
             <button
               type="button"
               onClick={() =>
-                append({ location_name: "", court_count: "", latitude: "", longitude: "" })
+                append({
+                  location_name: "",
+                  court_count: "",
+                  latitude: "",
+                  longitude: "",
+                })
               }
               className="bg-white text-[#00AEEF] px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition shadow"
             >
               + Add Location
             </button>
+          </div>
+
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+            <div className="flex items-start gap-3">
+              <div className="text-amber-600 text-xl mt-0.5">⚠️</div>
+              <div>
+                <p className="font-medium text-amber-800">
+                  Important: Location & Timezone Consistency
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  Please make sure all locations and venues you add to the
+                  schedule are within the camp&apos;s selected timezone:{" "}
+                  <span className="font-semibold text-amber-800">
+                    {timezoneName} ({timezone})
+                  </span>
+                  .
+                </p>
+                <p className="text-sm text-amber-700 mt-2">
+                  Incorrect timezone settings may cause schedule times to
+                  display incorrectly for referees and affect time
+                  synchronization.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="p-8 space-y-8">

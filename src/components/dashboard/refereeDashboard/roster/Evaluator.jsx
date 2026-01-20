@@ -12,6 +12,7 @@ export default function Evaluator({ camp_id }) {
   const { evaluators = [] } = roasterData || {};
 
   const [selectedEvaluator, setSelectedEvaluator] = useState(null);
+  console.log(roasterData, 'roaster data');
 
   const handleCardClick = (evaluator) => {
     setSelectedEvaluator(evaluator);

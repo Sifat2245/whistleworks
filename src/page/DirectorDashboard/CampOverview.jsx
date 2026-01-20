@@ -21,6 +21,8 @@ const CampOverview = () => {
   const directorEmail = data?.director?.email;
   const userEmail = userData?.email;
 
+  console.log(campData, 'data');
+
   const navigate = useNavigate();
 
   const [status, setStatus] = useState(data?.status);

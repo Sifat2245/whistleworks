@@ -2,14 +2,13 @@ import CommonSubmitBtn from "../common/CommonSubmitBtn";
 import CommonText from "../common/CommonText";
 import CommonTitle from "../common/CommonTitle";
 
-const ReadyToTrasform = () => {
+const ReadyToTrasform = ({operationData}) => {
   return (
     <div className="bg-border py-12 relative overflow-hidden">
       <div className="text-center mb-8">
-        <CommonTitle text="Ready to Transform Your Operations?" />
+        <CommonTitle text={`${operationData?.title}`} />
         <CommonText
-          text="Join hundreds of sports organizations using Whistle Works
-streamline their Referee camp management"
+          text={`${operationData?.description}`}
           className={"md:w-2/3 xl:w-1/3 mx-auto mt-5 text-neutral-500 text-lg"}
         />
       </div>

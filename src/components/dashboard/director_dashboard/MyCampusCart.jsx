@@ -16,7 +16,7 @@ const actions = [
   },
   {
     id: "court",
-    label: "Court List",
+    label: "Game Assignments",
     icon: <PiCourtBasketball className="text-xl shrink-0" />,
     path: "/director-dashboard/court-list",
   },

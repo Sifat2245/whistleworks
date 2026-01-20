@@ -108,6 +108,8 @@ export default function Schedule({ camp_id }) {
     return filteredGames.slice(0, visibleCount);
   }, [filteredGames, visibleCount]);
 
+  console.log(visibleGames, 'games');
+
   useEffect(() => {
     reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps

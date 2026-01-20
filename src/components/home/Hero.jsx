@@ -3,7 +3,7 @@ import CommonSubmitBtn from "../common/CommonSubmitBtn";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 
-const Hero = () => {
+const Hero = ({heroData}) => {
   const { userData } = useAuth();
   const userRole = userData?.role;
 
@@ -50,31 +50,20 @@ const Hero = () => {
           className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-snug sm:leading-tight md:leading-tight lg:leading-tight mx-auto max-w-4xl sm:max-w-5xl md:max-w-6xl"
           variants={itemVariants}
         >
-          Professional{" "}
-          <span className="text-primary inline-block mt-1 sm:mt-0">
-            Referee Camp
-          </span>{" "}
-          Management Made Simple
+         {heroData?.title}
         </motion.h1>
 
         <motion.p
           className="text-base sm:text-lg md:text-xl lg:text-2xl max-w-xs xs:max-w-sm sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto text-gray-100 px-2 sm:px-0"
           variants={itemVariants}
         >
-          Streamline scheduling, evaluations, and camp management with our
-          comprehensive platform designed for sports professionals.
+         {heroData?.description}
         </motion.p>
 
         <motion.div
           className="flex flex-col xs:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center items-center w-full max-w-xs xs:max-w-sm sm:max-w-md mx-auto"
           variants={itemVariants}
         >
-          {/* <CommonSubmitBtn
-            variant="primary"
-            className="w-full xs:w-auto min-w-40 sm:min-w-[180px] text-sm sm:text-base"
-          >
-            Start Free Trial
-          </CommonSubmitBtn> */}
 
           {userData ? (
             <CommonSubmitBtn
