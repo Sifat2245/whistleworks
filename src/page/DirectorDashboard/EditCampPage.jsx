@@ -10,7 +10,6 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AiOutlineUpload } from "react-icons/ai";
 import { useNavigate, useLoaderData } from "react-router-dom";
-
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -60,8 +59,8 @@ const EditCampPage = () => {
     defaultValues: {
       camp_name: data?.camp_name || "",
       location: data?.location || "",
-      latitude: data?.latitude || "",
-      longitude: data?.longitude || "",
+      latitude: data?.latitude || null,
+      longitude: data?.longitude || null,
       start_date: data?.start_date?.split("T")[0] || "",
       end_date: data?.end_date?.split("T")[0] || "",
       sports_type_id: data?.sport?.id || null,
@@ -110,11 +109,10 @@ const EditCampPage = () => {
       if (place?.geometry?.location) {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
-        const fullAddress = place.formatted_address || place.name || "";
 
-        setValue("location", fullAddress);
-        setValue("latitude", lat.toFixed(8));
-        setValue("longitude", lng.toFixed(8));
+        setValue("location", place.formatted_address || place.name || "");
+        setValue("latitude", lat);
+        setValue("longitude", lng);
       }
     }
   };
@@ -124,14 +122,21 @@ const EditCampPage = () => {
       const payload = new FormData();
       payload.append("camp_name", formData.camp_name);
       payload.append("location", formData.location);
-      payload.append("latitude", formData.latitude || ""); // optional
-      payload.append("longitude", formData.longitude || ""); // optional
+      if (formData.latitude != null && !isNaN(formData.latitude)) {
+        payload.append("latitude", formData.latitude);
+      }
+
+      if (formData.longitude != null && !isNaN(formData.longitude)) {
+        payload.append("longitude", formData.longitude);
+      }
       payload.append("start_date", formData.start_date);
       payload.append("end_date", formData.end_date);
       payload.append("sports_type_id", formData.sports_type_id);
       payload.append("camp_details", formData.camp_details);
       payload.append("price", formData.price);
       payload.append("timezone", formData.timezone);
+
+      console.log(payload, "edit camp");
 
       if (formData.camp_logo?.[0]) {
         payload.append("camp_logo", formData.camp_logo[0]);

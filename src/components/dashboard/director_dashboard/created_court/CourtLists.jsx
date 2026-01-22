@@ -270,10 +270,6 @@ const CourtLists = ({ campData }) => {
       <div className="text-center py-12 text-gray-500">No available dates.</div>
     );
 
-  const currentLocationName = availableLocations.find(
-    (l) => l.location_id === selectedLocationId,
-  )?.location_name;
-
   return (
     <div className="w-full mt-6 mb-16">
       {/* Location Filter */}
@@ -296,13 +292,6 @@ const CourtLists = ({ campData }) => {
               </span>
             </button>
           ))}
-        </div>
-      )}
-
-      {/* Selected Location Title */}
-      {availableLocations.length > 1 && currentLocationName && (
-        <div className="mb-4 text-2xl font-bold text-gray-800">
-          {currentLocationName}
         </div>
       )}
 

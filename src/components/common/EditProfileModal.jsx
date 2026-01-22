@@ -6,9 +6,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useState, useRef } from "react";
-
-// ── Google Maps Autocomplete ──────────────────────────────────────────────
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
+import { useAuth } from "@/hooks/useAuth";
 
 const libraries = ["places"];
 
@@ -16,9 +15,11 @@ const EditProfileModal = ({ open, onClose }) => {
   const queryClient = useQueryClient();
   const axiosInstance = useAxiosSecure();
 
+  const { userData } = useAuth();
+  console.log(userData, "from modal");
+
   const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-  // Track Google Maps script load state
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
   const autocompleteRef = useRef(null);
@@ -28,7 +29,15 @@ const EditProfileModal = ({ open, onClose }) => {
     register,
     formState: { errors },
     setValue,
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      first_name: userData?.first_name || "",
+      last_name: userData?.last_name || "",
+      address: userData?.address || "",
+      phone: userData?.phone || "",
+      biography: userData?.biography || "",
+    },
+  });
 
   const updateProfilInfoMutation = useMutation({
     mutationKey: ["update-profile-info"],
@@ -43,7 +52,7 @@ const EditProfileModal = ({ open, onClose }) => {
     onSuccess: (data) => {
       toast.success(data.message || "Profile updated successfully");
       queryClient.invalidateQueries({ queryKey: ["userData"], exact: true });
-      onClose(); // Close modal on success
+      onClose();
     },
     onError: (err) => {
       toast.error(err?.response?.data?.message || "Something went wrong!");
@@ -57,12 +66,9 @@ const EditProfileModal = ({ open, onClose }) => {
     formData.append("phone", data.phone);
     formData.append("address", data.address);
     formData.append("biography", data.biography);
+    // if (data.latitude) formData.append("latitude", data.latitude);
+    // if (data.longitude) formData.append("longitude", data.longitude);
 
-    // Optional: include lat/lng if your backend needs them
-    // formData.append("latitude", data.latitude);
-    // formData.append("longitude", data.longitude);
-
-    // console.log("Onsubmit data : ---->", data);
     updateProfilInfoMutation.mutate(formData);
   };
 
@@ -75,6 +81,8 @@ const EditProfileModal = ({ open, onClose }) => {
         const fullAddress = place.formatted_address || place.name || "";
 
         setValue("address", fullAddress);
+        // setValue("latitude", lat);
+        // setValue("longitude", lng);
       }
     }
   };
@@ -98,7 +106,6 @@ const EditProfileModal = ({ open, onClose }) => {
             exit={{ opacity: 0 }}
             onClick={onClose}
           >
-            {/* Modal box */}
             <motion.div
               className="bg-white rounded-lg p-6 w-[700px] max-w-[90vw]"
               initial={{ scale: 0.8, y: 50 }}
@@ -107,15 +114,15 @@ const EditProfileModal = ({ open, onClose }) => {
               transition={{ duration: 0.3 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-lg font-semibold mb-4">Edit Profile Information</h2>
+              <h2 className="text-lg font-semibold mb-4">
+                Edit Profile Information
+              </h2>
 
-              {/* modal content */}
               <form
                 onSubmit={handleSubmit(onSubmit)}
                 className="w-full grid grid-cols-1 gap-4"
               >
                 <div className="w-full grid grid-cols-2 gap-4">
-                  {/* first name */}
                   <CommonInputWrapper
                     label="First Name"
                     placeholder="Enter your first name"
@@ -124,7 +131,7 @@ const EditProfileModal = ({ open, onClose }) => {
                     errors={errors}
                     validationRules={{ required: "First name is required" }}
                   />
-                  {/* last name */}
+
                   <CommonInputWrapper
                     label="Last Name"
                     placeholder="Enter your last name"
@@ -133,7 +140,7 @@ const EditProfileModal = ({ open, onClose }) => {
                     errors={errors}
                     validationRules={{ required: "Last name is required" }}
                   />
-                  {/* address - Google Places Autocomplete */}
+
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Address <span className="text-red-500">*</span>
@@ -159,7 +166,9 @@ const EditProfileModal = ({ open, onClose }) => {
                           />
                         </Autocomplete>
                         {errors.address && (
-                          <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.address.message}
+                          </p>
                         )}
                       </div>
                     ) : (
@@ -169,7 +178,6 @@ const EditProfileModal = ({ open, onClose }) => {
                     )}
                   </div>
 
-                  {/* number */}
                   <CommonInputWrapper
                     label="Phone"
                     placeholder="Enter your number"
@@ -180,7 +188,6 @@ const EditProfileModal = ({ open, onClose }) => {
                   />
                 </div>
 
-                {/* biography */}
                 <CommonInputWrapper
                   label="Biography/Conferences"
                   type="textarea"
@@ -191,7 +198,6 @@ const EditProfileModal = ({ open, onClose }) => {
                   validationRules={{ required: "Biography is required" }}
                 />
 
-                {/* close & update buttons */}
                 <div className="w-full flex justify-between items-center mt-6">
                   <button
                     onClick={onClose}
@@ -207,9 +213,7 @@ const EditProfileModal = ({ open, onClose }) => {
                     className="cursor-pointer bg-primary text-white py-2 px-8 rounded-md border border-primary hover:bg-transparent hover:text-black hover:shadow-md transition-all duration-300 flex items-center gap-2"
                   >
                     {updateProfilInfoMutation?.isPending ? (
-                      <>
-                        Updating...
-                      </>
+                      <>Updating...</>
                     ) : (
                       "Update Info"
                     )}

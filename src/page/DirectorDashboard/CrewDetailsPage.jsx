@@ -9,12 +9,16 @@ import { FaDeleteLeft } from "react-icons/fa6";
 import toast from "react-hot-toast";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import Swal from "sweetalert2";
+import AddMemberModal from "@/components/dashboard/director_dashboard/Crew/AddMenberModal";
+import { useState } from "react";
 
 const CrewDetailsPage = () => {
   const { crewId } = useParams();
   const navigate = useNavigate();
   const axiosInstance = useAxiosSecure();
   const queryClient = useQueryClient();
+
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
 
   const {
     data: crewData,
@@ -70,9 +74,13 @@ const CrewDetailsPage = () => {
     });
   };
 
-//   const handleEdit = () => {
-//     toast.success("Edit functionality coming soon!");
-//   };
+  const handleOpenAddMemberModal = () => {
+    setIsAddMemberModalOpen(true);
+  };
+
+  const handleCloseAddMemberModal = () => {
+    setIsAddMemberModalOpen(false);
+  };
 
   if (isLoading) {
     return (
@@ -90,7 +98,8 @@ const CrewDetailsPage = () => {
     );
   }
 
-  const { name, status, member_count, members, assigned_games, camp } = crewData;
+  const { name, status, member_count, members, assigned_games, camp } =
+    crewData;
 
   return (
     <div className="w-full min-h-screen p-4 md:p-6 lg:p-8">
@@ -116,22 +125,22 @@ const CrewDetailsPage = () => {
               {status?.charAt(0).toUpperCase() + status?.slice(1)}
             </span>
             <span className="text-sm text-gray-500">
-              Camp: <span className="font-medium text-gray-700">{camp?.name}</span>
+              Camp:{" "}
+              <span className="font-medium text-gray-700">{camp?.name}</span>
             </span>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          {/* <CommonSubmitBtn
-          
+          <CommonSubmitBtn
             variant="primary"
-            onClick={handleEdit}
             className="px-5 flex items-center"
+            onClick={handleOpenAddMemberModal}
           >
             <BiEdit className="w-5 h-5 mr-2" />
-            Update Crew
-          </CommonSubmitBtn> */}
+            Add Member
+          </CommonSubmitBtn>
 
           <button
             onClick={handleDelete}
@@ -148,17 +157,23 @@ const CrewDetailsPage = () => {
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-black/15">
           <p className="text-gray-500 text-sm">Total Members</p>
-          <p className="text-3xl font-bold text-gray-800 mt-2">{member_count}</p>
+          <p className="text-3xl font-bold text-gray-800 mt-2">
+            {member_count}
+          </p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6 border border-black/15">
           <p className="text-gray-500 text-sm">Assigned Games</p>
-          <p className="text-3xl font-bold text-primary mt-2">{assigned_games}</p>
+          <p className="text-3xl font-bold text-primary mt-2">
+            {assigned_games}
+          </p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6 border border-black/15">
           <p className="text-gray-500 text-sm">Crew Status</p>
-          <p className="text-2xl font-bold text-green-600 mt-2 capitalize">{status}</p>
+          <p className="text-2xl font-bold text-green-600 mt-2 capitalize">
+            {status}
+          </p>
         </div>
       </div>
 
@@ -168,7 +183,9 @@ const CrewDetailsPage = () => {
 
         {members?.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed">
-            <p className="text-gray-500 text-lg">No members in this crew yet.</p>
+            <p className="text-gray-500 text-lg">
+              No members in this crew yet.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -178,6 +195,14 @@ const CrewDetailsPage = () => {
           </div>
         )}
       </div>
+      {isAddMemberModalOpen && (
+        <AddMemberModal
+          open={isAddMemberModalOpen}
+          onClose={handleCloseAddMemberModal}
+          crewId={crewId}
+          campId={camp?.id}
+        />
+      )}
     </div>
   );
 };

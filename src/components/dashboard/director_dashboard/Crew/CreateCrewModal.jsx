@@ -7,6 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2"; // ← added
 
 const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
   const axiosInstance = useAxiosSecure();
@@ -18,7 +19,6 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
 
   const refereesListRef = useRef(null);
 
-  // Infinite query for paginated referees
   const {
     data,
     isLoading: loadingReferees,
@@ -31,42 +31,29 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
     queryFn: async ({ pageParam = 1 }) => {
       const res = await axiosInstance.get(
         `/v1/camp/${campId}/available-referees-for-crew`,
-        {
-          params: { page: pageParam },
-        }
+        { params: { page: pageParam } }
       );
       return res?.data?.data;
     },
     getNextPageParam: (lastPage) => {
-      // Critical safety check - prevent crash when lastPage is undefined
-      if (!lastPage || !lastPage.pagination) {
-        return undefined;
-      }
-
+      if (!lastPage || !lastPage.pagination) return undefined;
       const current = Number(lastPage.pagination.current_page);
       const total = Number(lastPage.pagination.last_page);
-
-      // Handle invalid/missing numbers
-      if (isNaN(current) || isNaN(total)) {
-        return undefined;
-      }
-
+      if (isNaN(current) || isNaN(total)) return undefined;
       return current < total ? current + 1 : undefined;
     },
     initialPageParam: 1,
     enabled: !!campId && openModal,
-    staleTime: 1 * 60 * 1000, // 1 minutes
+    staleTime: 1 * 60 * 1000,
   });
 
-  // Flatten all loaded pages into one array
   const allReferees = data?.pages?.flatMap((page) => page?.referees || []) || [];
 
-  // Client-side filtering
   const filteredReferees = allReferees.filter((ref) =>
     ref?.name?.toLowerCase?.().includes(searchTerm.toLowerCase())
   );
 
-  // Infinite scroll observer
+  // Infinite scroll observer (unchanged)
   useEffect(() => {
     if (
       !refereesListRef.current ||
@@ -79,11 +66,9 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage();
-        }
+        if (entries[0].isIntersecting) fetchNextPage();
       },
-      { threshold: 0.1, rootMargin: "200px" } // trigger earlier
+      { threshold: 0.1, rootMargin: "200px" }
     );
 
     const sentinel = document.createElement("div");
@@ -94,13 +79,10 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
 
     return () => {
       observer.disconnect();
-      if (sentinel.parentNode) {
-        sentinel.parentNode.removeChild(sentinel);
-      }
+      sentinel.parentNode?.removeChild(sentinel);
     };
   }, [hasNextPage, isFetchingNextPage, loadingReferees, fetchNextPage]);
 
-  // Toggle referee selection (max 6)
   const handleRefereeToggle = (referee) => {
     setSelectedReferees((prev) => {
       const exists = prev.find((r) => r.id === referee.id);
@@ -115,7 +97,6 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
     });
   };
 
-  // Create crew mutation
   const createCrewMutation = useMutation({
     mutationFn: async (payload) => {
       const res = await axiosInstance.post(
@@ -130,17 +111,43 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
       handleCloseModal();
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to create crew");
+      const errData = error?.response?.data;
+      const errorMessage =
+        errData?.message ||
+        errData?.data ||
+        "Failed to create crew. Please try again.";
+
+      // Show prominent error with SweetAlert2
+      Swal.fire({
+        icon: "error",
+        title: "Creation Failed",
+        text: errorMessage,
+        confirmButtonColor: "#d33",
+        confirmButtonText: "Okay",
+        allowOutsideClick: false, 
+      });
+
     },
   });
 
   const handleCreateCrew = () => {
     if (!crewName.trim()) {
-      toast.error("Crew name is required");
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Name",
+        text: "Crew name is required",
+        confirmButtonColor: "#3085d6",
+      });
       return;
     }
+
     if (selectedReferees.length === 0) {
-      toast.error("Please select at least one referee");
+      Swal.fire({
+        icon: "warning",
+        title: "No Referees",
+        text: "Please select at least one referee",
+        confirmButtonColor: "#3085d6",
+      });
       return;
     }
 
@@ -152,7 +159,6 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
     createCrewMutation.mutate(payload);
   };
 
-  // Reset form when modal opens
   useEffect(() => {
     if (openModal) {
       setCrewName("");
@@ -233,8 +239,6 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
                   );
                   const isDisabled =
                     !isSelected && selectedReferees.length >= 6;
-
-                    console.log(ref, 'referee');
 
                   return (
                     <div

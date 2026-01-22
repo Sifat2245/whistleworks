@@ -1,9 +1,5 @@
 // components/dashboard/refereeDashboard/Performance/RecentFeedback.jsx
-import { format } from "date-fns";
-import Icon from "@/components/common/Icon";
-import success from "@/assets/svg/circel-check.svg";
-import warning from "@/assets/svg/worning.svg";
-
+import { format } from "date-fns"
 export default function RecentFeedback({ feedbackList = [] }) {
   // No separate isLoading here – loading is handled in parent
 
@@ -28,7 +24,6 @@ export default function RecentFeedback({ feedbackList = [] }) {
         {recentEvals.map((evalItem) => {
           // Calculate average score: total_score / max_score * 10 → x.x/10
           const averageScore = (evalItem?.total_score / evalItem?.max_score) * 10;
-          const isPositive = averageScore >= 7;
           const feedbackText = evalItem?.feedback || "No written feedback provided.";
 
           return (
@@ -36,16 +31,7 @@ export default function RecentFeedback({ feedbackList = [] }) {
               key={evalItem.id}
               className="bg-[#F5F5F5] py-3 px-4 rounded-lg mb-3 flex gap-3 last:mb-0"
             >
-              <div
-                className={`${
-                  isPositive ? "bg-[#DCFCE7]" : "bg-[#FFEDD4]"
-                } p-2.5 rounded-[10px] h-fit`}
-              >
-                <Icon
-                  src={isPositive ? success : warning}
-                  className="size-6"
-                />
-              </div>
+            
               <div className="flex-1">
                 <p className="font-medium">
                   {evalItem?.camp_name} • {averageScore.toFixed(1)}/10
