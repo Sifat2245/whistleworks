@@ -23,7 +23,7 @@ export default function MyGames({ camp_id }) {
       );
       return res?.data?.data || {};
     },
-    keepPreviousData: true, // Smooth page transitions
+    keepPreviousData: true,
   });
 
   // Check for specific 403 error from API response

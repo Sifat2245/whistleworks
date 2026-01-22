@@ -3,13 +3,13 @@ import CommonText from "../common/CommonText";
 import CommonTitle from "../common/CommonTitle";
 import CommonSubmitBtn from "../common/CommonSubmitBtn";
 
-const TrainingCamps = () => {
+const TrainingCamps = ({trainingCampData}) => {
   return (
     <div className="md:pt-16 pt-10">
       <div className="text-center px-3">
-        <CommonTitle text="Available Training Camps" />
+        <CommonTitle text={`${trainingCampData?.title}`} />
         <CommonText
-          text="Browse and register for upcoming Sports referee training camps and workshops led by experienced directors."
+          text={`${trainingCampData?.description}`}
           className={
             "my-5 md:my-0 md:mt-5 md:mb-12 md:w-1/2 mx-auto text-neutral-500"
           }

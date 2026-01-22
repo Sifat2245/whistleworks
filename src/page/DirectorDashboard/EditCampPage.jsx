@@ -4,25 +4,22 @@ import LoaderV2 from "@/components/common/LoaderV2";
 import CommonSectionTitle from "@/components/dashboard/director_dashboard/CommonSectionTitle";
 import { useGetSportsType } from "@/hooks/get-sports-type";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AiOutlineUpload } from "react-icons/ai";
 import { useNavigate, useLoaderData } from "react-router-dom";
-
-// ── Tiptap & Icons ────────────────────────────────────────────────────────
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { 
-  RiBold, 
-  RiItalic, 
-  RiH2, 
-  RiListUnordered, 
-  RiListOrdered 
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import {
+  RiBold,
+  RiItalic,
+  RiH2,
+  RiListUnordered,
+  RiListOrdered,
 } from "react-icons/ri";
 
-// ── Google Maps Autocomplete ──────────────────────────────────────────────
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import BackBtn from "@/components/common/BackBtn";
 
@@ -35,6 +32,14 @@ const EditCampPage = () => {
   const navigate = useNavigate();
 
   const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  const { data: timeZones } = useQuery({
+    queryKey: ["get-timezones"],
+    queryFn: async () => {
+      const res = await axiosSecure.get("/v1/timezones/available");
+      return res?.data?.data?.timezones || [];
+    },
+  });
 
   const { getSportsType } = useGetSportsType();
 
@@ -49,36 +54,36 @@ const EditCampPage = () => {
     formState: { errors },
     watch,
     setValue,
-    control
+    control,
   } = useForm({
     defaultValues: {
       camp_name: data?.camp_name || "",
       location: data?.location || "",
-      latitude: data?.latitude || "",   // optional if you store it
-      longitude: data?.longitude || "", // optional
+      latitude: data?.latitude || null,
+      longitude: data?.longitude || null,
       start_date: data?.start_date?.split("T")[0] || "",
       end_date: data?.end_date?.split("T")[0] || "",
       sports_type_id: data?.sport?.id || null,
       camp_details: data?.camp_details || "",
       price: data?.price || "",
       camp_logo: null,
+      timezone: data?.timezone || "",
     },
   });
 
-  // ── Tiptap Rich Text Editor Setup ──────────────────────────────────────
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
-        bulletList: { HTMLAttributes: { class: 'list-disc ml-6' } },
-        orderedList: { HTMLAttributes: { class: 'list-decimal ml-6' } },
+        bulletList: { HTMLAttributes: { class: "list-disc ml-6" } },
+        orderedList: { HTMLAttributes: { class: "list-decimal ml-6" } },
       }),
     ],
     content: watch("camp_details"),
     editorProps: {
       attributes: {
         class:
-          'prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none min-h-[200px] p-4 border border-gray-300 border-t-0 rounded-b-xl bg-white',
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none min-h-[200px] p-4 border border-gray-300 border-t-0 rounded-b-xl bg-white",
       },
     },
     onUpdate: ({ editor }) => {
@@ -104,11 +109,10 @@ const EditCampPage = () => {
       if (place?.geometry?.location) {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
-        const fullAddress = place.formatted_address || place.name || "";
 
-        setValue("location", fullAddress);
-        setValue("latitude", lat.toFixed(8));
-        setValue("longitude", lng.toFixed(8));
+        setValue("location", place.formatted_address || place.name || "");
+        setValue("latitude", lat);
+        setValue("longitude", lng);
       }
     }
   };
@@ -118,13 +122,21 @@ const EditCampPage = () => {
       const payload = new FormData();
       payload.append("camp_name", formData.camp_name);
       payload.append("location", formData.location);
-      payload.append("latitude", formData.latitude || "");   // optional
-      payload.append("longitude", formData.longitude || ""); // optional
+      if (formData.latitude != null && !isNaN(formData.latitude)) {
+        payload.append("latitude", formData.latitude);
+      }
+
+      if (formData.longitude != null && !isNaN(formData.longitude)) {
+        payload.append("longitude", formData.longitude);
+      }
       payload.append("start_date", formData.start_date);
       payload.append("end_date", formData.end_date);
       payload.append("sports_type_id", formData.sports_type_id);
       payload.append("camp_details", formData.camp_details);
       payload.append("price", formData.price);
+      payload.append("timezone", formData.timezone);
+
+      console.log(payload, "edit camp");
 
       if (formData.camp_logo?.[0]) {
         payload.append("camp_logo", formData.camp_logo[0]);
@@ -183,9 +195,7 @@ const EditCampPage = () => {
             <label className="capitalize font-medium text-[#333] text-sm sm:text-base lg:text-lg">
               Camp Logo
             </label>
-            <label
-              className="cursor-pointer w-full h-28 sm:h-32 md:h-36 lg:h-40 flex flex-col sm:flex-row gap-2 sm:gap-3 items-center justify-center border-[0.5px] border-primary rounded-xl sm:rounded-2xl hover:bg-primary/5 transition-colors duration-300 relative"
-            >
+            <label className="cursor-pointer w-full h-28 sm:h-32 md:h-36 lg:h-40 flex flex-col sm:flex-row gap-2 sm:gap-3 items-center justify-center border-[0.5px] border-primary rounded-xl sm:rounded-2xl hover:bg-primary/5 transition-colors duration-300 relative">
               {campLogoPreview ? (
                 <img
                   src={campLogoPreview}
@@ -222,7 +232,9 @@ const EditCampPage = () => {
 
             <div className="relative">
               <Autocomplete
-                onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                onLoad={(autocomplete) =>
+                  (autocompleteRef.current = autocomplete)
+                }
                 onPlaceChanged={onPlaceChanged}
                 options={{
                   fields: ["formatted_address", "geometry", "name"],
@@ -240,7 +252,9 @@ const EditCampPage = () => {
               </Autocomplete>
 
               {errors.location && (
-                <p className="text-red-500 text-sm mt-1">{errors.location.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.location.message}
+                </p>
               )}
 
               {/* Hidden fields for lat/lng */}
@@ -248,6 +262,18 @@ const EditCampPage = () => {
               <input type="hidden" {...register("longitude")} />
             </div>
           </div>
+
+          <CommonInputWrapperV2
+            control={control}
+            options={timeZones}
+            label="Timezone"
+            type="select"
+            placeholder="Select timezone"
+            register_as="timezone"
+            register={register}
+            errors={errors}
+            validationRules={{ required: "Timezone is required" }}
+          />
 
           {/* Start & End Date */}
           <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
@@ -270,7 +296,10 @@ const EditCampPage = () => {
                 validate: (value) => {
                   const start = watch("start_date");
                   if (!start) return true;
-                  return new Date(value) >= new Date(start) || "End date must be after start date";
+                  return (
+                    new Date(value) >= new Date(start) ||
+                    "End date must be after start date"
+                  );
                 },
               }}
             />
@@ -299,7 +328,7 @@ const EditCampPage = () => {
               <button
                 type="button"
                 onClick={() => editor?.chain().focus().toggleBold().run()}
-                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('bold') ? 'bg-gray-300' : ''}`}
+                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive("bold") ? "bg-gray-300" : ""}`}
                 title="Bold"
               >
                 <RiBold size={20} />
@@ -307,15 +336,17 @@ const EditCampPage = () => {
               <button
                 type="button"
                 onClick={() => editor?.chain().focus().toggleItalic().run()}
-                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('italic') ? 'bg-gray-300' : ''}`}
+                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive("italic") ? "bg-gray-300" : ""}`}
                 title="Italic"
               >
                 <RiItalic size={20} />
               </button>
               <button
                 type="button"
-                onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('heading', { level: 2 }) ? 'bg-gray-300' : ''}`}
+                onClick={() =>
+                  editor?.chain().focus().toggleHeading({ level: 2 }).run()
+                }
+                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive("heading", { level: 2 }) ? "bg-gray-300" : ""}`}
                 title="Heading 2"
               >
                 <RiH2 size={20} />
@@ -323,15 +354,17 @@ const EditCampPage = () => {
               <button
                 type="button"
                 onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('bulletList') ? 'bg-gray-300' : ''}`}
+                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive("bulletList") ? "bg-gray-300" : ""}`}
                 title="Bullet List"
               >
                 <RiListUnordered size={20} />
               </button>
               <button
                 type="button"
-                onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('orderedList') ? 'bg-gray-300' : ''}`}
+                onClick={() =>
+                  editor?.chain().focus().toggleOrderedList().run()
+                }
+                className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive("orderedList") ? "bg-gray-300" : ""}`}
                 title="Numbered List"
               >
                 <RiListOrdered size={20} />
@@ -343,14 +376,18 @@ const EditCampPage = () => {
             </div>
 
             {errors.camp_details && (
-              <p className="text-red-500 text-sm mt-1">{errors.camp_details.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.camp_details.message}
+              </p>
             )}
 
             <input
               type="hidden"
               {...register("camp_details", {
                 required: "Camp details are required",
-                validate: (value) => value !== "<p></p>" && value !== "" || "Please provide camp details",
+                validate: (value) =>
+                  (value !== "<p></p>" && value !== "") ||
+                  "Please provide camp details",
               })}
             />
           </div>

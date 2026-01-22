@@ -1,6 +1,6 @@
 // CourtLists.jsx
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom"; // Added for URL params
+import { useSearchParams } from "react-router-dom";
 import ScheduleAddModal from "./ScheduleAddModal";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,7 +35,7 @@ const CourtLists = ({ campData }) => {
     queryKey: ["available-dates", campData?.id],
     queryFn: async () => {
       const response = await axiosInstance.get(
-        `/v1/camp/${campData?.id}/schedule/game-slots`
+        `/v1/camp/${campData?.id}/schedule/game-slots`,
       );
       return response?.data?.data;
     },
@@ -53,8 +53,7 @@ const CourtLists = ({ campData }) => {
     // Set date
     if (availableDates.length > 0) {
       const dateItem =
-        urlDate &&
-        availableDates.find((d) => d.date.startsWith(urlDate))
+        urlDate && availableDates.find((d) => d.date.startsWith(urlDate))
           ? availableDates.find((d) => d.date.startsWith(urlDate))
           : availableDates[0];
 
@@ -66,9 +65,7 @@ const CourtLists = ({ campData }) => {
     if (availableLocations.length > 0) {
       const locationId =
         urlLocation &&
-        availableLocations.some(
-          (l) => l.location_id.toString() === urlLocation
-        )
+        availableLocations.some((l) => l.location_id.toString() === urlLocation)
           ? parseInt(urlLocation)
           : availableLocations[0].location_id;
 
@@ -88,7 +85,10 @@ const CourtLists = ({ campData }) => {
     const newDate = item.date.split("T")[0];
     setActiveFilter(item.formatted);
     setSelectedDate(newDate);
-    updateUrlParams(newDate, selectedLocationId || availableLocations[0]?.location_id);
+    updateUrlParams(
+      newDate,
+      selectedLocationId || availableLocations[0]?.location_id,
+    );
   };
 
   const handleLocationClick = (locationId) => {
@@ -101,7 +101,7 @@ const CourtLists = ({ campData }) => {
     queryKey: ["court-info", campData?.id, selectedDate],
     queryFn: async () => {
       const response = await axiosInstance.get(
-        `/v1/camp/${campData?.id}/schedule/game-slots?date=${selectedDate}`
+        `/v1/camp/${campData?.id}/schedule/game-slots?date=${selectedDate}`,
       );
       return response?.data?.data;
     },
@@ -124,12 +124,20 @@ const CourtLists = ({ campData }) => {
       : slot.courts;
   };
 
-  // Mutations
-  const updateCourtNameMutation = useMutation({
-    mutationFn: async ({ slot_id, court_name }) => {
-      const res = await axiosInstance.patch(
-        `/v1/slot/${slot_id}/update-court-name`,
-        { court_name }
+  const cancelEdit = () => {
+    setEditingSlotId(null);
+    setEditValue("");
+  };
+
+  const bulkUpdateCourtNamesMutation = useMutation({
+    mutationFn: async ({ location_id, court_number, new_court_name }) => {
+      const formData = new FormData();
+      formData.append("court_number", court_number);
+      formData.append("new_court_name", new_court_name.trim());
+
+      const res = await axiosInstance.post(
+        `/v1/location/${location_id}/courts/bulk-update-names`,
+        formData,
       );
       return res?.data;
     },
@@ -138,44 +146,31 @@ const CourtLists = ({ campData }) => {
       queryClient.invalidateQueries({
         queryKey: ["court-info", campData?.id, selectedDate],
       });
+      cancelEdit();
     },
     onError: (error) => {
       toast.error(
-        error?.response?.data?.message || "Failed to update court name"
+        error?.response?.data?.message || "Failed to update court name",
       );
     },
   });
-
-  const startEditing = (slotId, currentName) => {
-    setEditingSlotId(slotId);
+  const startEditing = (courtIdentifier, currentName) => {
+    setEditingSlotId(courtIdentifier);
     setEditValue(currentName || "");
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  const saveEdit = () => {
+  const saveEditBulk = (locationId, courtNumber) => {
     if (!editValue.trim()) {
       toast.error("Court name cannot be empty");
       return;
     }
 
-    if (editingSlotId) {
-      updateCourtNameMutation.mutate({
-        slot_id: editingSlotId,
-        court_name: editValue.trim(),
-      });
-    }
-    setEditingSlotId(null);
-    setEditValue("");
-  };
-
-  const cancelEdit = () => {
-    setEditingSlotId(null);
-    setEditValue("");
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") saveEdit();
-    else if (e.key === "Escape") cancelEdit();
+    bulkUpdateCourtNamesMutation.mutate({
+      location_id: locationId,
+      court_number: courtNumber,
+      new_court_name: editValue.trim(),
+    });
   };
 
   const toggleBlockMutation = useMutation({
@@ -222,7 +217,7 @@ const CourtLists = ({ campData }) => {
     mutationFn: async ({ date, start_time, action }) => {
       const res = await axiosInstance.post(
         `/v1/schedule/${scheduleId}/bulk-toggle-block`,
-        { date, start_time, action }
+        { date, start_time, action },
       );
       return res?.data;
     },
@@ -233,7 +228,9 @@ const CourtLists = ({ campData }) => {
       });
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to update time slot");
+      toast.error(
+        error?.response?.data?.message || "Failed to update time slot",
+      );
     },
   });
 
@@ -269,11 +266,9 @@ const CourtLists = ({ campData }) => {
 
   if (loadingInitial || isLoading) return <ScheduleSkeleton />;
   if (availableDates.length === 0)
-    return <div className="text-center py-12 text-gray-500">No available dates.</div>;
-
-  const currentLocationName = availableLocations.find(
-    (l) => l.location_id === selectedLocationId
-  )?.location_name;
+    return (
+      <div className="text-center py-12 text-gray-500">No available dates.</div>
+    );
 
   return (
     <div className="w-full mt-6 mb-16">
@@ -285,9 +280,10 @@ const CourtLists = ({ campData }) => {
               key={loc.location_id}
               onClick={() => handleLocationClick(loc.location_id)}
               className={`border border-[#00AEEF] px-6 py-3 rounded-lg whitespace-nowrap font-medium transition-all cursor-pointer flex items-center gap-3
-                ${selectedLocationId === loc.location_id
-                  ? "bg-[#00AEEF] text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
+                ${
+                  selectedLocationId === loc.location_id
+                    ? "bg-[#00AEEF] text-white shadow-lg"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
                 }`}
             >
               <span>{loc.location_name}</span>
@@ -299,13 +295,6 @@ const CourtLists = ({ campData }) => {
         </div>
       )}
 
-      {/* Selected Location Title */}
-      {availableLocations.length > 1 && currentLocationName && (
-        <div className="mb-4 text-2xl font-bold text-gray-800">
-          {currentLocationName}
-        </div>
-      )}
-
       {/* Date Filter */}
       <div className="flex gap-4 mb-8 overflow-x-auto pb-6">
         {availableDates.map((item) => (
@@ -313,9 +302,10 @@ const CourtLists = ({ campData }) => {
             key={item.formatted}
             onClick={() => handleDateClick(item)}
             className={`border border-[#00AEEF] px-8 py-4 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer
-              ${activeFilter === item.formatted
-                ? "bg-[#00AEEF] text-white shadow-lg"
-                : "bg-white text-gray-700 hover:bg-gray-50"
+              ${
+                activeFilter === item.formatted
+                  ? "bg-[#00AEEF] text-white shadow-lg"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
           >
             <div className="text-center font-semibold">{item.formatted}</div>
@@ -332,21 +322,80 @@ const CourtLists = ({ campData }) => {
               <div className="w-34 shrink-0 px-6 py-6 text-lg font-semibold sticky left-0 bg-gray-50 z-30 border-r border-gray-300">
                 <span>Time</span>
               </div>
+
               <div className="flex gap-6 py-6">
-                {filteredCourtHeaders.map((court) => (
-                  <div key={court.court_number} className="shrink-0 w-72 text-center">
-                    <div className="text-red-600 text-sm font-medium">
-                      {court?.location_name || court?.location}
+                {filteredCourtHeaders.map((court) => {
+                  const isEditingThisCourt =
+                    editingSlotId === court.court_number;
+
+                  return (
+                    <div
+                      key={court.court_number}
+                      className="shrink-0 w-72 text-center"
+                    >
+                      {/* Court name - editable only on Enter */}
+                      {isEditingThisCourt ? (
+                        <div className="relative">
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                saveEditBulk(
+                                  court.location_id,
+                                  court.court_number,
+                                );
+                              } else if (e.key === "Escape") {
+                                cancelEdit();
+                              }
+                            }}
+                            className="text-[#00AEEF] font-bold text-xl bg-white border-b-2 border-[#00AEEF] outline-none px-2 py-1 text-center w-full"
+                            placeholder="Court name..."
+                            autoFocus
+                          />
+
+                          {/* Optional small hint while editing */}
+                          <div className="absolute -bottom-5 left-0 right-0 text-xs text-gray-500 text-center pointer-events-none">
+                            Press Enter to save • Esc to cancel
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() =>
+                            startEditing(
+                              court.court_number,
+                              court.court_name || `Court ${court.court_number}`,
+                            )
+                          }
+                          className="text-[#00AEEF] font-bold text-xl cursor-pointer hover:opacity-80 transition-opacity flex justify-center items-center gap-2 group"
+                          title="Click to edit court name (updates all time slots)"
+                        >
+                          {court.court_name || `Court ${court.court_number}`}
+                          <MdModeEditOutline className="opacity-0 group-hover:opacity-100 transition-opacity text-lg" />
+                        </div>
+                      )}
+
+                      {/* Location hint when multiple locations exist */}
+                      {!isEditingThisCourt && (
+                        <div className="text-xs text-gray-500 mt-1 truncate">
+                          {court.location}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
             {/* Rows */}
             {timeSlots.map((slot) => {
               const filteredCourts = getFilteredCourtsForSlot(slot);
-              const allBlocked = filteredCourts.every((court) => court.is_blocked);
+              const allBlocked = filteredCourts.every(
+                (court) => court.is_blocked,
+              );
 
               return (
                 <div
@@ -357,16 +406,25 @@ const CourtLists = ({ campData }) => {
                     <span>{slot.time}</span>
 
                     <button
-                      onClick={() => handleBulkBlock(slot.time_24h, selectedDate)}
+                      onClick={() =>
+                        handleBulkBlock(slot.time_24h, selectedDate)
+                      }
                       disabled={bulkToggleBlockMutation.isPending}
                       className={`rounded-lg px-4 py-2 flex items-center gap-2 text-white font-medium transition-all cursor-pointer
-                        ${allBlocked
-                          ? "bg-green-400 hover:bg-green-500"
-                          : "bg-red-400 hover:bg-red-500"
+                        ${
+                          allBlocked
+                            ? "bg-green-400 hover:bg-green-500"
+                            : "bg-red-400 hover:bg-red-500"
                         } disabled:opacity-70 disabled:cursor-not-allowed`}
                     >
-                      {allBlocked ? <HiLockOpen className="w-3 h-3" /> : <HiLockClosed className="w-3 h-3" />}
-                      <span className="text-xs">{allBlocked ? "Unblock" : "Block"}</span>
+                      {allBlocked ? (
+                        <HiLockOpen className="w-3 h-3" />
+                      ) : (
+                        <HiLockClosed className="w-3 h-3" />
+                      )}
+                      <span className="text-xs">
+                        {allBlocked ? "Unblock" : "Block"}
+                      </span>
                     </button>
                   </div>
 
@@ -377,30 +435,6 @@ const CourtLists = ({ campData }) => {
 
                       return (
                         <div key={court.slot_id} className="shrink-0 w-72">
-                          {/* Editable Court Name */}
-                          <div className="text-center mb-4">
-                            {editingSlotId === court.slot_id ? (
-                              <input
-                                ref={inputRef}
-                                type="text"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                onBlur={saveEdit}
-                                className="text-[#00AEEF] font-bold text-xl bg-white border-b-2 border-[#00AEEF] outline-none px-2 py-1 text-center w-full"
-                                placeholder="Court name..."
-                              />
-                            ) : (
-                              <div
-                                onClick={() => startEditing(court.slot_id, court.court_name)}
-                                className="text-[#00AEEF] font-bold text-xl cursor-pointer hover:opacity-80 transition-opacity text-center flex justify-center items-center gap-3"
-                                title="Click to edit court name"
-                              >
-                                {court?.court_name || `Court ${court.court_number}`} <MdModeEditOutline />
-                              </div>
-                            )}
-                          </div>
-
                           {/* Court Slot Box */}
                           <CourtSlotBox
                             court={court}

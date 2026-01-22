@@ -17,7 +17,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Swal from "sweetalert2";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQueryClient } from "@tanstack/react-query";
-import { BiOutline } from "react-icons/bi";
+import { BiOutline, BiPhone } from "react-icons/bi";
 
 const RosterTable = ({ referees = [], campId }) => {
   const axiosInstance = useAxiosSecure();
@@ -231,20 +231,20 @@ const RosterTable = ({ referees = [], campId }) => {
               >
                 {row.original.name || "Unnamed Referee"}
               </button>
-              <div className="text-sm text-gray-500">Referee</div>
+              <div className="text-sm text-gray-500">{row.original.address}</div>
             </div>
           </div>
         ),
       },
       {
-        accessorKey: "email",
+        accessorKey: "phone",
         header: "Contact",
         cell: ({ row }) => (
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-gray-700">
-              <MdEmail className="text-gray-400 text-lg" />
+              <BiPhone className="text-gray-400 text-lg" />
               <span className="text-sm truncate max-w-[200px]">
-                {row.original.email || "N/A"}
+                {row.original.phone || "N/A"}
               </span>
             </div>
           </div>
