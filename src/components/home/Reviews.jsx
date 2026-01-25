@@ -6,49 +6,86 @@ const Reviews = ({ testimonialTitle, testimonials = [] }) => {
   const subtitle =
     testimonialTitle?.description ||
     "Trusted by directors, referees, and administrators worldwide";
+
+  // Use the real field names from your JSON data
   const displayedTestimonials = testimonials.length > 0 ? testimonials : [];
 
   return (
-    <div className="container md:my-16 my-10">
-      <div className="text-center">
+    <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
+      {/* Header */}
+      <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14 lg:mb-16">
         <CommonTitle text={title} />
-        <CommonText text={subtitle} className="text-neutral-500 mt-4" />
+        <CommonText
+          text={subtitle}
+          className="text-neutral-600 mt-3 md:mt-4 text-base md:text-lg"
+        />
       </div>
 
+      {/* Testimonials Grid */}
       {displayedTestimonials.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 xl:gap-8 lg:gap-6 md:gap-5 gap-4 xl:mt-12 lg:mt-10 md:mt-8 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
           {displayedTestimonials.map((review) => (
             <div
               key={review.id}
-              className="xl:p-6 lg:p-5 md:p-4 p-3 bg-white rounded-lg shadow-lg/5 border border-neutral-200 flex flex-col transition-all hover:shadow-xl hover:border-primary/30"
+              className={`
+                bg-white rounded-xl shadow-sm border border-neutral-200 
+                p-5 sm:p-6 lg:p-7 
+                flex flex-col 
+                transition-all duration-300 
+                hover:shadow-md hover:border-primary/30 
+                hover:-translate-y-1
+              `}
             >
-              <p className="text-neutral-600 leading-relaxed grow">
-                {review.feedback || review.description || review.content}
-              </p>
+              {/* Review Text */}
+              <div className="grow">
+                <p className="text-neutral-700 leading-relaxed text-base sm:text-[15px] lg:text-base">
+                  {review.review_text ||
+                    review.feedback ||
+                    review.description ||
+                    review.content ||
+                    "No review text provided"}
+                </p>
+              </div>
 
-              <div className="flex items-center gap-3 mt-6">
-                {/* Avatar - with fallback */}
+              {/* Author Info */}
+              <div className="flex items-center gap-3 sm:gap-4 mt-6 pt-4 border-t border-neutral-100">
+                {/* Avatar with fallback */}
                 <div className="shrink-0">
-                  {review.avatar || review.image ? (
+                  {review.author_avatar ||
+                  review.avatar ||
+                  review.image ? (
                     <img
-                      src={review.avatar || review.image}
-                      alt={review.name || "User"}
-                      className="xl:w-16 lg:w-14 w-12 xl:h-16 lg:h-14 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                      src={
+                        review.author_avatar ||
+                        review.avatar ||
+                        review.image
+                      }
+                      alt={review.author_name || "User"}
+                      className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-white shadow-sm"
                       loading="lazy"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://via.placeholder.com/64?text=User";
+                        e.target.onerror = null;
+                      }}
                     />
                   ) : (
-                    <div className="xl:w-16 lg:w-14 w-12 xl:h-16 lg:h-14 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
-                      {review.name?.[0]?.toUpperCase() || "?"}
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-600 font-semibold text-lg sm:text-xl shadow-sm">
+                      {(review.author_name || "?")[0]?.toUpperCase()}
                     </div>
                   )}
                 </div>
 
+                {/* Name & Designation */}
                 <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {review.name || "Anonymous User"}
+                  <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
+                    {review.author_name || "Anonymous User"}
                   </h3>
-                  <p className="text-sm text-neutral-500">
-                    {review.role || review.position || "Referee / Director"}
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    {review.designation ||
+                      review.role ||
+                      review.position ||
+                      "User"}
                   </p>
                 </div>
               </div>
@@ -56,11 +93,16 @@ const Reviews = ({ testimonialTitle, testimonials = [] }) => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 text-neutral-500">
-          No testimonials available yet — be the first to share your experience!
+        <div className="text-center py-16 md:py-20 text-neutral-500 bg-neutral-50/50 rounded-xl border border-dashed border-neutral-300">
+          <p className="text-lg md:text-xl font-medium">
+            No testimonials available yet
+          </p>
+          <p className="mt-2 text-sm md:text-base">
+            Be the first to share your experience!
+          </p>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

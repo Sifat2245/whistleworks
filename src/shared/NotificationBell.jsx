@@ -1,7 +1,6 @@
-// src/components/common/NotificationBell.jsx
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { IoNotificationsOutline, IoClose } from "react-icons/io5";
+import { IoNotificationsOutline, IoClose, IoCalendar, IoPerson, IoDocumentText, IoTrash } from "react-icons/io5";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
@@ -13,20 +12,19 @@ const NotificationBell = () => {
   const dropdownRef = useRef(null);
   const observerRef = useRef(null);
 
-  // Fetch notification counts
+  // Fetch unread count
   const { data: countsData } = useQuery({
     queryKey: ["notification-counts"],
     queryFn: async () => {
       const res = await axiosInstance.get("/notifications/counts");
       return res?.data?.data || { total_unread: 0 };
     },
-    refetchInterval: 60000,
-    staleTime: 30000,
+    refetchInterval: 30000, // more responsive
   });
 
   const unreadCount = countsData?.total_unread || 0;
 
-  // Fetch paginated notifications
+  // Infinite query for notifications
   const {
     data,
     fetchNextPage,
@@ -36,242 +34,227 @@ const NotificationBell = () => {
   } = useInfiniteQuery({
     queryKey: ["my-notifications"],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await axiosInstance.get("/notifications", {
-        params: { page: pageParam },
-      });
+      const res = await axiosInstance.get("/notifications", { params: { page: pageParam } });
       return res?.data?.data || { notifications: [], pagination: {} };
     },
-    getNextPageParam: (lastPage) => {
-      const pagination = lastPage.pagination || {};
-      return pagination.current_page < pagination.last_page
-        ? pagination.current_page + 1
-        : undefined;
-    },
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination?.current_page < lastPage.pagination?.last_page
+        ? lastPage.pagination.current_page + 1
+        : undefined,
     refetchInterval: 60000,
-    staleTime: 30000,
   });
 
-  const pages = data?.pages || [];
-  const notifications = pages.flatMap(page => page.notifications) || [];
+  const notifications = data?.pages?.flatMap((p) => p.notifications) || [];
 
-  // Mutations
+  // Mutations (unchanged — good)
   const markAsReadMutation = useMutation({
-    mutationFn: async (notificationId) => {
-      await axiosInstance.post(`/notifications/${notificationId}/mark-as-read`);
-    },
+    mutationFn: (id) => axiosInstance.post(`/notifications/${id}/mark-as-read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
       queryClient.invalidateQueries({ queryKey: ["notification-counts"] });
-    },
-    onError: () => {
-      toast.error("Failed to mark as read");
     },
   });
 
   const markAllAsReadMutation = useMutation({
-    mutationFn: async () => {
-      await axiosInstance.post("/notifications/mark-all-as-read");
-    },
+    mutationFn: () => axiosInstance.post("/notifications/mark-all-as-read"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
       queryClient.invalidateQueries({ queryKey: ["notification-counts"] });
-      toast.success("All notifications marked as read");
-    },
-    onError: () => {
-      toast.error("Failed to mark all as read");
+      toast.success("All marked as read");
     },
   });
 
-  const deleteNotificationMutation = useMutation({
-    mutationFn: async (notificationId) => {
-      await axiosInstance.delete(`/notifications/delete/${notificationId}`);
-    },
+  const deleteMutation = useMutation({
+    mutationFn: (id) => axiosInstance.delete(`/notifications/delete/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
       queryClient.invalidateQueries({ queryKey: ["notification-counts"] });
-      toast.success("Notification deleted");
-    },
-    onError: () => {
-      toast.error("Failed to delete notification");
+      toast.success("Deleted");
     },
   });
 
   const clearAllMutation = useMutation({
-    mutationFn: async () => {
-      await axiosInstance.delete("/notifications/clear-read");
-    },
+    mutationFn: () => axiosInstance.delete("/notifications/clear-read"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
       queryClient.invalidateQueries({ queryKey: ["notification-counts"] });
-      toast.success("All notifications cleared");
-    },
-    onError: () => {
-      toast.error("Failed to clear notifications");
+      toast.success("Cleared");
     },
   });
 
-  // Handlers
-  const handleNotificationClick = (notifId, e) => {
+  // Click handlers
+  const handleClick = (notif, e) => {
     e.stopPropagation();
-    if (markAsReadMutation.isPending) return;
-    markAsReadMutation.mutate(notifId);
+    if (!notif.is_read) {
+      markAsReadMutation.mutate(notif.id);
+    }
   };
 
-  const handleDeleteClick = (notifId, e) => {
+  const handleDelete = (id, e) => {
     e.stopPropagation();
-    if (deleteNotificationMutation.isPending) return;
-    deleteNotificationMutation.mutate(notifId);
-  };
-
-  const handleMarkAllRead = (e) => {
-    e.stopPropagation();
-    if (unreadCount === 0 || markAllAsReadMutation.isPending) return;
-    markAllAsReadMutation.mutate();
-  };
-
-  const handleClearAll = (e) => {
-    e.stopPropagation();
-    if (notifications.length === 0 || clearAllMutation.isPending) return;
-    clearAllMutation.mutate();
+    deleteMutation.mutate(id);
   };
 
   // Infinite scroll
-  const lastNotificationRef = useCallback(
+  const lastRef = useCallback(
     (node) => {
       if (isFetchingNextPage) return;
-      if (observerRef.current) observerRef.current.disconnect();
-
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage) {
-          fetchNextPage();
-        }
+      observerRef.current?.disconnect();
+      observerRef.current = new IntersectionObserver(([e]) => {
+        if (e.isIntersecting && hasNextPage) fetchNextPage();
       });
-
       if (node) observerRef.current.observe(node);
     },
     [isFetchingNextPage, hasNextPage, fetchNextPage]
   );
 
-  // Click outside to close
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
+    const handler = (e) => {
+      if (!dropdownRef.current?.contains(e.target)) setIsOpen(false);
     };
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    if (isOpen) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [isOpen]);
 
-  const formatTimeAgo = (dateString) => {
-    if (!dateString) return "Just now";
+  const timeAgo = (date) => {
     try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+      return formatDistanceToNow(new Date(date), { addSuffix: true });
     } catch {
-      return "Some time ago";
+      return "recently";
     }
+  };
+
+  const getNotificationIcon = (type, dataType) => {
+    if (type === "announcement") return <IoDocumentText className="w-6 h-6 text-primary" />;
+    if (dataType?.includes("assigned") || dataType?.includes("jourcy")) return <IoPerson className="w-6 h-6 text-primary" />;
+    if (dataType?.includes("removed")) return <IoTrash className="w-6 h-6 text-red-600" />;
+    if (dataType?.includes("schedule")) return <IoCalendar className="w-6 h-6 text-primary" />;
+    return <IoNotificationsOutline className="w-6 h-6 text-primary" />;
+  };
+
+  const getActor = (data) => {
+    return (
+      data?.assigned_by ||
+      data?.removed_by ||
+      data?.published_by ||
+      (data?.creator_name && { name: data.creator_name, role: "Director" }) ||
+      null
+    );
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+        className="relative p-2 hover:bg-gray-100 rounded-full"
         aria-label="Notifications"
       >
         <IoNotificationsOutline className="text-2xl text-gray-700" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white text-xs font-bold rounded-full border-2 border-white animate-pulse">
+          <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full border-2 border-white animate-pulse">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
-      {/* Dropdown */}
       {isOpen && (
-        <div className="absolute -right-4 mt-3 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
-          <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+        <div className="absolute right-0 mt-3 w-96 bg-white rounded-xl shadow-2xl border z-50 overflow-hidden">
+          <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
             <h3 className="font-semibold text-gray-900">Notifications</h3>
-            <div className="flex items-center gap-2">
+            <div className="flex gap-4 text-sm">
               {unreadCount > 0 && (
                 <button
-                  onClick={handleMarkAllRead}
+                  onClick={() => markAllAsReadMutation.mutate()}
                   disabled={markAllAsReadMutation.isPending}
-                  className="text-sm text-primary hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-primary hover:underline disabled:opacity-50"
                 >
-                  {markAllAsReadMutation.isPending ? "Marking..." : "Mark all as read"}
+                  Mark all read
                 </button>
               )}
               {notifications.length > 0 && (
                 <button
-                  onClick={handleClearAll}
+                  onClick={() => clearAllMutation.mutate()}
                   disabled={clearAllMutation.isPending}
-                  className="text-sm text-red-500 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-red-600 hover:underline disabled:opacity-50"
                 >
-                  {clearAllMutation.isPending ? "Clearing..." : "Clear all"}
+                  Clear all
                 </button>
               )}
             </div>
           </div>
 
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-112 overflow-y-auto">
             {isLoading ? (
-              <div className="text-center py-10 text-gray-500">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-3">Loading notifications...</p>
+              <div className="py-12 text-center text-gray-500">
+                <div className="animate-spin h-8 w-8 border-b-2 border-primary rounded-full mx-auto"></div>
+                <p className="mt-3">Loading...</p>
               </div>
             ) : notifications.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <IoNotificationsOutline className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg font-medium">No notifications yet</p>
-                <p className="text-sm mt-1">You&apos;ll see notifications here when available</p>
+              <div className="py-16 text-center text-gray-400">
+                <IoNotificationsOutline className="w-16 h-16 mx-auto mb-4 opacity-40" />
+                <p className="text-lg">No notifications</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
-                {notifications.map((notif, index) => {
+                {notifications.map((notif, idx) => {
                   const isUnread = !notif.is_read;
+                  const d = notif.data || {};
+                  const actor = getActor(d);
 
                   return (
                     <div
-                      ref={index === notifications.length - 1 ? lastNotificationRef : null}
                       key={notif.id}
-                      onClick={(e) => handleNotificationClick(notif.id, e)}
-                      className={`relative p-5 transition-colors cursor-pointer ${
+                      ref={idx === notifications.length - 1 ? lastRef : null}
+                      onClick={(e) => handleClick(notif, e)}
+                      className={`p-4 cursor-pointer transition-colors relative ${
                         isUnread
-                          ? "bg-blue-50/50 hover:bg-blue-50 border-l-4 border-l-primary"
+                          ? "bg-indigo-50/60 hover:bg-indigo-50 border-l-4 border-primary"
                           : "hover:bg-gray-50"
                       }`}
                     >
                       <button
-                        onClick={(e) => handleDeleteClick(notif.id, e)}
-                        className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
-                        aria-label="Delete notification"
+                        onClick={(e) => handleDelete(notif.id, e)}
+                        className="absolute top-3 right-3 text-gray-400 hover:text-red-500"
                       >
                         <IoClose className="w-5 h-5" />
                       </button>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h4 className={`font-semibold text-sm truncate ${isUnread ? "text-gray-900" : "text-gray-600"}`}>
-                            {notif.data?.title || "Untitled"}
-                          </h4>
-                          <p className={`text-sm mt-1 line-clamp-3 leading-relaxed ${isUnread ? "text-gray-700" : "text-gray-500"}`}>
-                            {notif.data?.message}
-                          </p>
-                          <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-                            <span className="text-xs text-gray-500">
-                              By {notif.data?.assigned_by?.name || "N/A"} ({notif.data?.assigned_by?.role || ""})
-                            </span>
-                            <span className="text-xs text-gray-400">
-                              {formatTimeAgo(notif.created_at)}
-                            </span>
-                          </div>
+
+                      <div className="flex gap-4">
+                        <div className="shrink-0 w-12 h-12 rounded-xl bg-gray-100/80 flex items-center justify-center">
+                          {getNotificationIcon(notif.type, d.type)}
                         </div>
-                        <div className="shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <IoNotificationsOutline className="w-6 h-6 text-primary" />
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className={`font-medium text-base ${isUnread ? "text-gray-900" : "text-gray-700"}`}>
+                            {d.title || d.subject || "Notification"}
+                          </h4>
+
+                          <p className={`mt-1 text-sm leading-relaxed ${isUnread ? "text-gray-800 font-medium" : "text-gray-600"}`}>
+                            {d.message}
+                          </p>
+
+                          {d.camp?.name && (
+                            <p className="mt-2 text-xs text-gray-500">
+                              Camp: <span className="font-medium">{d.camp.name}</span>
+                            </p>
+                          )}
+
+                          {d.game_slot && (
+                            <p className="mt-1 text-xs text-gray-600">
+                              {d.game_slot.date?.slice(0, 10)} • {d.game_slot.start_time?.slice(0, 5)} –{" "}
+                              {d.game_slot.end_time?.slice(0, 5)} @ {d.game_slot.court_name}
+                            </p>
+                          )}
+
+                          <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                            {actor && (
+                              <span>
+                                {d.type?.includes("removed") ? "Removed by" : "By"}{" "}
+                                <span className="font-medium">{actor.name}</span> • {actor.role}
+                              </span>
+                            )}
+                            <span>{timeAgo(notif.created_at)}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -279,16 +262,13 @@ const NotificationBell = () => {
                 })}
 
                 {isFetchingNextPage && (
-                  <div className="text-center py-6 text-gray-500">
-                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                    <p className="mt-2 text-sm">Loading more...</p>
+                  <div className="py-6 text-center text-gray-500">
+                    <div className="animate-spin h-6 w-6 border-b-2 border-primary rounded-full mx-auto"></div>
                   </div>
                 )}
 
                 {!hasNextPage && notifications.length > 0 && (
-                  <div className="text-center py-3 text-gray-400 text-sm">
-                    You&apos;ve reached the end
-                  </div>
+                  <div className="py-4 text-center text-gray-400 text-sm">End of notifications</div>
                 )}
               </div>
             )}

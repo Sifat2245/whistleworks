@@ -108,6 +108,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
     onSuccess: (data) => {
       toast.success(data?.message || "Crew created successfully!");
       queryClient.invalidateQueries({ queryKey: ["crew-groups", campId] });
+      window.location.reload();
       handleCloseModal();
     },
     onError: (error) => {

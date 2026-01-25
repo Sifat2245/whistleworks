@@ -4,7 +4,6 @@ import location from "@/assets/svg/location.svg";
 import phone from "@/assets/svg/phone.svg";
 import email from "@/assets/svg/email.svg";
 import CommonContactInfo from "./CommonContactInfo";
-import book from "@/assets/svg/book.svg";
 import ActiveCmpsBackBtn from "./ActiveCmpsBackBtn";
 import { SlCamera } from "react-icons/sl";
 import { useAuth } from "@/hooks/useAuth";
@@ -139,11 +138,11 @@ export default function Profile() {
             <Divider />
             <CommonContactInfo icon={phone} label="Number" info={userData?.phone || "N/F"} />
             <Divider />
-            <CommonContactInfo
+            {/* <CommonContactInfo
               icon={book}
               label="Current Conferences"
               info={userData?.conferences || "demo@company.com"}
-            />
+            /> */}
           </div>
           <div className="border border-border p-5 rounded-[10px] space-y-4">
             <h4 className="text-xl font-medium">Biography</h4>

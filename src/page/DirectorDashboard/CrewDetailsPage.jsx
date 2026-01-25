@@ -39,7 +39,7 @@ const CrewDetailsPage = () => {
     },
     onSuccess: () => {
       toast.success("Crew deleted successfully");
-      queryClient.invalidateQueries(["crew-groups"]); // refresh crew list
+      queryClient.invalidateQueries(["crew"]); // refresh crew list
       navigate(-1); // go back
     },
     onError: (error) => {

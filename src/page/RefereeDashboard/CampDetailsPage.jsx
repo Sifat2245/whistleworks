@@ -34,7 +34,7 @@ export default function CampDetailsPage() {
   const isReferee = userRole === "referee";
 
   const isRefereeRegistered = refereeRegistrationStatus !== null;
-  const isEvaluatorRegistered = evaluatorRegistrationStatus !== null;
+  const isEvaluatorRegistered = evaluatorRegistrationStatus === 'approved';
 
   const allowedTabs = {
     common: ["camp-details"],
