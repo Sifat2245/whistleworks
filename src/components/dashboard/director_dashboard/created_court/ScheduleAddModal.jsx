@@ -506,12 +506,12 @@ const ScheduleAddModal = ({
         <TabPane tab="Assign Crew" key="crew">
           <div className="mt-6">
             {hasIndividualReferees && (
-              <div className="p-4 bg-orange-50 border border-orange-300 rounded-lg text-orange-800">
+              <div className="p-4 bg-orange-50 border border-orange-300 rounded-lg text-orange-800 mb-6">
                 <p className="font-medium flex items-center gap-2">
                   <ImBlocked /> Individual Referees Already Assigned
                 </p>
                 <p className="text-sm mt-1">
-                  Remove individual referees to assign a crew.
+                  Remove individual referees first to assign a crew.
                 </p>
               </div>
             )}
@@ -531,115 +531,132 @@ const ScheduleAddModal = ({
               </div>
             ) : (
               <div
-                className={`space-y-4 h-[460px] overflow-y-auto ${hasIndividualReferees ? "opacity-60" : ""}`}
+                className={`space-y-4 h-[460px] overflow-y-auto ${
+                  hasIndividualReferees ? "opacity-60 pointer-events-none" : ""
+                }`}
               >
-                {crewListData.map((crew) => (
-                  <div
-                    key={crew.id}
-                    onClick={() => {
-                      if (hasIndividualReferees) {
-                        toast.error(
-                          "Remove assigned individual referees first",
-                        );
-                        return;
-                      }
-                      if (crew.can_assign === false) {
-                        // Optional: show more detailed warning
-                        let message =
-                          crew.status_message ||
-                          "This crew cannot be assigned (conflict detected)"
-                        Swal.fire({
-                          title: "Cannot Assign Crew",
-                          text: message,
-                          icon: "warning",
-                          confirmButtonText: "OK",
-                        });
-                        return;
-                      }
-                      setSelectedCrew(
-                        selectedCrew === crew.id ? null : crew.id,
-                      );
-                    }}
-                    className={`
-    border-2 rounded-xl p-6 transition-all relative
-    ${
-      hasIndividualReferees || crew.can_assign === false
-        ? "opacity-60 cursor-not-allowed bg-gray-50/80"
-        : "cursor-pointer hover:shadow-md hover:border-[#00AEEF]"
-    }
-    ${
-      selectedCrew === crew.id
-        ? "border-[#00AEEF] bg-blue-50 shadow-lg ring-2 ring-[#00AEEF]/20"
-        : "border-gray-200"
-    }
-  `}
-                  >
-                    {/* Warning badge if conflicted */}
-                    {crew.can_assign === false && (
-                      <div className="absolute top-3 right-3 bg-red-100 text-red-700 text-xs font-medium px-2.5 py-1 rounded-full border border-red-200 shadow-sm flex items-center gap-1 z-10">
-                        <ImBlocked className="w-3 h-3" />
-                        Conflicted
+                {crewListData.map((crew) => {
+                  const isSelected = selectedCrew === crew.id;
+                  const hasConflict = crew.can_assign === false;
+                  const conflictMessage =
+                    crew.status_message ||
+                    "This crew has a scheduling conflict in this time slot.";
+
+                  return (
+                    <div
+                      key={crew.id}
+                      onClick={() => {
+                        if (hasIndividualReferees) {
+                          toast.error(
+                            "Remove assigned individual referees first",
+                          );
+                          return;
+                        }
+
+                        // ── Show warning for conflicted crews, but still allow selection ──
+                        if (hasConflict) {
+                          Swal.fire({
+                            title: "Potential Conflict Detected",
+                            html: `
+                      <div class="text-left">
+                        <p class="mb-3 text-gray-700">${conflictMessage}</p>
+                        <p class="font-medium text-orange-700">
+                          Are you sure you want to assign this crew anyway?
+                        </p>
                       </div>
-                    )}
+                    `,
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "Yes, Assign Anyway",
+                            cancelButtonText: "Cancel",
+                            confirmButtonColor: "#f97316",
+                          }).then((result) => {
+                            if (result.isConfirmed) {
+                              setSelectedCrew(isSelected ? null : crew.id);
+                            }
+                          });
+                          return;
+                        }
 
-                    {/* Optional subtle banner if there's a message */}
-                    {crew.status_message && crew.can_assign === false && (
-                      <div className="mb-4 p-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-                        {crew.status_message}
-                      </div>
-                    )}
+                        // Normal selection
+                        setSelectedCrew(isSelected ? null : crew.id);
+                      }}
+                      className={`
+                border-2 rounded-xl p-6 transition-all relative cursor-pointer
+                hover:shadow-md hover:border-[#00AEEF]/70
+                ${isSelected ? "border-[#00AEEF] bg-blue-50 shadow-lg ring-2 ring-[#00AEEF]/30" : "border-gray-200"}
+                ${hasIndividualReferees ? "opacity-50 cursor-not-allowed" : ""}
+              `}
+                    >
+                      {/* Conflict indicator – always visible, but not disabling */}
+                      {hasConflict && (
+                        <div className="absolute top-3 right-3 bg-orange-100 text-orange-800 text-xs font-medium px-3 py-1 rounded-full border border-orange-200 shadow-sm flex items-center gap-1.5 z-10">
+                          <ImBlocked className="w-3.5 h-3.5" />
+                          Conflict
+                        </div>
+                      )}
 
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-4 flex-1">
-                        <Radio
-                          value={crew.id}
-                          checked={selectedCrew === crew.id}
-                          disabled={
-                            hasIndividualReferees || crew.can_assign === false
-                          }
-                          className="mt-1.5"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-bold text-lg">{crew.name}</h4>
-                            <span
-                              className={`text-xs px-3 py-1 rounded-full font-medium capitalize
-            ${crew.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}
-          `}
-                            >
-                              {crew.status}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {crew.member_count || crew.members?.length || 0}{" "}
-                            members
-                          </p>
+                      {crew.status_message && hasConflict && (
+                        <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-800">
+                          {crew.status_message}
+                        </div>
+                      )}
 
-                          {/* Show small avatars */}
-                          <div className="flex flex-wrap gap-2 mt-5 -space-x-3">
-                            {(crew.members || []).slice(0, 10).map((member) => (
-                              <img
-                                key={member.id}
-                                src={member.avatar || "/default-avatar.png"}
-                                alt={member.name}
-                                title={member.name}
-                                className="w-11 h-11 rounded-full border-3 border-white shadow-md object-cover"
-                                onError={(e) =>
-                                  (e.target.src = "/default-avatar.png")
-                                }
-                              />
-                            ))}
-                            {(crew.members || []).length > 10 && (
-                              <div className="w-11 h-11 rounded-full bg-gray-200 border-3 border-white flex items-center justify-center text-sm font-bold text-gray-600 shadow-md">
-                                +{(crew.members || []).length - 10}
-                              </div>
-                            )}
+                      <div className="flex items-start justify-between gap-5">
+                        <div className="flex items-start gap-4 flex-1">
+                          <Radio
+                            value={crew.id}
+                            checked={isSelected}
+                            className="mt-1.5"
+                            disabled={hasIndividualReferees}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <h4 className="font-bold text-lg">{crew.name}</h4>
+                              <span
+                                className={`text-xs px-3 py-1 rounded-full font-medium capitalize ${
+                                  crew.status === "active"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                              >
+                                {crew.status}
+                              </span>
+                            </div>
+
+                            <p className="text-sm text-gray-600">
+                              {crew.member_count || crew.members?.length || 0}{" "}
+                              members
+                            </p>
+
+                            {/* Avatars */}
+                            <div className="flex flex-wrap gap-2 mt-5 -space-x-3">
+                              {(crew.members || [])
+                                .slice(0, 10)
+                                .map((member) => (
+                                  <img
+                                    key={member.id}
+                                    src={member.avatar || "/default-avatar.png"}
+                                    alt={member.name}
+                                    title={member.name}
+                                    className="w-11 h-11 rounded-full border-3 border-white shadow-md object-cover"
+                                    onError={(e) =>
+                                      (e.target.src = "/default-avatar.png")
+                                    }
+                                  />
+                                ))}
+                              {(crew.members || []).length > 10 && (
+                                <div className="w-11 h-11 rounded-full bg-gray-200 border-3 border-white flex items-center justify-center text-sm font-bold text-gray-600 shadow-md">
+                                  +{(crew.members || []).length - 10}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

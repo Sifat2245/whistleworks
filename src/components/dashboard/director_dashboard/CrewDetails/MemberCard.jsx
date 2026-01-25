@@ -44,6 +44,8 @@ const MemberCard = ({ member, crewId }) => {
 
     onSuccess: () => {
       toast.success("Member removed successfully");
+      queryClient.invalidateQueries({ queryKey: ["crew", crewId] })
+      window.location.reload();
     },
     
   });
