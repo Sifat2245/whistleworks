@@ -18,7 +18,7 @@ const BuildSchedule = () => {
         }
     });
 
-    console.log(getDateRange, 'date range');
+    // console.log(getDateRange, 'date range');
 
     return (
         <div className="w-full">

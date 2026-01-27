@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonText from "@/components/common/CommonText";
 import CommonTitle from "@/components/common/CommonTitle";
-import SocialLogin from "./SocialLogin";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { useMutation } from "@tanstack/react-query";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
@@ -64,7 +63,7 @@ const SignUp = () => {
       return response?.data;
     },
     onSuccess: (data) => {
-      console.log("Sign up data:", data);
+      // console.log("Sign up data:", data);
       toast.success(data?.message || "Sign up successful");
 
       sessionStorage.setItem("verify_email", data?.data?.email);

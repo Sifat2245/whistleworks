@@ -53,7 +53,7 @@ const EvaluationForm = ({ camp_id }) => {
 
   const onSubmit = (data) => {
     submitEvaluation(data);
-    console.log(data, "submitted");
+    // console.log(data, "submitted");
   };
 
   // Handle success with SweetAlert2 and reset form

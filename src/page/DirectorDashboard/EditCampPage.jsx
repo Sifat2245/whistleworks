@@ -136,7 +136,7 @@ const EditCampPage = () => {
       payload.append("price", formData.price);
       payload.append("timezone", formData.timezone);
 
-      console.log(payload, "edit camp");
+      // console.log(payload, "edit camp");
 
       if (formData.camp_logo?.[0]) {
         payload.append("camp_logo", formData.camp_logo[0]);

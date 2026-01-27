@@ -37,7 +37,7 @@ export default function Schedule({ camp_id }) {
     enabled: !!camp_id,
     retry: 1,
   });
-  console.log(campData);
+  // console.log(campData);
 
   // Transform games
   const games = useMemo(() => {
@@ -108,7 +108,7 @@ export default function Schedule({ camp_id }) {
     return filteredGames.slice(0, visibleCount);
   }, [filteredGames, visibleCount]);
 
-  console.log(visibleGames, 'games');
+  // console.log(visibleGames, 'games');
 
   useEffect(() => {
     reset();

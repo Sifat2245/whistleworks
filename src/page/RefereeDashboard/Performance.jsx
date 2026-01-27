@@ -26,8 +26,8 @@ export default function Performance({ camp_id }) {
   const totalEvaluations = overallPerformance?.total_evaluations || 0;
   const recommendedLevel = data?.recommended_levels || [];
   
-  console.log(data, 'performance data');
-  console.log(recommendedLevel, 'recommended level');
+  // console.log(data, 'performance data');
+  // console.log(recommendedLevel, 'recommended level');
 
   const hasEvaluations = totalEvaluations > 0;
 

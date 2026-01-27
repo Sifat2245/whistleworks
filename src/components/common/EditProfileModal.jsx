@@ -16,7 +16,7 @@ const EditProfileModal = ({ open, onClose }) => {
   const axiosInstance = useAxiosSecure();
 
   const { userData } = useAuth();
-  console.log(userData, "from modal");
+  // console.log(userData, "from modal");
 
   const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 

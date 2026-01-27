@@ -36,7 +36,7 @@ export default function MyGames({ camp_id }) {
   const totalItems = pagination?.total || 0;
   const perPage = pagination?.per_page || 15;
 
-  console.log(response, "game slots response");
+  // console.log(response, "game slots response");
 
   if (isLoading && !gameSlots.length) {
     return (

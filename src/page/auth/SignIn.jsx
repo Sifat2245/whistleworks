@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import CommonText from "@/components/common/CommonText";
 import CommonTitle from "@/components/common/CommonTitle";
 import CommonInputWrapper from "@/components/common/CommonInputWrapper";
-import SocialLogin from "./SocialLogin";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { useMutation } from "@tanstack/react-query";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
@@ -87,7 +86,7 @@ const SignIn = () => {
   });
 
   const onSubmit = (data) => {
-    console.log("Sign In Data:", data);
+    // console.log("Sign In Data:", data);
     signInMutation.mutate(data);
   };
 

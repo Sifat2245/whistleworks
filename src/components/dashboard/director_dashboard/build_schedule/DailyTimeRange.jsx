@@ -61,7 +61,7 @@ const DailyTimeRange = ({ getDateRange }) => {
         text: data?.message || "Schedule created successfully.",
         confirmButtonColor: "#00AEEF",
       });
-      navigate("/director-dashboard");
+      navigate(`/director-dashboard/court-list/${id}`);
     },
     onError: (err) => {
       Swal.fire({

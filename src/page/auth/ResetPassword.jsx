@@ -48,7 +48,7 @@ const ResetPassword = () => {
   });
 
   const onSubmit = (data) => {
-    console.log("Reset Password Data:", data);
+    // console.log("Reset Password Data:", data);
     const token = sessionStorage.getItem("reset_token");
     const email = sessionStorage.getItem("verify_email");
 

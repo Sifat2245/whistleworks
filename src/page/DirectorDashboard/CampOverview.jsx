@@ -21,7 +21,7 @@ const CampOverview = () => {
   const directorEmail = data?.director?.email;
   const userEmail = userData?.email;
 
-  console.log(campData, 'data');
+  // console.log(campData, 'data');
 
   const navigate = useNavigate();
 
@@ -86,11 +86,13 @@ const CampOverview = () => {
           <h3 className="text-xl font-medium">Overview</h3>
 
           {directorEmail === userEmail && (
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+              {/* ↑ added flex-wrap + responsive gap */}
+
               <Link to={`/director-dashboard/edit-camp/${data?.id}`}>
                 <CommonSubmitBtn
                   variant="primary"
-                  className="flex items-center gap-1 py-2!"
+                  className="flex items-center gap-1 py-2 px-4" // ← ensure decent padding
                 >
                   <FaEdit />
                   Edit
@@ -101,16 +103,17 @@ const CampOverview = () => {
                 value={status}
                 size="large"
                 onChange={handleStatusChange}
-                className="w-36 border border-black/15 rounded-lg active p-4!"
-                options={[
-                  { value: "active", label: "Active" },
-                  { value: "inactive", label: "Inactive" },
-                ]}
-              />
+                className="w-36 min-w-[120px] border border-black/15 rounded-lg" // ← min-w prevents too small
+                // Optional: dropdownMatchSelectWidth={false} if dropdown overflows badly
+              >
+                <Select.Option value="active">Active</Select.Option>
+                <Select.Option value="inactive">Inactive</Select.Option>
+              </Select>
 
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-md text-sm cursor-pointer"
+                className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-md text-sm cursor-pointer whitespace-nowrap"
+                // ↑ whitespace-nowrap prevents text breaking awkwardly
               >
                 <FaTrashAlt />
                 Delete
@@ -158,8 +161,7 @@ const CampOverview = () => {
         </h3>
 
         <p className="mb-2">
-          {new Date(data?.start_date).toDateString()} —{" "}
-          {new Date(data?.end_date).toDateString()}
+          {data?.start_date} — {data?.end_date}
         </p>
 
         <ul className="mt-2 text-sm text-gray-600">

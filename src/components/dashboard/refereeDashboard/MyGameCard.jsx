@@ -4,42 +4,39 @@ import messageIcon from "@/assets/svg/message.svg";
 import Icon from "@/components/common/Icon";
 import { Avatar, Card, Divider, Tag, Tooltip } from "antd";
 import { format, parseISO } from "date-fns";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";  // ← Change to fromZonedTime
 import { SlCalender } from "react-icons/sl";
 
 export default function MyGameCard({ game, camp }) {
-  // Extract clean date (without time) from the ISO string
-  const gameDate = parseISO(game.game_details.date);
-  const formattedDate = format(gameDate, "MMM d, yyyy");
+  // Parse the date part from ISO string (midnight UTC)
+  const gameDateUTC = parseISO(game.game_details.date);
+  const formattedDate = format(gameDateUTC, "MMM d, yyyy");
 
-  // const handleMessageClick = () => {
-  //   Swal.fire({
-  //     title: "Coming Soon!!!",
-  //     text: "This feature is currently not available. Please check back later.",
-  //     icon: "info",
-  //     confirmButtonText: "OK",
-  //   });
-  // };
+  // Timezone from camp (fallback to UTC)
+  const tz = camp?.timezone || "UTC";
 
-  console.log(game, "gane");
+  // Local time strings (already in camp timezone)
+  const startTimeStr = game.game_details.start_time; 
+  const endTimeStr = game.game_details.end_time; 
 
-  // Combine date with start/end time correctly
-  const startDateTime = new Date(
-    `${format(gameDate, "yyyy-MM-dd")}T${game.game_details.start_time}`,
-  );
-  const endDateTime = new Date(
-    `${format(gameDate, "yyyy-MM-dd")}T${game.game_details.end_time}`,
-  );
+  // Build local date-time strings in camp's timezone (no timezone suffix)
+  const startLocalStr = `${format(gameDateUTC, "yyyy-MM-dd")}T${startTimeStr}`;
+  const endLocalStr = `${format(gameDateUTC, "yyyy-MM-dd")}T${endTimeStr}`;
 
-  const startTime = format(startDateTime, "h:mm a");
-  const endTime = format(endDateTime, "h:mm a");
+  // Convert local strings → UTC Date objects using camp timezone
+  const startDateInTz = fromZonedTime(startLocalStr, tz);
+  const endDateInTz   = fromZonedTime(endLocalStr, tz);  
+
+  // Format back in camp timezone with short abbreviation (CST/CDT auto-handled)
+  const startTimeFormatted = formatInTimeZone(startDateInTz, tz, "h:mm a z");
+  const endTimeFormatted   = formatInTimeZone(endDateInTz,   tz, "h:mm a z");
 
   const latitude = game.location.latitude;
   const longitude = game.location.longitude;
 
   const handleViewLocation = () => {
     const mapUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-    window.open(mapUrl, "_blank"); // Opens in new tab
-    // Alternative: window.location.href = mapUrl; for same tab redirect
+    window.open(mapUrl, "_blank");
   };
 
   return (
@@ -48,7 +45,7 @@ export default function MyGameCard({ game, camp }) {
       cover={
         <div className="relative">
           <img
-            src={camp?.logo || ""} // ← Use camp.logo
+            src={camp?.logo || ""}
             alt={camp?.name || "Camp"}
             className="h-62 w-full object-cover rounded-t-xl"
           />
@@ -71,7 +68,7 @@ export default function MyGameCard({ game, camp }) {
             <span className="font-semibold">{formattedDate}</span>
           </div>
           <Tag color="blue" className="text-sm font-medium px-4 py-1">
-            {startTime} – {endTime}
+            {startTimeFormatted} – {endTimeFormatted}
           </Tag>
         </div>
 
@@ -143,13 +140,7 @@ export default function MyGameCard({ game, camp }) {
             View Location
           </button>
 
-          {/* <button
-            onClick={handleMessageClick}
-            className="bg-[#00AEEF] text-white px-6 py-3 rounded-lg hover:bg-blue-600 flex items-center gap-3 font-medium shadow-md"
-          >
-            <Icon src={messageIcon} className="size-5" />
-            Message
-          </button> */}
+          {/* Message button commented out as before */}
         </div>
       </div>
     </Card>
