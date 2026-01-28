@@ -51,12 +51,7 @@ const CampSchedules = () => {
     }
 
     return campData.schedule.game_courts.map((slot) => {
-      const date = new Date(slot.game_date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-
+      const date = slot.game_date
       const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
 
       const location = slot?.location

@@ -3,14 +3,14 @@ import locationIcon from "@/assets/svg/location.svg";
 import messageIcon from "@/assets/svg/message.svg";
 import Icon from "@/components/common/Icon";
 import { Avatar, Card, Divider, Tag, Tooltip } from "antd";
-import { format, parseISO } from "date-fns";
-import { formatInTimeZone, fromZonedTime } from "date-fns-tz";  // ← Change to fromZonedTime
+import { format } from "date-fns";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { SlCalender } from "react-icons/sl";
 
 export default function MyGameCard({ game, camp }) {
   // Parse the date part from ISO string (midnight UTC)
-  const gameDateUTC = parseISO(game.game_details.date);
-  const formattedDate = format(gameDateUTC, "MMM d, yyyy");
+  const gameDateUTC = game?.game_details?.date
+  // console.log(game, 'game');
 
   // Timezone from camp (fallback to UTC)
   const tz = camp?.timezone || "UTC";
@@ -65,7 +65,7 @@ export default function MyGameCard({ game, camp }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-primary">
             <SlCalender />
-            <span className="font-semibold">{formattedDate}</span>
+            <span className="font-semibold">{gameDateUTC}</span>
           </div>
           <Tag color="blue" className="text-sm font-medium px-4 py-1">
             {startTimeFormatted} – {endTimeFormatted}

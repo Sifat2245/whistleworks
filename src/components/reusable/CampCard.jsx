@@ -22,14 +22,14 @@ const CampCard = ({ camp }) => {
     director,
   } = camp || {};
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  // const formatDate = (dateString) => {
+  //   if (!dateString) return "N/A";
+  //   return new Date(dateString).toLocaleDateString("en-US", {
+  //     month: "short",
+  //     day: "numeric",
+  //     year: "numeric",
+  //   });
+  // };
 
   const coachName = sport?.sports_name || "Various Coaches";
   const displayPrice = price ? `$${parseFloat(price).toFixed(2)}` : "Free";
@@ -101,7 +101,7 @@ const CampCard = ({ camp }) => {
         <div className="flex items-center gap-2">
           <FaClock className="text-primary shrink-0" />
           <span>
-            {formatDate(start_date)} to {formatDate(end_date)}
+            {start_date} to {end_date}
           </span>
         </div>
 
