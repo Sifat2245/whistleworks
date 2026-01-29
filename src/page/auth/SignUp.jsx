@@ -269,14 +269,14 @@ const SignUp = () => {
             <p className="text-sm text-neutral-600">
               I agree to the{" "}
               <a
-                href="/terms"
+                href="/terms-conditions"
                 className="text-primary font-medium hover:underline"
               >
                 Terms & Conditions
               </a>{" "}
               and{" "}
               <a
-                href="/privacy"
+                href="/privacy-policy"
                 className="text-primary font-medium hover:underline"
               >
                 Privacy Policy

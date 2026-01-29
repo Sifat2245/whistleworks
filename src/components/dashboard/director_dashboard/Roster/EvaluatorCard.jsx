@@ -1,4 +1,3 @@
-// src/components/evaluators/EvaluatorCard.jsx
 import { useState } from "react";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { MdDeleteOutline } from "react-icons/md";
@@ -7,6 +6,38 @@ import Swal from "sweetalert2";
 const EvaluatorCard = ({ evaluator, onCardClick, onRemove }) => {
   const axiosInstance = useAxiosSecure();
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Phone formatter - optimized for Bangladesh + safe fallback
+  const formatPhone = (phone) => {
+    if (!phone) return "N/A";
+
+    let digits = phone.replace(/\D/g, "");
+
+    if (digits.startsWith("880")) {
+      digits = "0" + digits.slice(3);
+    } else if (digits.startsWith("88")) {
+      digits = "0" + digits.slice(2);
+    }
+
+    if (digits.length === 11 && digits.startsWith("0")) {
+      return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
+    }
+
+    if (digits.length === 10) {
+      return `${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6)}`;
+    }
+
+    let formatted = "";
+    let i = digits.length;
+    while (i > 0) {
+      const chunk = Math.min(4, i);
+      formatted =
+        digits.slice(i - chunk, i) + (formatted ? " " + formatted : "");
+      i -= chunk;
+    }
+
+    return formatted.trim() || "N/A";
+  };
 
   const handleRemove = async (e) => {
     e.stopPropagation();
@@ -28,7 +59,7 @@ const EvaluatorCard = ({ evaluator, onCardClick, onRemove }) => {
 
     try {
       await axiosInstance.delete(
-        `/director/evaluator-registrations/remove/${evaluator.id}`
+        `/director/evaluator-registrations/remove/${evaluator.id}`,
       );
 
       Swal.fire({
@@ -39,7 +70,6 @@ const EvaluatorCard = ({ evaluator, onCardClick, onRemove }) => {
         showConfirmButton: false,
       });
 
-      // Notify parent to remove from list
       onRemove?.(evaluator.id);
     } catch (error) {
       console.error("Delete evaluator error:", error);
@@ -109,7 +139,9 @@ const EvaluatorCard = ({ evaluator, onCardClick, onRemove }) => {
         {evaluator.evaluatorNumber && (
           <div className="flex items-center gap-2 text-gray-600">
             <span className="font-medium text-gray-500 min-w-12">Phone:</span>
-            <span className="truncate">{evaluator.evaluatorNumber}</span>
+            <span className="truncate font-medium tracking-wide">
+              {formatPhone(evaluator.evaluatorNumber)}
+            </span>
           </div>
         )}
 

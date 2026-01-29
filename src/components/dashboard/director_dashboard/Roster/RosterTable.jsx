@@ -46,7 +46,7 @@ const RosterTable = ({ referees = [], campId }) => {
   // Calculate stats
   const totalReferees = referees.length;
   const checkedInCount = referees.filter(
-    (ref) => ref.status === "checked_in"
+    (ref) => ref.status === "checked_in",
   ).length;
 
   const openModal = (referee) => {
@@ -80,14 +80,14 @@ const RosterTable = ({ referees = [], campId }) => {
       return {
         ...old,
         referees: old.referees.map((ref) =>
-          ref.id === refereeId ? { ...ref, status: "checked_in" } : ref
+          ref.id === refereeId ? { ...ref, status: "checked_in" } : ref,
         ),
       };
     });
 
     try {
       const res = await axiosInstance.put(
-        `/v1/director/camp/${campId}/referee/${refereeId}/manual-checkin`
+        `/v1/director/camp/${campId}/referee/${refereeId}/manual-checkin`,
       );
 
       queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
@@ -141,7 +141,7 @@ const RosterTable = ({ referees = [], campId }) => {
 
     try {
       await axiosInstance.delete(
-        `/v1/director/camps/${campId}/referees/${refereeId}`
+        `/v1/director/camps/${campId}/referees/${refereeId}`,
       );
 
       queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
@@ -176,7 +176,7 @@ const RosterTable = ({ referees = [], campId }) => {
       return {
         ...old,
         referees: old.referees.map((ref) =>
-          ref.id === refereeId ? { ...ref, jourcy_number: trimmed } : ref
+          ref.id === refereeId ? { ...ref, jourcy_number: trimmed } : ref,
         ),
       };
     });
@@ -185,7 +185,7 @@ const RosterTable = ({ referees = [], campId }) => {
       await axiosInstance.patch(
         `/v1/director/camp/${campId}/referee/${refereeId}/update-jourcy-number`,
         null,
-        { params: { jourcy_number: trimmed } }
+        { params: { jourcy_number: trimmed } },
       );
 
       queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
@@ -211,6 +211,20 @@ const RosterTable = ({ referees = [], campId }) => {
     }
   };
 
+  const formatPhone = (phone) => {
+    if (!phone) return "N/A";
+
+    let digits = phone.replace(/\D/g, "");
+
+    if (digits.length <= 6) {
+      return digits;
+    }
+
+    const formatted = digits.replace(/(\d{1,4})(?=\d)/g, "$1 ").trim();
+
+    return formatted;
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -231,7 +245,9 @@ const RosterTable = ({ referees = [], campId }) => {
               >
                 {row.original.name || "Unnamed Referee"}
               </button>
-              <div className="text-sm text-gray-500">{row.original.address}</div>
+              <div className="text-sm text-gray-500">
+                {row.original.address}
+              </div>
             </div>
           </div>
         ),
@@ -243,8 +259,8 @@ const RosterTable = ({ referees = [], campId }) => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-gray-700">
               <BiPhone className="text-gray-400 text-lg" />
-              <span className="text-sm truncate max-w-[200px]">
-                {row.original.phone || "N/A"}
+              <span className="text-sm font-medium tracking-wide">
+                {formatPhone(row.original.phone)}
               </span>
             </div>
           </div>
@@ -390,7 +406,7 @@ const RosterTable = ({ referees = [], campId }) => {
       axiosInstance,
       queryClient,
       referees,
-    ]
+    ],
   );
 
   const table = useReactTable({
@@ -439,7 +455,7 @@ const RosterTable = ({ referees = [], campId }) => {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </th>
                   ))}
@@ -463,7 +479,7 @@ const RosterTable = ({ referees = [], campId }) => {
                       <td key={cell.id} className="px-6 py-5">
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </td>
                     ))}
@@ -555,8 +571,8 @@ const RosterTable = ({ referees = [], campId }) => {
                       <MdPhone className="text-gray-400 text-xl" />
                       <div>
                         <p className="text-sm text-gray-500">Phone</p>
-                        <p className="font-medium text-gray-900">
-                          {selectedReferee.phone}
+                        <p className="font-medium text-gray-900 tracking-wide">
+                          {formatPhone(selectedReferee.phone)}
                         </p>
                       </div>
                     </div>

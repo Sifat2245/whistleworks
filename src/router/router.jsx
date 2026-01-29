@@ -41,6 +41,8 @@ import MakeAnnouncement from "@/page/DirectorDashboard/MakeAnnouncement";
 import AllCamps from "@/page/AllCamps";
 import CampDetailsPageForNoAuth from "@/page/CampDetailsPageForNoAuth";
 import CampSchedules from "@/page/DirectorDashboard/CampSchedules";
+import PrivacyPolicy from "@/page/PrivacyPolicy";
+import TermsConditions from "@/page/TermsConditions";
 
 const router = createBrowserRouter([
   {
@@ -54,6 +56,14 @@ const router = createBrowserRouter([
       {
         path: "about-us",
         element: <AboutUs />,
+      },
+      {
+        path: "privacy-policy",
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: "terms-conditions",
+        element: <TermsConditions />,
       },
       {
         path:'all-camps',

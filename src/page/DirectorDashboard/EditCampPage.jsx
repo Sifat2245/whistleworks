@@ -48,6 +48,7 @@ const EditCampPage = () => {
     value: item?.id,
   }));
 
+  console.log(data, 'campdata');
   const {
     handleSubmit,
     register,
