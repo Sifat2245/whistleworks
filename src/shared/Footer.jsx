@@ -52,7 +52,7 @@ const Footer = () => {
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-black transition-colors">
+              <a href="/privacy-policy" className="hover:text-black transition-colors">
                 Privacy Policy
               </a>
             </li>

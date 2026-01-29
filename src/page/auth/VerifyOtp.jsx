@@ -32,7 +32,7 @@ const VerifyOtp = () => {
       toast.success(data?.message || "OTP verification successful");
 
       const token = data?.token;
-      const role = data?.data?.role; 
+      const role = data?.data?.role;
 
       handleLogin(token);
       userRefetch();
@@ -75,15 +75,21 @@ const VerifyOtp = () => {
     // Came from camp registration / details page
     if (campId) {
       if (userRole === "evaluator") {
-        navigate(`/evaluator-dashboard/camp/${campId}?tab=camp-details`, { replace: true });
+        navigate(`/evaluator-dashboard/camp/${campId}?tab=camp-details`, {
+          replace: true,
+        });
         return;
       }
       if (userRole === "referee") {
-        navigate(`/referee-dashboard/camp/${campId}?tab=camp-details`, { replace: true });
+        navigate(`/referee-dashboard/camp/${campId}?tab=camp-details`, {
+          replace: true,
+        });
         return;
       }
       if (userRole === "director") {
-        navigate(`/director-dashboard/camp-overview/${campId}`, { replace: true });
+        navigate(`/director-dashboard/camp-overview/${campId}`, {
+          replace: true,
+        });
         return;
       }
 
@@ -142,8 +148,15 @@ const VerifyOtp = () => {
 
       <div className="text-center space-y-1 mb-8">
         <p className="text-neutral-600">Sent to</p>
-        <p className="font-medium text-[#222]">{maskEmail(email) || "your email"}</p>
+        <p className="font-medium text-[#222]">
+          {maskEmail(email) || "your email"}
+        </p>
       </div>
+
+      <p className="text-center text-sm text-gray-500 mb-8 italic">
+        Didn&apos;t receive the code? Check your <strong>spam</strong> or{" "}
+        <strong>junk</strong> folder.
+      </p>
 
       <OtpWrapper otp={otp} OtpChange={setOtp} />
 

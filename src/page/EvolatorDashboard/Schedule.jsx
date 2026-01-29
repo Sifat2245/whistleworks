@@ -57,8 +57,7 @@ export default function Schedule({ camp_id }) {
 
       const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
 
-      const locationMatch = slot.court_name.match(/^(.*?)\s*-\s*Court/);
-      const location = locationMatch ? locationMatch[1].trim() : "Unknown";
+      const location = slot?.location;
 
       const courtMatch = slot.court_name.match(/Court (\d+)/);
       const court = courtMatch ? `Court ${courtMatch[1]}` : slot.court_name;

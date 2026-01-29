@@ -45,6 +45,15 @@ const CreateNewCamp = () => {
     },
   });
 
+  //get software fee
+  const {data: softwareFee} = useQuery({
+    queryKey: ['software-fee'],
+    queryFn: async () => {
+      const res = await axiosSecure.get('/v1/camp/admin/fee');
+      return res?.data?.data?.admin_fee
+    }
+  })
+
   const {
     handleSubmit,
     register,
@@ -405,7 +414,7 @@ const CreateNewCamp = () => {
             </div>
             <div className="flex items-center gap-2 mt-2 sm:mt-7">
               <p className="font-medium whitespace-nowrap text-primary text-sm sm:text-base lg:text-lg">
-                +$25 (software fee)
+                +${softwareFee} (software fee)
               </p>
             </div>
           </div>

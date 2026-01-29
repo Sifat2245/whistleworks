@@ -10,11 +10,13 @@ const EvaluatorRefereeList = ({ camp_id }) => {
   const [selectedMember, setSelectedMember] = useState(null);
 
   const allMembers = [
-    ...referees.map(r => ({ ...r, role: 'Referee', status: r.status })),
-    ...evaluators.map(e => ({ ...e, role: 'Evaluator', status: 'registered' }))
+    ...referees.map((r) => ({ ...r, role: "Referee", status: r.status })),
+    ...evaluators.map((e) => ({
+      ...e,
+      role: "Evaluator",
+      status: "registered",
+    })),
   ];
-
-  // console.log(allMembers, "referee");
 
   const handleCardClick = (member) => {
     setSelectedMember(member);
@@ -24,19 +26,48 @@ const EvaluatorRefereeList = ({ camp_id }) => {
     setSelectedMember(null);
   };
 
+  const formatPhone = (phone) => {
+    if (!phone) return "Not provided";
+
+    let digits = phone.replace(/\D/g, "");
+
+    if (digits.startsWith("880")) {
+      digits = "0" + digits.slice(3);
+    } else if (digits.startsWith("88")) {
+      digits = "0" + digits.slice(2);
+    }
+
+    if (digits.length === 11 && digits.startsWith("0")) {
+      return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
+    }
+
+    if (digits.length === 10) {
+      return `${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6)}`;
+    }
+
+    let formatted = "";
+    let i = digits.length;
+    while (i > 0) {
+      const chunk = Math.min(4, i);
+      formatted =
+        digits.slice(i - chunk, i) + (formatted ? " " + formatted : "");
+      i -= chunk;
+    }
+
+    return formatted.trim() || "Not provided";
+  };
+
   return (
     <div className="w-full flex flex-col gap-6">
       <h1 className="text-2xl font-semibold text-center">
-        Referees ({allMembers.length})
+        Referees & Evaluators ({allMembers.length})
       </h1>
 
       {/* Grid */}
       {isLoading ? (
         <p className="text-center">Loading...</p>
       ) : allMembers.length === 0 ? (
-        <p className="text-center text-gray-500">
-          No team members found
-        </p>
+        <p className="text-center text-gray-500">No team members found</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {allMembers.map((member) => (
@@ -46,24 +77,32 @@ const EvaluatorRefereeList = ({ camp_id }) => {
               className="group relative overflow-hidden rounded-xl border border-black/10 shadow-sm transition-all duration-300 cursor-pointer"
               onClick={() => handleCardClick(member)}
             >
-              {/* CENTER GRADIENT OVERLAY - unchanged */}
+              {/* CENTER GRADIENT OVERLAY */}
               <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_center,rgba(0,175,239,0.35),rgba(0,175,239,0.10),transparent_70%)]" />
 
               <div className="relative z-10 flex flex-col items-center text-center gap-3 p-4">
-                <Avatar size={80} src={member?.avatar} />
+                <Avatar
+                  size={80}
+                  src={member?.avatar || "/default-avatar.png"}
+                  alt={member?.name || "Member"}
+                />
 
                 <div className="space-y-1">
                   <h3 className="text-lg font-medium text-black">
-                    {member?.name}
+                    {member?.name || "Unnamed Member"}
                   </h3>
 
                   <p className="text-sm text-gray-500">
-                    <span className="font-medium text-[#444]">Email:</span> {member?.email}
+                    <span className="font-medium text-[#444]">Email:</span>{" "}
+                    {member?.email || "N/A"}
                   </p>
 
                   {member?.phone && (
                     <p className="text-sm text-gray-500">
-                      <span className="font-medium text-[#444]">Phone:</span> {member?.phone}
+                      <span className="font-medium text-[#444]">Phone:</span>{" "}
+                      <span className="tracking-wide font-medium">
+                        {formatPhone(member.phone)}
+                      </span>
                     </p>
                   )}
                 </div>
@@ -95,15 +134,15 @@ const EvaluatorRefereeList = ({ camp_id }) => {
               size="middle"
             >
               <Descriptions.Item label="Full Name" span={2}>
-                {selectedMember.name}
+                {selectedMember.name || "—"}
               </Descriptions.Item>
 
               <Descriptions.Item label="Email">
-                {selectedMember.email}
+                {selectedMember.email || "Not provided"}
               </Descriptions.Item>
 
               <Descriptions.Item label="Phone">
-                {selectedMember.phone || "Not provided"}
+                {formatPhone(selectedMember.phone)}
               </Descriptions.Item>
 
               <Descriptions.Item label="Address">
@@ -120,12 +159,24 @@ const EvaluatorRefereeList = ({ camp_id }) => {
                 {selectedMember.biography ? (
                   selectedMember.biography
                 ) : (
-                  <span className="text-gray-500 italic">No biography provided</span>
+                  <span className="text-gray-500 italic">
+                    No biography provided
+                  </span>
                 )}
               </Descriptions.Item>
 
               <Descriptions.Item label="Jersey Number" span={2}>
                 {selectedMember.jourcy_number || "—"}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Role">
+                {selectedMember.role}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Status">
+                {selectedMember.status === "checked_in"
+                  ? "Checked In"
+                  : selectedMember.status || "Registered"}
               </Descriptions.Item>
             </Descriptions>
           </div>

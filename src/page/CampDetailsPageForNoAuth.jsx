@@ -51,13 +51,13 @@ const CampDetailsPageForNoAuth = () => {
     );
   }
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  // const formatDate = (dateString) => {
+  //   return new Date(dateString).toLocaleDateString("en-US", {
+  //     month: "long",
+  //     day: "numeric",
+  //     year: "numeric",
+  //   });
+  // };
 
   // Handle Register Button Click
   const handleRegisterClick = () => {
@@ -128,8 +128,8 @@ const CampDetailsPageForNoAuth = () => {
             <FiCalendar className="w-12 h-12 text-primary mx-auto mb-3" />
             <p className="text-gray-600">Dates</p>
             <p className="text-lg font-semibold">
-              {formatDate(campDetails.start_date)} -{" "}
-              {formatDate(campDetails.end_date)}
+              {campDetails.start_date} -{" "}
+              {campDetails.end_date}
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-lg p-6 text-center">

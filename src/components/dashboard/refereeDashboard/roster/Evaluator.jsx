@@ -12,7 +12,6 @@ export default function Evaluator({ camp_id }) {
   const { evaluators = [] } = roasterData || {};
 
   const [selectedEvaluator, setSelectedEvaluator] = useState(null);
-  // console.log(roasterData, 'roaster data');
 
   const handleCardClick = (evaluator) => {
     setSelectedEvaluator(evaluator);
@@ -22,12 +21,45 @@ export default function Evaluator({ camp_id }) {
     setSelectedEvaluator(null);
   };
 
+  const formatPhone = (phone) => {
+    if (!phone) return "N/A";
+
+    // Remove all non-digits
+    let digits = phone.replace(/\D/g, "");
+
+    if (digits.startsWith("880")) {
+      digits = "0" + digits.slice(3);
+    } else if (digits.startsWith("88")) {
+      digits = "0" + digits.slice(2);
+    }
+
+    if (digits.length === 11 && digits.startsWith("0")) {
+      return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
+    }
+
+    if (digits.length === 10) {
+      return `${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6)}`;
+    }
+
+    let formatted = "";
+    let i = digits.length;
+    while (i > 0) {
+      const chunk = Math.min(4, i);
+      formatted =
+        digits.slice(i - chunk, i) + (formatted ? " " + formatted : "");
+      i -= chunk;
+    }
+
+    return formatted.trim() || "N/A";
+  };
+
   return (
     <section className="border border-border rounded-xl p-5 bg-white">
       {/* Header */}
       <div className="flex items-center justify-between border border-border p-5 rounded-[10px] mb-6">
         <h3 className="text-xl font-medium">
-          Evaluators <span className="text-gray-500">({evaluators.length})</span>
+          Evaluators{" "}
+          <span className="text-gray-500">({evaluators.length})</span>
         </h3>
         <div className="bg-primary p-3.5 rounded-full">
           <Icon src={singleUser} className="size-5 text-white" />
@@ -43,17 +75,20 @@ export default function Evaluator({ camp_id }) {
               onClick={() => handleCardClick(evaluator)}
               className="cursor-pointer transition-transform hover:scale-[1.02]"
             >
-              <EvaluatorCard evaluator={evaluator} />
+              <EvaluatorCard
+                evaluator={evaluator}
+                onCardClick={handleCardClick}
+              />
             </div>
           ))}
         </div>
       ) : (
-        <div className="col-span-4 text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-500">
           No evaluators have submitted evaluations yet
         </div>
       )}
 
-      {/* Modal - EXACTLY YOUR DESIGN */}
+      {/* Modal */}
       <Modal
         title={null}
         open={!!selectedEvaluator}
@@ -83,10 +118,14 @@ export default function Evaluator({ camp_id }) {
             <div className="p-6 space-y-6">
               <div className="flex flex-col items-center text-center">
                 <img
-                  src={selectedEvaluator.avatar || "https://via.placeholder.com/100"}
+                  src={
+                    selectedEvaluator.avatar ||
+                    selectedEvaluator.image ||
+                    "/default-avatar.png"
+                  }
                   alt={selectedEvaluator.name}
                   className="w-28 h-28 rounded-full object-cover border-4 border-gray-200 mb-4"
-                  onError={(e) => (e.target.src = "https://via.placeholder.com/100")}
+                  onError={(e) => (e.target.src = "/default-avatar.png")}
                 />
                 <h3 className="text-xl font-semibold text-gray-900">
                   {selectedEvaluator.name || "Unnamed Evaluator"}
@@ -103,32 +142,40 @@ export default function Evaluator({ camp_id }) {
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
                     <p className="font-medium text-gray-900">
-                      {selectedEvaluator.email || "N/A"}
+                      {selectedEvaluator.email ||
+                        selectedEvaluator.evaluatorMail ||
+                        "N/A"}
                     </p>
                   </div>
                 </div>
 
                 {/* Phone */}
-                {selectedEvaluator.phone && (
+                {(selectedEvaluator.phone ||
+                  selectedEvaluator.evaluatorNumber) && (
                   <div className="flex items-center gap-3">
                     <MdPhone className="text-gray-400 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Phone</p>
-                      <p className="font-medium text-gray-900">
-                        {selectedEvaluator.phone}
+                      <p className="font-medium text-gray-900 tracking-wide">
+                        {formatPhone(
+                          selectedEvaluator.phone ||
+                            selectedEvaluator.evaluatorNumber,
+                        )}
                       </p>
                     </div>
                   </div>
                 )}
 
                 {/* Address */}
-                {selectedEvaluator.address && (
+                {(selectedEvaluator.address ||
+                  selectedEvaluator.evaluatorAddress) && (
                   <div className="flex items-center gap-3">
                     <MdLocationOn className="text-gray-400 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Address</p>
                       <p className="font-medium text-gray-900">
-                        {selectedEvaluator.address}
+                        {selectedEvaluator.address ||
+                          selectedEvaluator.evaluatorAddress}
                       </p>
                     </div>
                   </div>

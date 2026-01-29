@@ -44,14 +44,14 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
     address: directorAddress = "N/A",
   } = director;
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  // const formatDate = (dateString) => {
+  //   if (!dateString) return "N/A";
+  //   return new Date(dateString).toLocaleDateString("en-US", {
+  //     month: "short",
+  //     day: "numeric",
+  //     year: "numeric",
+  //   });
+  // };
 
   // ... (handleAction, showButton, buttonText, statusBadge logic remains exactly the same)
   const handleAction = async () => {
@@ -228,7 +228,7 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
           <div>
             <p className="text-[#666666]">Dates</p>
             <p className="text-lg">
-              {formatDate(start_date)} - {formatDate(end_date)}
+              {start_date} - {end_date}
             </p>
           </div>
         </div>
@@ -341,7 +341,7 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
             <div>
               <p className="text-lg font-normal">Duration</p>
               <p className="text-[14px] text-[#666666]">
-                {formatDate(start_date)} to {formatDate(end_date)}
+                {start_date} to {end_date}
               </p>
             </div>
           </div>

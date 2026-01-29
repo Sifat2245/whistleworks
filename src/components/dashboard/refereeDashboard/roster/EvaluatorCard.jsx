@@ -2,6 +2,39 @@ import { Card, Avatar } from "antd";
 import profile from "@/assets/dashboard/profile.png";
 
 const EvaluatorCard = ({ evaluator }) => {
+  const formatPhone = (phone) => {
+    if (!phone) return "N/A";
+
+    // Remove all non-digits
+    let digits = phone.replace(/\D/g, "");
+
+    // Convert international (+880...) or 88... to local style with leading 0
+    if (digits.startsWith("880")) {
+      digits = "0" + digits.slice(3);
+    } else if (digits.startsWith("88")) {
+      digits = "0" + digits.slice(2);
+    }
+
+    if (digits.length === 11 && digits.startsWith("0")) {
+      return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
+    }
+
+    if (digits.length === 10) {
+      return `${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6)}`;
+    }
+
+    let formatted = "";
+    let i = digits.length;
+    while (i > 0) {
+      const chunk = Math.min(4, i);
+      formatted =
+        digits.slice(i - chunk, i) + (formatted ? " " + formatted : "");
+      i -= chunk;
+    }
+
+    return formatted.trim() || "N/A";
+  };
+
   return (
     <Card
       hoverable
@@ -18,11 +51,12 @@ const EvaluatorCard = ({ evaluator }) => {
         <Avatar
           size={80}
           src={evaluator?.avatar || profile}
+          alt={evaluator?.name || "Evaluator"}
         />
 
         <div className="space-y-1">
           <h3 className="text-lg font-medium text-black">
-            {evaluator?.name}
+            {evaluator?.name || "Unnamed Evaluator"}
           </h3>
 
           <p className="text-sm text-gray-500">
@@ -32,7 +66,9 @@ const EvaluatorCard = ({ evaluator }) => {
 
           <p className="text-sm text-gray-500">
             <span className="font-medium text-[#444]">Phone:</span>{" "}
-            {evaluator?.phone || "N/A"}
+            <span className="tracking-wide font-medium">
+              {formatPhone(evaluator?.phone)}
+            </span>
           </p>
         </div>
       </div>
