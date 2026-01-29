@@ -112,7 +112,6 @@ const AuthProvider = ({ children }) => {
         staleTime: 0,
         cacheTime: 0,
     });
-    console.log("User Data-->", userData);
 
     const isLoggedIn = !!accessToken && (userData || isFetching || isLoading);
 

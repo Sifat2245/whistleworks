@@ -59,7 +59,7 @@ const ResetPasswordOtp = () => {
     };
 
     const handleResend = () => {
-        console.log("Resend OTP clicked");
+        // console.log("Resend OTP clicked");
         inputsRef.current[0].focus();
     };
 

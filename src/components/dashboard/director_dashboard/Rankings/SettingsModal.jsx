@@ -128,9 +128,6 @@ const SettingsModal = ({ isOpen, onClose, campId }) => {
                 disabled={saving}
                 highlightTitle
               />
-              <p className="text-xs text-gray-500 italic">
-                Note: Referees cannot see their evaluation until after 3 evals have been submitted
-              </p>
             </div>
           </div>
 
@@ -167,7 +164,7 @@ const ToggleItem = ({ title, description, checked, onChange, disabled, highlight
         className="sr-only peer"
       />
       <div
-        className={`w-12 h-7 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all ${
+        className={`w-12 h-7 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all ${
           highlightTitle ? "peer-checked:bg-red-500" : "peer-checked:bg-[#00AEEF]"
         }`}
       />

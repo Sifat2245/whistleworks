@@ -47,7 +47,7 @@ const ForgetPassword = () => {
   });
 
   const onSubmit = (data) => {
-    console.log("Forget Password Data:", data);
+    // console.log("Forget Password Data:", data);
     forgotPasswordMutation.mutate(data);
   };
 

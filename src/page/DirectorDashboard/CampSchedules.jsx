@@ -41,7 +41,7 @@ const CampSchedules = () => {
     enabled: !!camp_id,
     retry: 1,
   });
-  // console.log(campData);
+  // console.log(campData, 'camp');
 
   // Transform games
   const games = useMemo(() => {
@@ -51,17 +51,10 @@ const CampSchedules = () => {
     }
 
     return campData.schedule.game_courts.map((slot) => {
-      const date = new Date(slot.game_date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-
+      const date = slot.game_date
       const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
 
-      const locationMatch = slot.court_name.match(/^(.*?)\s*-\s*Court/);
-      const location = locationMatch ? locationMatch[1].trim() : "Unknown";
-
+      const location = slot?.location
       const courtMatch = slot.court_name.match(/Court (\d+)/);
       const court = courtMatch ? `Court ${courtMatch[1]}` : slot.court_name;
 
@@ -85,6 +78,7 @@ const CampSchedules = () => {
       };
     });
   }, [campData]);
+
 
   // Note: filtered Games
   const filteredGames = useMemo(() => {

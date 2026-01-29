@@ -37,21 +37,23 @@ export default function Schedule({ camp_id }) {
     enabled: !!camp_id,
     retry: 1,
   });
-  console.log(campData);
+  // console.log(campData);
 
   // Transform games
   const games = useMemo(() => {
-    if (!campData?.schedule?.game_courts || !Array.isArray(campData.schedule.game_courts)) {
-      console.warn("No game_courts found or invalid format:", campData?.schedule);
+    if (
+      !campData?.schedule?.game_courts ||
+      !Array.isArray(campData.schedule.game_courts)
+    ) {
+      console.warn(
+        "No game_courts found or invalid format:",
+        campData?.schedule,
+      );
       return [];
     }
 
     return campData.schedule.game_courts.map((slot) => {
-      const date = new Date(slot.game_date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
+      const date = slot.game_date;
 
       const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
 
@@ -90,25 +92,21 @@ export default function Schedule({ camp_id }) {
       Object.values(game).some((val) =>
         Array.isArray(val)
           ? val.some((item) => item.toLowerCase().includes(query))
-          : val.toString().toLowerCase().includes(query)
-      )
+          : val.toString().toLowerCase().includes(query),
+      ),
     );
   }, [games, searchQuery]);
 
   // Note: infinity scroll hook
-  const {
-    visibleCount,
-    loaderRef,
-    scrollContainerRef,
-    reset
-  } = useInfiniteScroll(filteredGames.length, 10);
+  const { visibleCount, loaderRef, scrollContainerRef, reset } =
+    useInfiniteScroll(filteredGames.length, 10);
 
   // Note: infinity scroll function
   const visibleGames = useMemo(() => {
     return filteredGames.slice(0, visibleCount);
   }, [filteredGames, visibleCount]);
 
-  console.log(visibleGames, 'games');
+  // console.log(visibleGames, 'games');
 
   useEffect(() => {
     reset();
@@ -184,7 +182,8 @@ export default function Schedule({ camp_id }) {
             Games Overview
           </h1>
           <p className="text-base text-[#666666] mt-2">
-            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""} scheduled
+            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""}{" "}
+            scheduled
           </p>
         </div>
 
@@ -224,13 +223,10 @@ export default function Schedule({ camp_id }) {
               {visibleCount < filteredGames.length ? (
                 <Spin />
               ) : (
-                <p className="text-sm text-gray-400">
-                  All games loaded
-                </p>
+                <p className="text-sm text-gray-400">All games loaded</p>
               )}
             </div>
           </div>
-
         </div>
       </div>
     </section>

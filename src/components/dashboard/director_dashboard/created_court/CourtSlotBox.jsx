@@ -20,7 +20,7 @@ const CourtSlotBox = ({
 }) => {
   const axiosInstance = useAxiosSecure();
   const queryClient = useQueryClient();
-  console.log(incomingReferees,"refereeeeeeeeeeeeeeee");
+  // console.log(incomingReferees,"refereeeeeeeeeeeeeeee");
   // Determine if there's a crew assignment
   const crewAssignment = incomingReferees.find((a) => a.type === "crew");
   const individualReferees = incomingReferees.filter((a) => a.type === "individual");
@@ -146,7 +146,7 @@ const CourtSlotBox = ({
             {individualReferees.map((item, idx) => {
               const refereeName = item?.referee_name || "Unknown Referee";
               const jerseyNumber = item?.jourcy_number;
-              console.log(item, 'referee');
+              // console.log(item, 'referee');
 
               return (
                 <div
