@@ -2,7 +2,6 @@ import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { formatDate } from "@/utils/formatDate";
 import { useMutation } from "@tanstack/react-query";
 import { useForm, useFieldArray } from "react-hook-form";
 import Swal from "sweetalert2";
@@ -166,7 +165,7 @@ const DailyTimeRange = ({ getDateRange }) => {
       <div className="my-12 w-full bg-linear-to-r from-[#00AEEF]/5 to-blue-50 rounded-2xl p-8 border border-[#00AEEF]/20 shadow-sm">
         <p className="text-2xl font-semibold text-[#333]">Camp Date Range:</p>
         <p className="text-xl text-[#333] mt-3 font-medium">
-          {formatDate(start_date)} — {formatDate(end_date)}
+          {start_date} — {end_date}
         </p>
       </div>
 

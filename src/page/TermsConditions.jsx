@@ -4,18 +4,23 @@ import useAxiosPublic from "@/hooks/useAxiosPublic";
 const TermsAndConditions = () => {
   const axiosPublic = useAxiosPublic();
 
-  const { data: apiResponse, isLoading, isError, refetch } = useQuery({
+  const {
+    data: apiResponse,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["terms-and-conditions"],
     queryFn: () =>
       axiosPublic.get("/terms-and-conditions").then((res) => res.data),
-    staleTime: 1000 * 60 * 10,     // 10 minutes — very reasonable for legal text
-    gcTime: 1000 * 60 * 60,        // 1 hour — keep in cache longer (optional but nice)
-    retry: 1,                      // don't retry too aggressively
-    refetchOnWindowFocus: false,   // usually not needed for static legal pages
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
+    retry: 1,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
 
-  const terms = apiResponse?.data?.[0]?.description ?? "";
+  const termsHtml = apiResponse?.data?.description ?? "";
 
   if (isLoading) {
     return (
@@ -25,7 +30,7 @@ const TermsAndConditions = () => {
     );
   }
 
-  if (isError || !terms) {
+  if (isError || !termsHtml.trim()) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <div className="text-center max-w-md">
@@ -33,7 +38,7 @@ const TermsAndConditions = () => {
             Failed to load Terms & Conditions
           </h2>
           <p className="text-gray-600 mb-6">
-            Please check your internet connection or try again later.
+            Please check your connection or try again later.
           </p>
           <button
             onClick={() => refetch()}
@@ -48,11 +53,7 @@ const TermsAndConditions = () => {
 
   return (
     <div className="min-h-screen bg-white py-10 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10 text-center">
-          Terms & Conditions
-        </h1>
-
+      <div className="mx-auto container">
         <div
           className={`
             prose 
@@ -64,7 +65,7 @@ const TermsAndConditions = () => {
             max-w-none
             prose-li:marker:text-primary/80
           `}
-          dangerouslySetInnerHTML={{ __html: terms }}
+          dangerouslySetInnerHTML={{ __html: termsHtml }}
         />
       </div>
     </div>
