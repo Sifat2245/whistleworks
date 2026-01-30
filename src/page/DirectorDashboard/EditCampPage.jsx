@@ -41,6 +41,15 @@ const EditCampPage = () => {
     },
   });
 
+    //get software fee
+  const {data: softwareFee} = useQuery({
+    queryKey: ['software-fee'],
+    queryFn: async () => {
+      const res = await axiosSecure.get('/v1/camp/admin/fee');
+      return res?.data?.data?.admin_fee
+    }
+  })
+
   const { getSportsType } = useGetSportsType();
 
   const convertedType = getSportsType?.map((item) => ({
@@ -48,7 +57,7 @@ const EditCampPage = () => {
     value: item?.id,
   }));
 
-  console.log(data, 'campdata');
+  // console.log(data, 'campdata');
   const {
     handleSubmit,
     register,
@@ -412,7 +421,7 @@ const EditCampPage = () => {
             </div>
             <div className="flex items-center gap-2 mt-2 sm:mt-7">
               <p className="font-medium whitespace-nowrap text-primary text-sm sm:text-base lg:text-lg">
-                +$25 (software fee)
+                +${softwareFee} (software fee)
               </p>
             </div>
           </div>
