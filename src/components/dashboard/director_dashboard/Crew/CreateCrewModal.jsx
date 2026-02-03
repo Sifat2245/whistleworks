@@ -48,6 +48,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
   });
 
   const allReferees = data?.pages?.flatMap((page) => page?.referees || []) || [];
+  // console.log(allReferees, 'referees');
 
   const filteredReferees = allReferees.filter((ref) =>
     ref?.name?.toLowerCase?.().includes(searchTerm.toLowerCase())

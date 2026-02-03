@@ -13,10 +13,16 @@ const Partners = ({ partnerLogos = [], partners = [] }) => {
     );
   }
 
+  console.log(partnerLogos, 'parnets');
+
   return (
     <div className="bg-neutral-200 py-12 relative overflow-hidden">
       <div className="text-center mb-8">
-        <CommonTitle text={`${partners?.title}`} />
+        {partners?.title ? (
+          <CommonTitle text={`${partners?.title}`} />
+        ) : (
+          <CommonTitle text={"WHISTLE WORKS Partners"} />
+        )}
       </div>
 
       {/* Subtle gradient fade on sides */}

@@ -214,13 +214,23 @@ const RosterTable = ({ referees = [], campId }) => {
   const formatPhone = (phone) => {
     if (!phone) return "N/A";
 
-    let digits = phone.replace(/\D/g, "");
+    const digits = phone.replace(/\D/g, "");
+
+    if (digits.length === 0) return "N/A";
 
     if (digits.length <= 6) {
       return digits;
     }
 
-    const formatted = digits.replace(/(\d{1,4})(?=\d)/g, "$1 ").trim();
+    let formatted = `(${digits.slice(0, 3)})`;
+
+    const remaining = digits.slice(3);
+
+    if (remaining.length > 0) {
+      for (let i = 0; i < remaining.length; i += 3) {
+        formatted += "-" + remaining.slice(i, i + 3);
+      }
+    }
 
     return formatted;
   };

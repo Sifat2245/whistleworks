@@ -3,7 +3,7 @@ import CommonSubmitBtn from "../common/CommonSubmitBtn";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 
-const Hero = ({heroData}) => {
+const Hero = ({ heroData }) => {
   const { userData } = useAuth();
   const userRole = userData?.role;
 
@@ -50,21 +50,20 @@ const Hero = ({heroData}) => {
           className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-snug sm:leading-tight md:leading-tight lg:leading-tight mx-auto max-w-4xl sm:max-w-5xl md:max-w-6xl"
           variants={itemVariants}
         >
-         {heroData?.title}
+          {heroData?.title || "Referee Camp Management Made Simple"}
         </motion.h1>
 
         <motion.p
           className="text-base sm:text-lg md:text-xl lg:text-2xl max-w-xs xs:max-w-sm sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto text-gray-100 px-2 sm:px-0"
           variants={itemVariants}
         >
-         {heroData?.description}
+          {heroData?.description || 'Our comprehensive camp management system is built specifically for camp directors, referees, and evaluators who want less admin work and better on-court/field results.'}
         </motion.p>
 
         <motion.div
           className="flex flex-col xs:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center items-center w-full max-w-xs xs:max-w-sm sm:max-w-md mx-auto"
           variants={itemVariants}
         >
-
           {userData ? (
             <CommonSubmitBtn
               link={true}
