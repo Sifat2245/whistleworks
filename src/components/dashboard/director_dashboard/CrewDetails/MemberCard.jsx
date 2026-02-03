@@ -9,6 +9,7 @@ import Swal from "sweetalert2";
 const MemberCard = ({ member, crewId }) => {
   const axiosInstance = useAxiosSecure();
   const queryClient = useQueryClient();
+  // console.log(member,'memebr');
 
   // Delete member mutation
   const removeMemberMutation = useMutation({

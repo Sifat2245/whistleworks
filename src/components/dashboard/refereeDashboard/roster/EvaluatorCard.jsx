@@ -5,34 +5,25 @@ const EvaluatorCard = ({ evaluator }) => {
   const formatPhone = (phone) => {
     if (!phone) return "N/A";
 
-    // Remove all non-digits
-    let digits = phone.replace(/\D/g, "");
+    const digits = phone.replace(/\D/g, "");
 
-    // Convert international (+880...) or 88... to local style with leading 0
-    if (digits.startsWith("880")) {
-      digits = "0" + digits.slice(3);
-    } else if (digits.startsWith("88")) {
-      digits = "0" + digits.slice(2);
+    if (digits.length === 0) return "N/A";
+
+    if (digits.length <= 6) {
+      return digits;
     }
 
-    if (digits.length === 11 && digits.startsWith("0")) {
-      return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
+    let formatted = `(${digits.slice(0, 3)})`;
+
+    const remaining = digits.slice(3);
+
+    if (remaining.length > 0) {
+      for (let i = 0; i < remaining.length; i += 3) {
+        formatted += "-" + remaining.slice(i, i + 3);
+      }
     }
 
-    if (digits.length === 10) {
-      return `${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6)}`;
-    }
-
-    let formatted = "";
-    let i = digits.length;
-    while (i > 0) {
-      const chunk = Math.min(4, i);
-      formatted =
-        digits.slice(i - chunk, i) + (formatted ? " " + formatted : "");
-      i -= chunk;
-    }
-
-    return formatted.trim() || "N/A";
+    return formatted;
   };
 
   return (
