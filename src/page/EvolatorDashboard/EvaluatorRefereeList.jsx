@@ -82,7 +82,7 @@ const EvaluatorRefereeList = ({ camp_id }) => {
 
                 <div className="space-y-1">
                   <h3 className="text-lg font-medium text-black">
-                    {member?.name || "Unnamed Member"} {member?.jourcy_number && `(${member.jourcy_number})`}
+                    {member?.name || "Unnamed Member"} {member?.jourcy_number && `#${member.jourcy_number}`}
                   </h3>
 
                   <p className="text-sm text-gray-500">
