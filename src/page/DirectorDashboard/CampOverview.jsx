@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { Link, useLoaderData, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Select } from "antd";
-import { toast } from "react-hot-toast";
 import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { FaEdit, FaTrashAlt, FaMapMarkerAlt } from "react-icons/fa";
@@ -12,6 +10,8 @@ import { BsCheckCircle } from "react-icons/bs";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import { useAuth } from "@/hooks/useAuth";
+import { Select } from "antd";
+import toast from "react-hot-toast";
 
 const CampOverview = () => {
   const campData = useLoaderData();
@@ -92,7 +92,7 @@ const CampOverview = () => {
               <Link to={`/director-dashboard/edit-camp/${data?.id}`}>
                 <CommonSubmitBtn
                   variant="primary"
-                  className="flex items-center gap-1 py-2 px-4" // ← ensure decent padding
+                  className="flex items-center gap-1 py-1.5! px-4" // ← ensure decent padding
                 >
                   <FaEdit />
                   Edit
