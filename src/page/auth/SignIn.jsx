@@ -65,26 +65,43 @@ const SignIn = () => {
   // Note: sign in mutation
   const signInMutation = useMutation({
     mutationKey: ["sign-in"],
-    mutationFn: async (data) => {
-      const response = await axiosPublic.post(`/login`, data);
+    mutationFn: async (formData) => {
+      // ← renamed for clarity
+      const response = await axiosPublic.post(`/login`, formData);
       return response?.data;
     },
     onSuccess: (res) => {
       toast.success(res?.message || "Sign in successful");
-
       handleLogin(res?.data?.token);
       userRefetch();
       const campId = getCampIdFromFromPath();
-
       setTimeout(() => {
         redirectAfterLogin(res?.data?.user?.role, campId);
       }, 1000);
     },
-    onError: (err) => {
-      toast.error(err?.response?.data?.message || "Sign in failed");
+    onError: (err, variables) => {
+      // ← second param = the data you sent (form values)
+      const errorResponse = err?.response?.data;
+
+      if (
+        errorResponse?.code === 403 &&
+        errorResponse?.data?.is_otp_verified === false
+      ) {
+        toast.error("Please verify your email first");
+
+        // variables = the object you passed to mutate() → { email, password, rememberMe }
+        const email = variables?.email;
+        if (email) {
+          sessionStorage.setItem("verify_email", email);
+        }
+
+        navigate("/auth/verify-otp");
+        return;
+      }
+
+      toast.error(errorResponse?.message || "Sign in failed");
     },
   });
-
   const onSubmit = (data) => {
     // console.log("Sign In Data:", data);
     signInMutation.mutate(data);

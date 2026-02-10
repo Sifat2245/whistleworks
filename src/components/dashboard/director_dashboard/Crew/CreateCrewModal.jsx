@@ -265,7 +265,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
                         />
                         <div>
                           <p className="font-medium text-gray-800">
-                            {ref.name}
+                            {ref.name} {ref.jersey_number ? `#${ref.jersey_number}` : ""}
                           </p>
                           <p className="text-sm text-gray-500">{ref.email}</p>
                         </div>

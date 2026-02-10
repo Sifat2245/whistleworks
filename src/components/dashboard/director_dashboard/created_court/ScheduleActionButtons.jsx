@@ -138,11 +138,11 @@ const ScheduleActionButtons = ({ campId }) => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 md:gap-0 justify-between items-center mt-10">
+    <div className="flex flex-col-reverse md:flex-row gap-4 md:gap-0 justify-between items-center mt-10">
       {/* Left Side */}
       <div className="flex flex-col md:flex-row gap-6">
         <CommonSubmitBtn
-          className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-lg transition-colors"
+          className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg transition-colors"
           onClick={handleDelete}
           isLoading={deleteMutation.isPending}
           disabled={deleteMutation.isPending}
@@ -154,14 +154,14 @@ const ScheduleActionButtons = ({ campId }) => {
           onClick={handleClearSchedule}
           isLoading={clearSchedule.isPending}
           disabled={clearSchedule.isPending}
-          className="border border-primary bg-white text-primary px-8 py-4 hover:bg-gray-50"
+          className="border border-primary bg-white text-primary px-8 py-3! hover:bg-gray-50"
         >
           {clearSchedule.isPending ? <LoaderV2/> : "Clear Schedule"}
         </CommonSubmitBtn>
       </div>
 
       {/* Right Side */}
-      <div className="flex flex-col md:flex-row gap-6 items-center relative">
+      <div className="flex flex-col-reverse md:flex-row gap-6 items-center relative">
         {/* Auto-Assign Button with Tooltip */}
         <div
           className="relative"
@@ -208,6 +208,7 @@ const ScheduleActionButtons = ({ campId }) => {
 
         <CommonSubmitBtn
           variant="primary"
+          className={"w-full sm:w-auto"}
           onClick={handlePublish}
           isLoading={publishMutation.isPending}
           disabled={publishMutation.isPending}

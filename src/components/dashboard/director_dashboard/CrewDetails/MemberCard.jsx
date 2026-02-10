@@ -16,7 +16,7 @@ const MemberCard = ({ member, crewId }) => {
     mutationFn: async (refereeId) => {
       await axiosInstance.delete(`/v1/crew/${crewId}/remove-members`, {
         params: {
-          referee_ids: [refereeId], 
+          referee_ids: [refereeId],
         },
       });
     },
@@ -45,10 +45,9 @@ const MemberCard = ({ member, crewId }) => {
 
     onSuccess: () => {
       toast.success("Member removed successfully");
-      queryClient.invalidateQueries({ queryKey: ["crew", crewId] })
+      queryClient.invalidateQueries({ queryKey: ["crew", crewId] });
       window.location.reload();
     },
-    
   });
 
   const handleRemove = (e) => {
@@ -100,7 +99,8 @@ const MemberCard = ({ member, crewId }) => {
 
         <div className="space-y-1 px-4 py-5">
           <h3 className="text-lg font-medium text-black">
-            {member?.name || "Unnamed Referee"}
+            {member?.name || "Unnamed Referee"}{" "}
+            {member?.jersey_number ? `#${member?.jersey_number}` : ""}
           </h3>
 
           <p className="text-sm text-gray-500 break-all">

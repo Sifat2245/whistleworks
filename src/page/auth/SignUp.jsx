@@ -67,7 +67,6 @@ const SignUp = () => {
       toast.success(data?.message || "Sign up successful");
 
       sessionStorage.setItem("verify_email", data?.data?.email);
-      sessionStorage.setItem("testing_purpose_otp", data?.data?.otp);
 
       const campId = getCampIdFromFromPath();
       saveIntendedCampRedirect(campId);
