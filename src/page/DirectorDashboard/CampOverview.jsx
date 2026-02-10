@@ -27,18 +27,18 @@ const CampOverview = () => {
 
   const [status, setStatus] = useState(data?.status);
 
-  const handleStatusChange = async (value) => {
-    setStatus(value);
+  // const handleStatusChange = async (value) => {
+  //   setStatus(value);
 
-    try {
-      await axiosInstance.post(`/v1/camp/status/${data.id}`, {
-        status: value,
-      });
-      toast.success("Status updated successfully");
-    } catch (error) {
-      toast.error(error || "Failed to update status");
-    }
-  };
+  //   try {
+  //     await axiosInstance.post(`/v1/camp/status/${data.id}`, {
+  //       status: value,
+  //     });
+  //     toast.success("Status updated successfully");
+  //   } catch (error) {
+  //     toast.error(error || "Failed to update status");
+  //   }
+  // };
 
   /* ================= Delete Camp ================= */
   const handleDelete = async () => {
@@ -99,7 +99,7 @@ const CampOverview = () => {
                 </CommonSubmitBtn>
               </Link>
 
-              <Select
+              {/* <Select
                 value={status}
                 size="large"
                 onChange={handleStatusChange}
@@ -108,7 +108,7 @@ const CampOverview = () => {
               >
                 <Select.Option value="active">Active</Select.Option>
                 <Select.Option value="inactive">Inactive</Select.Option>
-              </Select>
+              </Select> */}
 
               <button
                 onClick={handleDelete}

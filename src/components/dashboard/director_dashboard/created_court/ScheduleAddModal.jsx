@@ -20,7 +20,6 @@ const ScheduleAddModal = ({
   handleBlockCourt,
   onAssignSuccess,
   campId,
-  selectedDate,
   maxReferees,
 }) => {
   const [activeTab, setActiveTab] = useState("referees");
@@ -135,6 +134,7 @@ const ScheduleAddModal = ({
       selectedReferees.forEach((ref) =>
         formData.append("referee_ids[]", ref.id),
       );
+      formData.append("override_restrictions", "1");
       return await axiosInstance.post(
         `/v1/director/court-assign/slot/${selectedCourt?.slot_id}/assign-individual`,
         formData,
@@ -664,8 +664,8 @@ const ScheduleAddModal = ({
       </Tabs>
 
       {/* ========== FOOTER ========== */}
-      <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-        <div className="flex gap-3">
+      <div className="flex space-y-2 sm:space-y-0 flex-col-reverse sm:flex-row justify-between items-center mt-8 pt-6 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row gap-3 w-full">
           <CommonSubmitBtn variant="secondary" onClick={handleCloseModal}>
             Cancel
           </CommonSubmitBtn>
@@ -679,7 +679,7 @@ const ScheduleAddModal = ({
           disabled={primaryButtonDisabled}
           loading={primaryButtonLoading}
           variant="primary"
-          className={`min-w-[200px] ${
+          className={`min-w-[200px] mb-3 sm:mb-0 w-full sm:w-auto ${
             activeTab === "referees" &&
             selectedReferees.some((r) => getConflictType(r) === "soft")
               ? "ring-2 ring-orange-400"

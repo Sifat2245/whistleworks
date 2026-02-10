@@ -50,7 +50,9 @@ const RosterTable = ({ referees = [], campId }) => {
 
   // Calculate stats
   const totalReferees = referees.length;
-  const checkedInCount = referees.filter((ref) => ref.status === "checked_in").length;
+  const checkedInCount = referees.filter(
+    (ref) => ref.status === "checked_in",
+  ).length;
 
   const openModal = (referee) => {
     setSelectedReferee(referee);
@@ -82,14 +84,14 @@ const RosterTable = ({ referees = [], campId }) => {
       return {
         ...old,
         referees: old.referees.map((ref) =>
-          ref.id === refereeId ? { ...ref, status: "checked_in" } : ref
+          ref.id === refereeId ? { ...ref, status: "checked_in" } : ref,
         ),
       };
     });
 
     try {
       const res = await axiosInstance.put(
-        `/v1/director/camp/${campId}/referee/${refereeId}/manual-checkin`
+        `/v1/director/camp/${campId}/referee/${refereeId}/manual-checkin`,
       );
 
       queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
@@ -142,7 +144,7 @@ const RosterTable = ({ referees = [], campId }) => {
 
     try {
       await axiosInstance.delete(
-        `/v1/director/camps/${campId}/referees/${refereeId}`
+        `/v1/director/camps/${campId}/referees/${refereeId}`,
       );
 
       queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
@@ -176,7 +178,7 @@ const RosterTable = ({ referees = [], campId }) => {
       return {
         ...old,
         referees: old.referees.map((ref) =>
-          ref.id === refereeId ? { ...ref, jourcy_number: trimmed } : ref
+          ref.id === refereeId ? { ...ref, jourcy_number: trimmed } : ref,
         ),
       };
     });
@@ -185,7 +187,7 @@ const RosterTable = ({ referees = [], campId }) => {
       await axiosInstance.patch(
         `/v1/director/camp/${campId}/referee/${refereeId}/update-jourcy-number`,
         null,
-        { params: { jourcy_number: trimmed } }
+        { params: { jourcy_number: trimmed } },
       );
 
       queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
@@ -201,7 +203,8 @@ const RosterTable = ({ referees = [], campId }) => {
       queryClient.setQueryData(CAMP_QUERY_KEY, previous);
       Swal.fire({
         title: "Error",
-        text: error.response?.data?.message || "Failed to update jersey number.",
+        text:
+          error.response?.data?.message || "Failed to update jersey number.",
         icon: "error",
       });
     } finally {
@@ -212,18 +215,21 @@ const RosterTable = ({ referees = [], campId }) => {
 
   const formatPhone = (phone) => {
     if (!phone) return "N/A";
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length === 0) return "N/A";
-    if (digits.length <= 6) return digits;
 
-    let formatted = `(${digits.slice(0, 3)})`;
-    const remaining = digits.slice(3);
-    if (remaining.length > 0) {
-      for (let i = 0; i < remaining.length; i += 3) {
-        formatted += "-" + remaining.slice(i, i + 3);
-      }
+    // Remove all non-digit characters
+    const digits = phone.replace(/\D/g, "");
+
+    // If we don't have exactly 10 digits → return original digits or N/A
+    if (digits.length !== 10) {
+      return digits.length === 0 ? "N/A" : digits;
     }
-    return formatted;
+
+    // Format as (xxx) xxx-xxxx
+    const areaCode = digits.slice(0, 3);
+    const part1 = digits.slice(3, 6);
+    const part2 = digits.slice(6, 10);
+
+    return `(${areaCode}) ${part1}-${part2}`;
   };
 
   const columns = useMemo(
@@ -247,7 +253,9 @@ const RosterTable = ({ referees = [], campId }) => {
               >
                 {row.original.name || "Unnamed Referee"}
               </button>
-              <div className="text-sm text-gray-500">{row.original.address}</div>
+              <div className="text-sm text-gray-500">
+                {row.original.address}
+              </div>
             </div>
           </div>
         ),
@@ -345,7 +353,9 @@ const RosterTable = ({ referees = [], campId }) => {
           return (
             <div
               className={`flex justify-center items-center py-2 px-4 rounded-full text-sm font-medium w-fit mx-auto ${
-                isCheckedIn ? "bg-[#DCFCE7] text-[#008236]" : "bg-[#DBEAFE] text-[#1E40AF]"
+                isCheckedIn
+                  ? "bg-[#DCFCE7] text-[#008236]"
+                  : "bg-[#DBEAFE] text-[#1E40AF]"
               }`}
             >
               <IoCheckboxOutline className="mr-2" />
@@ -411,7 +421,7 @@ const RosterTable = ({ referees = [], campId }) => {
       axiosInstance,
       queryClient,
       referees,
-    ]
+    ],
   );
 
   const table = useReactTable({
@@ -439,8 +449,12 @@ const RosterTable = ({ referees = [], campId }) => {
             key={index}
             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
           >
-            <div className={`text-4xl font-bold ${stat.color} mb-2`}>{stat.value}</div>
-            <div className="text-base text-gray-600 font-medium">{stat.label}</div>
+            <div className={`text-4xl font-bold ${stat.color} mb-2`}>
+              {stat.value}
+            </div>
+            <div className="text-base text-gray-600 font-medium">
+              {stat.label}
+            </div>
           </div>
         ))}
       </div>
@@ -462,7 +476,10 @@ const RosterTable = ({ referees = [], campId }) => {
                           className="flex items-center gap-1 hover:text-gray-900 focus:outline-none transition"
                           onClick={header.column.getToggleSortingHandler()}
                         >
-                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                           {header.column.getIsSorted() ? (
                             header.column.getIsSorted() === "asc" ? (
                               <MdArrowUpward className="text-blue-600" />
@@ -474,7 +491,10 @@ const RosterTable = ({ referees = [], campId }) => {
                           )}
                         </button>
                       ) : (
-                        flexRender(header.column.columnDef.header, header.getContext())
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )
                       )}
                     </th>
                   ))}
@@ -490,10 +510,16 @@ const RosterTable = ({ referees = [], campId }) => {
                 </tr>
               ) : (
                 table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={row.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-6 py-5">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </td>
                     ))}
                   </tr>
@@ -519,12 +545,19 @@ const RosterTable = ({ referees = [], campId }) => {
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.96 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.4 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                duration: 0.4,
+              }}
               className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Referee Details</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Referee Details
+                </h2>
                 <button
                   onClick={closeModal}
                   className="text-gray-400 hover:text-gray-600 transition"
@@ -557,7 +590,9 @@ const RosterTable = ({ referees = [], campId }) => {
                     <MdEmail className="text-gray-400 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium text-gray-900">{selectedReferee.email || "N/A"}</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedReferee.email || "N/A"}
+                      </p>
                     </div>
                   </div>
 
@@ -578,7 +613,9 @@ const RosterTable = ({ referees = [], campId }) => {
                       <MdLocationOn className="text-gray-400 text-xl" />
                       <div>
                         <p className="text-sm text-gray-500">Address</p>
-                        <p className="font-medium text-gray-900">{selectedReferee.address}</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedReferee.address}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -589,10 +626,14 @@ const RosterTable = ({ referees = [], campId }) => {
                       <p className="text-sm text-gray-500">Status</p>
                       <p
                         className={`font-medium ${
-                          selectedReferee.status === "checked_in" ? "text-[#008236]" : "text-[#1E40AF]"
+                          selectedReferee.status === "checked_in"
+                            ? "text-[#008236]"
+                            : "text-[#1E40AF]"
                         }`}
                       >
-                        {selectedReferee.status === "checked_in" ? "Checked In" : "Registered"}
+                        {selectedReferee.status === "checked_in"
+                          ? "Checked In"
+                          : "Registered"}
                       </p>
                     </div>
                   </div>

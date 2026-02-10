@@ -67,16 +67,10 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
         accessorKey: "submitted_at",
         header: "Date/Time",
         cell: ({ row }) => {
-          const date = new Date(row.original.submitted_at);
+          const date = (row.original.submitted_at)
           return (
             <div className="text-sm text-gray-700">
-              {date.toLocaleDateString()} <br />
-              <span className="text-gray-500">
-                {date.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
+              {date}
             </div>
           );
         },
@@ -287,7 +281,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                           {headerGroup.headers.map((header) => (
                             <th
                               key={header.id}
-                              className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider"
+                              className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider"
                             >
                               {flexRender(
                                 header.column.columnDef.header,

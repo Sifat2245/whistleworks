@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import CommonTitle from "../common/CommonTitle";
 import Marquee from "react-fast-marquee";
 
@@ -12,8 +13,6 @@ const Partners = ({ partnerLogos = [], partners = [] }) => {
       </div>
     );
   }
-
-  console.log(partnerLogos, 'parnets');
 
   return (
     <div className="bg-neutral-200 py-12 relative overflow-hidden">
@@ -35,12 +34,14 @@ const Partners = ({ partnerLogos = [], partners = [] }) => {
             key={`${logo.id}-${index}`}
             className="flex items-center justify-center mx-16 md:mx-24 lg:mx-32"
           >
-            <img
-              src={logo.image}
-              alt="Partner logo"
-              className="h-20 md:h-24 lg:h-28 object-contain transition-all duration-300"
-              loading="lazy"
-            />
+            <Link to={logo.link}>
+              <img
+                src={logo.image}
+                alt="Partner logo"
+                className="h-20 md:h-24 lg:h-28 object-contain transition-all duration-300"
+                loading="lazy"
+              />
+            </Link>
           </div>
         ))}
       </Marquee>

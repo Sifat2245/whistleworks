@@ -301,7 +301,7 @@ const CourtLists = ({ campData }) => {
           <button
             key={item.formatted}
             onClick={() => handleDateClick(item)}
-            className={`border border-[#00AEEF] px-8 py-4 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer
+            className={`border border-[#00AEEF] px-6 py-3 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer
               ${
                 activeFilter === item.formatted
                   ? "bg-[#00AEEF] text-white shadow-lg"

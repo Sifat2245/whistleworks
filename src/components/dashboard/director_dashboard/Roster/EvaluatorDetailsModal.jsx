@@ -10,23 +10,16 @@ const EvaluatorDetailsModal = ({ isOpen, onClose, evaluator }) => {
 
     const digits = phone.replace(/\D/g, "");
 
-    if (digits.length === 0) return "N/A";
-
-    if (digits.length <= 6) {
-      return digits;
+    if (digits.length !== 10) {
+      return digits.length === 0 ? "N/A" : digits;
     }
 
-    let formatted = `(${digits.slice(0, 3)})`;
+    // Format as (xxx) xxx-xxxx
+    const areaCode = digits.slice(0, 3);
+    const part1 = digits.slice(3, 6);
+    const part2 = digits.slice(6, 10);
 
-    const remaining = digits.slice(3);
-
-    if (remaining.length > 0) {
-      for (let i = 0; i < remaining.length; i += 3) {
-        formatted += "-" + remaining.slice(i, i + 3);
-      }
-    }
-
-    return formatted;
+    return `(${areaCode}) ${part1}-${part2}`;
   };
 
   return (

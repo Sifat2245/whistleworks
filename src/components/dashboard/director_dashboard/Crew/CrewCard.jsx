@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 const CrewCard = ({ group }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div
@@ -71,7 +71,7 @@ const CrewCard = ({ group }) => {
                 />
                 <div>
                   <p className="text-sm font-semibold text-gray-800">
-                    {m.name}
+                    {m.name} {m.jersey_number ? `#${m.jersey_number}` : ""}
                   </p>
                   <p className="text-xs text-gray-500">
                     {m.role || "Crew Member"}
