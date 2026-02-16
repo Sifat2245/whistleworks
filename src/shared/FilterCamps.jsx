@@ -23,7 +23,7 @@ const FilterCamps = ({ limit }) => {
   const initialLocation = searchParams.get("location") || null;
   const initialStartDate = searchParams.get("start_date") ? dayjs(searchParams.get("start_date")) : null;
   const initialEndDate = searchParams.get("end_date") ? dayjs(searchParams.get("end_date")) : null;
-  const initialSort = searchParams.get("sort") || "newest";
+  const initialSort = searchParams.get("sort") || "upcoming";
   const initialPage = parseInt(searchParams.get("page")) || 1;
 
   const [selectedSportId, setSelectedSportId] = useState(initialSport);
@@ -81,7 +81,7 @@ const FilterCamps = ({ limit }) => {
     if (selectedLocation) params.set("location", selectedLocation);
     if (selectedDateRange?.[0]) params.set("start_date", dayjs(selectedDateRange[0]).format("YYYY-MM-DD"));
     if (selectedDateRange?.[1]) params.set("end_date", dayjs(selectedDateRange[1]).format("YYYY-MM-DD"));
-    if (selectedSort !== "newest") params.set("sort", selectedSort);
+    if (selectedSort !== "upcoming") params.set("sort", selectedSort);
     if (currentPage > 1) params.set("page", currentPage.toString());
 
     setSearchParams(params);
@@ -91,7 +91,7 @@ const FilterCamps = ({ limit }) => {
     setSelectedSportId(null);
     setSelectedLocation(null);
     setSelectedDateRange(null);
-    setSelectedSort("newest");
+    setSelectedSort("upcoming");
     setCurrentPage(1);
     setSearchParams(new URLSearchParams());
   };
