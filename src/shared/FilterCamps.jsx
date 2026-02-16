@@ -21,24 +21,32 @@ const FilterCamps = ({ limit }) => {
   // Read from URL
   const initialSport = searchParams.get("sports_type_id") || null;
   const initialLocation = searchParams.get("location") || null;
-  const initialStartDate = searchParams.get("start_date") ? dayjs(searchParams.get("start_date")) : null;
-  const initialEndDate = searchParams.get("end_date") ? dayjs(searchParams.get("end_date")) : null;
-  const initialSort = searchParams.get("sort") || "newest";
+  const initialStartDate = searchParams.get("start_date")
+    ? dayjs(searchParams.get("start_date"))
+    : null;
+  const initialEndDate = searchParams.get("end_date")
+    ? dayjs(searchParams.get("end_date"))
+    : null;
+  const sortFromUrl = searchParams.get("sort");
+
+  const initialSort =
+    sortFromUrl && ["newest", "oldest", "upcoming"].includes(sortFromUrl)
+      ? sortFromUrl
+      : "upcoming";
   const initialPage = parseInt(searchParams.get("page")) || 1;
 
   const [selectedSportId, setSelectedSportId] = useState(initialSport);
   const [selectedLocation, setSelectedLocation] = useState(initialLocation);
   const [selectedDateRange, setSelectedDateRange] = useState(
-    initialStartDate && initialEndDate ? [initialStartDate, initialEndDate] : null
+    initialStartDate && initialEndDate
+      ? [initialStartDate, initialEndDate]
+      : null,
   );
   const [selectedSort, setSelectedSort] = useState(initialSort);
   const [currentPage, setCurrentPage] = useState(initialPage);
 
   // Fetch Sports Types
-  const {
-    data: sportsTypes = [],
-    isLoading: sportsLoading,
-  } = useQuery({
+  const { data: sportsTypes = [], isLoading: sportsLoading } = useQuery({
     queryKey: ["sports-types"],
     queryFn: async () => {
       const res = await axiosPublic.get("/v1/camp/sports-type");
@@ -47,10 +55,7 @@ const FilterCamps = ({ limit }) => {
   });
 
   // Fetch Locations
-  const {
-    data: locationList = [],
-    isLoading: locationsLoading,
-  } = useQuery({
+  const { data: locationList = [], isLoading: locationsLoading } = useQuery({
     queryKey: ["locations"],
     queryFn: async () => {
       const res = await axiosPublic.get("/v1/camp/locations");
@@ -62,14 +67,22 @@ const FilterCamps = ({ limit }) => {
   const filters = {
     sports_type_id: selectedSportId || undefined,
     location: selectedLocation || undefined,
-    start_date: selectedDateRange?.[0] ? dayjs(selectedDateRange[0]).format("YYYY-MM-DD") : undefined,
-    end_date: selectedDateRange?.[1] ? dayjs(selectedDateRange[1]).format("YYYY-MM-DD") : undefined,
+    start_date: selectedDateRange?.[0]
+      ? dayjs(selectedDateRange[0]).format("YYYY-MM-DD")
+      : undefined,
+    end_date: selectedDateRange?.[1]
+      ? dayjs(selectedDateRange[1]).format("YYYY-MM-DD")
+      : undefined,
     sort: selectedSort,
     page: currentPage,
     per_page: 10, // Matches your API
   };
 
-  const { camps = [], isLoading: campsLoading, pagination = {} } = useCamps(filters);
+  const {
+    camps = [],
+    isLoading: campsLoading,
+    pagination = {},
+  } = useCamps(filters);
 
   const totalItems = pagination.total || 0;
   const totalPages = pagination.last_page || 1;
@@ -79,19 +92,30 @@ const FilterCamps = ({ limit }) => {
     const params = new URLSearchParams();
     if (selectedSportId) params.set("sports_type_id", selectedSportId);
     if (selectedLocation) params.set("location", selectedLocation);
-    if (selectedDateRange?.[0]) params.set("start_date", dayjs(selectedDateRange[0]).format("YYYY-MM-DD"));
-    if (selectedDateRange?.[1]) params.set("end_date", dayjs(selectedDateRange[1]).format("YYYY-MM-DD"));
-    if (selectedSort !== "newest") params.set("sort", selectedSort);
+    if (selectedDateRange?.[0])
+      params.set(
+        "start_date",
+        dayjs(selectedDateRange[0]).format("YYYY-MM-DD"),
+      );
+    if (selectedDateRange?.[1])
+      params.set("end_date", dayjs(selectedDateRange[1]).format("YYYY-MM-DD"));
+    if (selectedSort !== "upcoming") params.set("sort", selectedSort);
     if (currentPage > 1) params.set("page", currentPage.toString());
 
     setSearchParams(params);
-  }, [selectedSportId, selectedLocation, selectedDateRange, selectedSort, currentPage]);
+  }, [
+    selectedSportId,
+    selectedLocation,
+    selectedDateRange,
+    selectedSort,
+    currentPage,
+  ]);
 
   const handleClearFilters = () => {
     setSelectedSportId(null);
     setSelectedLocation(null);
     setSelectedDateRange(null);
-    setSelectedSort("newest");
+    setSelectedSort("upcoming");
     setCurrentPage(1);
     setSearchParams(new URLSearchParams());
   };
@@ -120,7 +144,10 @@ const FilterCamps = ({ limit }) => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <img src={filterIcon} alt="filter" className="h-7 w-7" />
-            <CommonText text="Filter & Sort Camps" className="text-xl font-semibold" />
+            <CommonText
+              text="Filter & Sort Camps"
+              className="text-xl font-semibold"
+            />
           </div>
           <Button
             type="text"
@@ -169,7 +196,9 @@ const FilterCamps = ({ limit }) => {
 
           {/* Date Range */}
           <div>
-            <label className="block text-sm text-gray-600 mb-2">Date Range</label>
+            <label className="block text-sm text-gray-600 mb-2">
+              Date Range
+            </label>
             <RangePicker
               value={selectedDateRange}
               onChange={setSelectedDateRange}
@@ -186,9 +215,9 @@ const FilterCamps = ({ limit }) => {
               onChange={setSelectedSort}
               className="w-full"
               options={[
+                { value: "upcoming", label: "Upcoming First" },
                 { value: "newest", label: "Newest First" },
                 { value: "oldest", label: "Oldest First" },
-                { value: "upcoming", label: "Upcoming First" },
               ]}
             />
           </div>
@@ -197,7 +226,8 @@ const FilterCamps = ({ limit }) => {
 
       {/* Results */}
       <div className="mb-8 text-gray-700">
-        Showing <strong>{camps.length}</strong> of <strong>{totalItems}</strong> camps
+        Showing <strong>{camps.length}</strong> of <strong>{totalItems}</strong>{" "}
+        camps
       </div>
 
       {campsLoading ? (
