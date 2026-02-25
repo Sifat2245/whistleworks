@@ -6,7 +6,7 @@ import FilterCamps from "@/shared/FilterCamps";
 const AllCamps = () => {
   return (
     <div className="container mx-auto px-4">
-      <div className="mb-6 mt-28 md:mt-36 text-center max-w-4xl mx-auto">
+      <div className="mb-6 mt-10 md:mt-14 text-center max-w-4xl mx-auto">
         <CommonTitle
           text="Discover All Referee Training Camps"
           className="mb-6 text-4xl md:text-5xl font-bold text-gray-900"

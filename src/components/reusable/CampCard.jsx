@@ -1,8 +1,9 @@
-import { FaUser, FaMapMarkerAlt, FaClock, FaDollarSign } from "react-icons/fa";
+import { FaMapMarkerAlt, FaClock, FaDollarSign } from "react-icons/fa";
 import CommonSubmitBtn from "../common/CommonSubmitBtn";
 import { useAuth } from "@/hooks/useAuth";
 import dummyImage from "@/assets/dummyCardImg.png";
 import { useLocation } from "react-router-dom";
+import { MdSportsTennis } from "react-icons/md";
 
 const CampCard = ({ camp }) => {
   const location = useLocation();
@@ -18,7 +19,7 @@ const CampCard = ({ camp }) => {
     start_date,
     end_date,
     price,
-    sport,
+    sports_type,
     director,
   } = camp || {};
 
@@ -31,7 +32,6 @@ const CampCard = ({ camp }) => {
   //   });
   // };
 
-  const coachName = sport?.sports_name || "Various Coaches";
   const displayPrice = price ? `$${parseFloat(price).toFixed(2)}` : "Free";
 
   const getButtonPath = () => {
@@ -89,8 +89,8 @@ const CampCard = ({ camp }) => {
       {/* Info Rows */}
       <div className="space-y-3 text-gray-700 text-sm">
         <div className="flex items-center gap-2">
-          <FaUser className="text-primary shrink-0" />
-          <span>{coachName}</span>
+          <MdSportsTennis className="text-primary shrink-0" />
+          <span>{sports_type}</span>
         </div>
 
         <div className="flex items-center gap-2">

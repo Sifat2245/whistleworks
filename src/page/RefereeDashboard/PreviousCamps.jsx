@@ -52,6 +52,7 @@ export default function PreviousCamps() {
             id: camp.id,
             camp_name: camp.camp_name || camp.name,
             camp_logo: camp.camp_logo || camp.logo,
+            sports_type: camp.sports_type_name,
             location: camp.location,
             start_date: camp.start_date,
             end_date: camp.end_date,
@@ -70,6 +71,7 @@ export default function PreviousCamps() {
             id: camp.id,
             camp_name: camp.name,
             camp_logo: camp.logo,
+            sports_type: camp.sports_type_name,
             location: camp.location,
             start_date: camp.start_date,
             end_date: camp.end_date,
@@ -86,7 +88,7 @@ export default function PreviousCamps() {
       };
     },
     enabled: !!role,
-    keepPreviousData: true, // Smooth transitions between pages
+    keepPreviousData: true,
   });
 
   const previousCamps = data.camps || [];

@@ -99,7 +99,7 @@ const router = createBrowserRouter([
         path: "edit-camp/:id",
         element: <EditCampPage />,
         loader: async ({ params }) =>
-          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
+          await axiosSecureInstance.get(`/v1/camp/edit/${params.id}`),
       },
       {
         path: "create-new-camp",

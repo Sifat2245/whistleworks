@@ -169,7 +169,7 @@ const FilterCamps = ({ limit }) => {
               onChange={setSelectedSportId}
               allowClear
               loading={sportsLoading}
-              className="w-full"
+              className="w-full border border-black/20 px-3! rounded-lg"
               options={sportsTypes.map((sport) => ({
                 value: sport.id,
                 label: sport.sports_name,
@@ -186,7 +186,7 @@ const FilterCamps = ({ limit }) => {
               onChange={setSelectedLocation}
               allowClear
               loading={locationsLoading}
-              className="w-full"
+              className="w-full border border-black/20 px-3! rounded-lg"
               options={locationList.map((loc) => ({
                 value: loc,
                 label: loc,
@@ -212,8 +212,9 @@ const FilterCamps = ({ limit }) => {
             <label className="block text-sm text-gray-600 mb-2">Sort By</label>
             <Select
               value={selectedSort}
+              defaultValue="upcoming"
               onChange={setSelectedSort}
-              className="w-full"
+              className="w-full border border-black/20 px-3! rounded-lg"
               options={[
                 { value: "upcoming", label: "Upcoming First" },
                 { value: "newest", label: "Newest First" },
