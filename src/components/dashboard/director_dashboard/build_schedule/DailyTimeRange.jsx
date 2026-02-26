@@ -97,10 +97,10 @@ const DailyTimeRange = ({ getDateRange }) => {
         court_count: Number(loc.court_count),
         latitude: Number(loc.latitude),
         longitude: Number(loc.longitude),
+        address: loc.address,
       })),
       max_referees_per_slot: Number(data.max_referees_per_slot),
     };
-
     createScheduleMutation.mutate(body);
   };
 
@@ -136,7 +136,7 @@ const DailyTimeRange = ({ getDateRange }) => {
             <input
               type="text"
               placeholder="Search location (gym, stadium, park...)"
-              className="w-full px-6 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00AEEF] focus:border-[#00AEEF] text-base bg-white shadow-sm transition-all duration-200"
+              className="w-full px-6 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00AEEF] focus:border-[#00AEEF] text-base bg-white shadow-sm transition-all duration-200"
               {...register(`locations.${index}.location_name`, {
                 required: "Please select a valid location",
               })}
@@ -299,10 +299,21 @@ const DailyTimeRange = ({ getDateRange }) => {
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="bg-linear-to-br from-gray-50 to-white rounded-2xl p-8 shadow-md border border-gray-200 hover:shadow-xl transition-shadow flex flex-col md:flex-row gap-8 items-start"
+                className="bg-linear-to-br from-gray-50 to-white rounded-2xl p-8 shadow-md border border-gray-200 hover:shadow-xl transition-shadow flex flex-col md:flex-row gap-8 items-center"
               >
-                <div className="flex-1">
+                <div className="flex flex-col md:flex-row gap-6 justify-center items-center w-full">
                   <LocationInput index={index} />
+                  <div>
+                    <CommonInputWrapper
+                      type="text"
+                      placeholder="Enter the location name"
+                      register={register}
+                      register_as={`locations.${index}.address`}
+                      validationRules={{
+                        required: "Address required",
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className="w-full md:w-64">

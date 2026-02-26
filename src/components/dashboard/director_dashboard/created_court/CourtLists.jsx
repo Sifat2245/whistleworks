@@ -286,7 +286,7 @@ const CourtLists = ({ campData }) => {
                     : "bg-white text-gray-700 hover:bg-gray-50"
                 }`}
             >
-              <span>{loc.location_name}</span>
+              <span>{loc.address}</span>
               <span className="text-xs bg-white/20 px-2 py-1 rounded">
                 {loc.court_count} courts
               </span>
@@ -381,7 +381,7 @@ const CourtLists = ({ campData }) => {
                       {/* Location hint when multiple locations exist */}
                       {!isEditingThisCourt && (
                         <div className="text-xs text-gray-500 mt-1 truncate">
-                          {court.location}
+                          {court.address}
                         </div>
                       )}
                     </div>
