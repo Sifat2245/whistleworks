@@ -32,7 +32,7 @@ const EvaluationFormV2 = ({ camp_id }) => {
     label: (
       <div className="w-full flex items-center gap-2">
         <Avatar src={ref?.avatar} size={32} />
-        <span>{ref?.name}</span>
+        <span>{ref?.name}</span> {ref?.jersey_number ? `#${ref?.jersey_number}` : ""}
       </div>
     ),
   }));
