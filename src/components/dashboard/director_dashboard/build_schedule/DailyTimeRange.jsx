@@ -135,7 +135,7 @@ const DailyTimeRange = ({ getDateRange }) => {
           >
             <input
               type="text"
-              placeholder="Search location (gym, stadium, park...)"
+              placeholder="Location Address"
               className="w-full px-6 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00AEEF] focus:border-[#00AEEF] text-base bg-white shadow-sm transition-all duration-200"
               {...register(`locations.${index}.location_name`, {
                 required: "Please select a valid location",
@@ -306,7 +306,7 @@ const DailyTimeRange = ({ getDateRange }) => {
                   <div>
                     <CommonInputWrapper
                       type="text"
-                      placeholder="Enter the location name"
+                      placeholder="Location Name"
                       register={register}
                       register_as={`locations.${index}.address`}
                       validationRules={{

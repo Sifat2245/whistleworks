@@ -54,7 +54,7 @@ const CampSchedules = () => {
       const date = slot.game_date
       const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
 
-      const location = slot?.location
+      const location = slot?.address
       const courtMatch = slot.court_name.match(/Court (\d+)/);
       const court = courtMatch ? `Court ${courtMatch[1]}` : slot.court_name;
 

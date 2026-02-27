@@ -75,7 +75,7 @@ export default function MyGameCard({ game, camp }) {
         {/* Court Info */}
         <div className="text-center py-4 bg-linear-to-r from-blue-50 to-[#E6F7FD] rounded-xl">
           <p className="text-xl font-bold text-gray-800">
-            {game.location?.name}
+            {game.location?.address}
           </p>
           <p className="text-sm text-gray-600 mt-1">
             {game.game_details.court_name} •{" "}
