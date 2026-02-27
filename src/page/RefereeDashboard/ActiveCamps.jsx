@@ -46,7 +46,7 @@ export default function ActiveCamps() {
         page: page.toString(),
         per_page: newPerPage.toString(),
       },
-      { replace: true }
+      { replace: true },
     );
   };
 
@@ -100,7 +100,7 @@ export default function ActiveCamps() {
           "/v1/referee/camp/my-registrations",
           {
             params: { page: currentPage, per_page: perPage },
-          }
+          },
         );
         return res?.data?.data || {};
       },
@@ -117,12 +117,31 @@ export default function ActiveCamps() {
     activeTab === TAB_KEYS.CHECKED_IN
       ? currentResponse.checked_in || []
       : currentResponse.registrations || [];
+  console.log(camps, "camps");
 
   const pagination = currentResponse.pagination || {};
   const summary = currentResponse.summary || {};
 
   const totalItems = pagination.total || 0;
   const hasCamps = camps.length > 0;
+
+  const normalizedCamps = camps.map((item) => {
+    const campData = item.camp || {};
+
+    return {
+      ...campData,
+      id: campData.id,
+      camp_name: campData.camp_name || campData.name || "Untitled Camp",
+      camp_logo: campData.logo || campData.camp_logo || null,
+      sports_type:
+        campData.sports_type?.name || campData.sports_type_name || "—",
+      location: campData.location || "Not specified",
+      start_date: campData.start_date,
+      end_date: campData.end_date,
+      price: campData.price || "0.00",
+      director: campData.director || { name: "N/A" },
+    };
+  });
 
   return (
     <section className="container w-full px-4 mx-auto mt-5">
@@ -165,7 +184,7 @@ export default function ActiveCamps() {
               style={{ width: 100 }}
               className="border border-black/15 p-2!"
             >
-              {PER_PAGE_OPTIONS.map((num) => (
+              {PER_PAGE_OPTIONS?.map((num) => (
                 <Option key={num} value={num}>
                   {num}
                 </Option>
@@ -183,8 +202,8 @@ export default function ActiveCamps() {
         ) : hasCamps ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {camps.map((item) => (
-                <CampCard key={item.registration_id} camp={item.camp} />
+              {normalizedCamps.map((camp) => (
+                <CampCard key={camp.id} camp={camp} />
               ))}
             </div>
 
