@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from "react";
 import { CiFilter, CiSearch } from "react-icons/ci";
 import { useParams } from "react-router-dom";
 
-
 const CampSchedules = () => {
   const axiosSecure = useAxiosSecure();
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,7 +26,6 @@ const CampSchedules = () => {
 
       const response = await axiosSecure.get(`/roster/camp/details/${camp_id}`);
 
-      // Validate response structure
       if (!response?.data?.success) {
         throw new Error(response?.data?.message || "Failed to fetch camp");
       }
@@ -41,7 +39,6 @@ const CampSchedules = () => {
     enabled: !!camp_id,
     retry: 1,
   });
-  // console.log(campData, 'camp');
 
   // Transform games
   const games = useMemo(() => {
@@ -51,10 +48,10 @@ const CampSchedules = () => {
     }
 
     return campData.schedule.game_courts.map((slot) => {
-      const date = slot.game_date
+      const date = slot.game_date;
       const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
 
-      const location = slot?.address
+      const location = slot?.address;
       const courtMatch = slot.court_name.match(/Court (\d+)/);
       const court = courtMatch ? `Court ${courtMatch[1]}` : slot.court_name;
 
@@ -79,8 +76,6 @@ const CampSchedules = () => {
     });
   }, [campData]);
 
-
-  // Note: filtered Games
   const filteredGames = useMemo(() => {
     if (!searchQuery.trim()) return games;
     const query = searchQuery.toLowerCase();
@@ -93,15 +88,13 @@ const CampSchedules = () => {
     );
   }, [games, searchQuery]);
 
-  // Note: infinity scroll hook
   const {
     visibleCount,
     loaderRef,
     scrollContainerRef,
-    reset
+    reset,
   } = useInfiniteScroll(filteredGames.length, 10);
 
-  // Note: infinity scroll function
   const visibleGames = useMemo(() => {
     return filteredGames.slice(0, visibleCount);
   }, [filteredGames, visibleCount]);
@@ -114,7 +107,10 @@ const CampSchedules = () => {
   const totalGames = games.length;
   const displayedGames = filteredGames.length;
 
-  // Loading State
+  // ────────────────────────────────────────────────
+  // Loading / Error / Empty states (unchanged)
+  // ────────────────────────────────────────────────
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -123,10 +119,8 @@ const CampSchedules = () => {
     );
   }
 
-  // Error State - Show detailed message
   if (isError) {
-    console.error("Schedule fetch error:", error); // Check browser console!
-
+    console.error("Schedule fetch error:", error);
     return (
       <div className="container mx-auto px-4 py-10 text-center">
         <div className="max-w-md mx-auto bg-red-50 border border-red-200 rounded-xl p-8">
@@ -155,7 +149,6 @@ const CampSchedules = () => {
     );
   }
 
-  // Success - No games
   if (games.length === 0) {
     return (
       <div className="container mx-auto px-4 py-10 text-center">
@@ -171,10 +164,14 @@ const CampSchedules = () => {
     );
   }
 
-  // Main UI
+  // ────────────────────────────────────────────────
+  // Main UI - Improved mobile horizontal scroll
+  // ────────────────────────────────────────────────
+
   return (
     <section className="container mx-auto px-4 py-6">
-        <BackBtn/>
+      <BackBtn />
+
       <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-8 gap-6">
         <div className="text-center md:text-left">
           <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">
@@ -200,36 +197,46 @@ const CampSchedules = () => {
         </div>
       </div>
 
+      {/* Horizontal scroll wrapper – key change for mobile */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="grid grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-6 py-5 border-b border-gray-200 bg-gray-50 text-sm font-semibold text-gray-700 uppercase tracking-wider">
-            <div>Date & Time</div>
-            <div className="text-center">Location</div>
-            <div className="text-center">Court</div>
-            <div className="text-center">Assigned Referees</div>
-          </div>
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {/* Minimum width prevents collapsing too much on very small screens */}
+          <div className="min-w-[640px] md:min-w-full">
+            {/* Header */}
+            <div className="grid grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-5 py-4 md:px-6 md:py-5 border-b border-gray-200 bg-gray-50 text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider">
+              <div>Date & Time</div>
+              <div className="text-center">Location</div>
+              <div className="text-center">Court</div>
+              <div className="text-center">Assigned Referees</div>
+            </div>
 
-          <div
-            ref={scrollContainerRef}
-            className="divide-y divide-gray-100 h-[650px] overflow-y-auto"
-          >
-            {visibleGames.map((game) => (
-              <GameRow key={game.id} game={game} />
-            ))}
+            {/* Scrollable content area */}
+            <div
+              ref={scrollContainerRef}
+              className="divide-y divide-gray-100 max-h-[65vh] overflow-y-auto"
+            >
+              {visibleGames.map((game) => (
+                <GameRow key={game.id} game={game} />
+              ))}
 
-            <div ref={loaderRef} className="py-6 text-center">
-              {visibleCount < filteredGames.length ? (
-                <Spin />
-              ) : (
-                <p className="text-sm text-gray-400">
-                  All games loaded
-                </p>
-              )}
+              <div ref={loaderRef} className="py-6 text-center">
+                {visibleCount < filteredGames.length ? (
+                  <Spin />
+                ) : (
+                  <p className="text-sm text-gray-400">All games loaded</p>
+                )}
+              </div>
             </div>
           </div>
-
         </div>
       </div>
+
+      {/* Optional hint for mobile users */}
+      {filteredGames.length > 0 && (
+        <p className="text-center text-xs text-gray-500 mt-3 md:hidden">
+          ← Swipe left/right to see all columns →
+        </p>
+      )}
     </section>
   );
 };
