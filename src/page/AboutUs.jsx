@@ -40,8 +40,8 @@ const AboutUs = () => {
   const hasTeamMembers = team_member.length > 0;
 
   return (
-    <div className="w-full bg-linear-to-b from-gray-50 to-white py-16 md:py-24 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full bg-linear-to-b from-gray-50 to-white py-8 px-4">
+      <div className="container mx-auto">
         {/* Header Section */}
         <div className="text-center mb-16 mt-5">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -186,7 +186,7 @@ const AboutUs = () => {
                   className="group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
                   <div className="relative h-64 overflow-hidden bg-gray-200">
-                    <div className="absolute inset-0 bg-linear-to-b from-transparent to-primary/20 z-10"></div>
+                    {/* <div className="absolute inset-0 bg-linear-to-b from-transparent to-primary/20 z-10"></div> */}
                     <img
                       src={member.image || "/api/placeholder/400/400"}
                       alt={member.title || "Team Member"}

@@ -71,7 +71,7 @@ export default function PreviousCamps() {
             id: camp.id,
             camp_name: camp.name,
             camp_logo: camp.logo,
-            sports_type: camp.sports_type_name,
+            sports_type: camp.sports_type,
             location: camp.location,
             start_date: camp.start_date,
             end_date: camp.end_date,

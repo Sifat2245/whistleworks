@@ -13,14 +13,11 @@ export default function MyCamps() {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage] = useState(12);
 
-  const {
-    data: response = {},
-    isLoading,
-  } = useQuery({
+  const { data: response = {}, isLoading } = useQuery({
     queryKey: ["my-camp-registrations", currentPage],
     queryFn: async () => {
       const res = await axiosInstance.get(
-        `/evaluator/camp-registration/my-registrations?page=${currentPage}&per_page=${perPage}`
+        `/evaluator/camp-registration/my-registrations?page=${currentPage}&per_page=${perPage}`,
       );
       return res?.data?.data || { registrations: [], pagination: {} };
     },
@@ -31,8 +28,6 @@ export default function MyCamps() {
   const pagination = response.pagination || {};
   const total = pagination.total || 0;
   const actualPerPage = pagination.per_page || perPage;
-
-  console.log(registrations, 'asd');
 
   const handlePageClick = (page) => {
     setCurrentPage(page);
@@ -63,7 +58,17 @@ export default function MyCamps() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
             {registrations.map((registration) => {
-              const camp = registration.camp;
+              const camp = {
+                id: registration.camp.id,
+                camp_name: registration.camp.camp_name,
+                camp_logo: registration.camp.camp_logo,
+                sports_type: registration.camp.sports_type_name,
+                location: registration.camp.location,
+                start_date: registration.camp.start_date,
+                end_date: registration.camp.end_date,
+                price: registration.camp.price || "Free",
+                director: registration.camp.director || {},
+              };
               const status = registration.status;
 
               return (
