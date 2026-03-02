@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { BsTrophy } from "react-icons/bs";
 import { MdClose } from "react-icons/md";
-import { Avatar, Tooltip } from "antd"; // ← Add Tooltip here
+import { Avatar, Tooltip } from "antd";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
@@ -14,6 +14,7 @@ import { useMemo, useRef, useCallback } from "react";
 const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
   const axiosInstance = useAxiosSecure();
   const refereeId = referee?.referee_id;
+  console.log(referee);
 
   const {
     data: historyPages,
@@ -25,7 +26,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
     queryKey: ["referee-history", campId, refereeId],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await axiosInstance.get(
-        `/camp/${campId}/referee/${refereeId}/history?page=${pageParam}`
+        `/camp/${campId}/referee/${refereeId}/history?page=${pageParam}`,
       );
       return res?.data?.data;
     },
@@ -58,7 +59,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
 
       if (node) observerRef.current.observe(node);
     },
-    [isFetchingNextPage, hasNextPage, fetchNextPage]
+    [isFetchingNextPage, hasNextPage, fetchNextPage],
   );
 
   const columns = useMemo(
@@ -67,12 +68,8 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
         accessorKey: "submitted_at",
         header: "Date/Time",
         cell: ({ row }) => {
-          const date = (row.original.submitted_at)
-          return (
-            <div className="text-sm text-gray-700">
-              {date}
-            </div>
-          );
+          const date = row.original.submitted_at;
+          return <div className="text-sm text-gray-700">{date}</div>;
         },
       },
       {
@@ -187,7 +184,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
         ),
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -217,7 +214,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-linear-to-r from-blue-50 to-cyan-50">
               <h2 className="text-2xl font-bold text-gray-900">
                 Referee Performance Details
               </h2>
@@ -232,14 +229,21 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
             {/* Summary Section */}
             <div className="p-4 bg-gray-50">
               <div className="flex flex-col items-center text-center">
-                <Avatar size={70} className="mb-4 text-3xl">
-                  {referee.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()}
-                </Avatar>
-                <h3 className="text-xl font-bold text-gray-900">{referee.name}</h3>
+                <div className="relative mb-3">
+                  <Avatar
+                    size={80}
+                    src={referee?.avatar}
+                    alt={`${referee?.name}'s avatar`}
+                    className="border-2 border-gray-200 shadow-md"
+                  >
+                    {!referee?.avatar && referee?.name
+                      ? referee.name.charAt(0).toUpperCase()
+                      : "R"}
+                  </Avatar>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {referee.name}
+                </h3>
                 <div className="flex items-center gap-3 mt-3">
                   <BsTrophy className="w-6 h-6 text-yellow-500" />
                   <span className="text-xl font-bold text-gray-800">
@@ -253,7 +257,8 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                   </span>
                 </p>
                 <p className="text-sm text-gray-500">
-                  Based on {referee.count} evaluation{referee.count > 1 ? "s" : ""}
+                  Based on {referee.count} evaluation
+                  {referee.count > 1 ? "s" : ""}
                 </p>
               </div>
             </div>
@@ -285,7 +290,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                             >
                               {flexRender(
                                 header.column.columnDef.header,
-                                header.getContext()
+                                header.getContext(),
                               )}
                             </th>
                           ))}
@@ -296,14 +301,18 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                       {table.getRowModel().rows.map((row, index) => (
                         <tr
                           key={row.id}
-                          ref={index === evaluations.length - 5 ? lastEvaluationRef : null}
+                          ref={
+                            index === evaluations.length - 5
+                              ? lastEvaluationRef
+                              : null
+                          }
                           className="hover:bg-blue-50 transition-colors"
                         >
                           {row.getVisibleCells().map((cell) => (
                             <td key={cell.id} className="px-4 py-4 text-sm">
                               {flexRender(
                                 cell.column.columnDef.cell,
-                                cell.getContext()
+                                cell.getContext(),
                               )}
                             </td>
                           ))}

@@ -45,7 +45,7 @@ const Rankings = ({ campId }) => {
       return {
         referee_id: item.referee_id,
         name: item.referee_name || "Unknown Referee",
-        avatar: null,
+        avatar: item.avatar || null,
         count: item.total_evaluations || 0,
         call_accuracy: averages.call_accuracy || 0,
         communication_skills: averages.communication_skills || 0,
@@ -80,7 +80,7 @@ const Rankings = ({ campId }) => {
     const topPerformer = processedData[0]?.name || "N/A";
     const totalEvals = rawEvaluations.reduce(
       (sum, r) => sum + (r.total_evaluations || 0),
-      0
+      0,
     );
 
     return [
@@ -91,7 +91,11 @@ const Rankings = ({ campId }) => {
         suffix: "%",
       },
       { value: topPerformer, label: "Top Performer", color: "text-green-600" },
-      { value: totalEvals, label: "Total Evaluations", color: "text-purple-600" },
+      {
+        value: totalEvals,
+        label: "Total Evaluations",
+        color: "text-purple-600",
+      },
       {
         value: processedData.length,
         label: "Referees Evaluated",
@@ -127,8 +131,8 @@ const Rankings = ({ campId }) => {
                   row.original.rank === 1
                     ? "text-yellow-500"
                     : row.original.rank === 2
-                    ? "text-gray-400"
-                    : "text-amber-600"
+                      ? "text-gray-400"
+                      : "text-amber-600"
                 }`}
               />
             )}
@@ -141,12 +145,17 @@ const Rankings = ({ campId }) => {
         header: "Referee",
         cell: ({ row }) => (
           <div className="flex items-center gap-4 min-w-[220px]">
-            <Avatar size={48} className="bg-gray-300">
+            <Avatar
+              size={48}
+              src={row.original.avatar}
+              alt={`${row.original.name} avatar`}
+              className="bg-gray-200 border border-gray-300 shadow-sm"
+            >
               {row.original.name
                 .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()}
+                .map((part) => part.charAt(0).toUpperCase())
+                .slice(0, 2)
+                .join("")}
             </Avatar>
             <div>
               <button
@@ -156,7 +165,8 @@ const Rankings = ({ campId }) => {
                 {row.original.name}
               </button>
               <div className="text-xs text-gray-500 mt-0.5">
-                {row.original.count} evaluation{row.original.count !== 1 ? "s" : ""}
+                {row.original.count} evaluation
+                {row.original.count !== 1 ? "s" : ""}
               </div>
             </div>
           </div>
@@ -236,17 +246,19 @@ const Rankings = ({ campId }) => {
           </div>
         ),
       },
-      ...["NCAA D1", "NCAA D2", "NAIA", "JUCO", "HS", "JH/ELEM"].map((level) => ({
-        accessorKey: `levels.${level}`,
-        header: level === "JH/ELEM" ? "JH/Elem" : level,
-        cell: ({ row }) => (
-          <div className="text-center text-lg">
-            {row.original.levels[level] || "–"}
-          </div>
-        ),
-      })),
+      ...["NCAA D1", "NCAA D2", "NAIA", "JUCO", "HS", "JH/ELEM"].map(
+        (level) => ({
+          accessorKey: `levels.${level}`,
+          header: level === "JH/ELEM" ? "JH/Elem" : level,
+          cell: ({ row }) => (
+            <div className="text-center text-lg">
+              {row.original.levels[level] || "–"}
+            </div>
+          ),
+        }),
+      ),
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -275,9 +287,13 @@ const Rankings = ({ campId }) => {
           >
             <div className={`text-3xl font-bold ${stat.color} mb-2`}>
               {stat.value}
-              {stat.suffix && <span className="text-xl ml-1">{stat.suffix}</span>}
+              {stat.suffix && (
+                <span className="text-xl ml-1">{stat.suffix}</span>
+              )}
             </div>
-            <div className="text-sm font-medium text-gray-600">{stat.label}</div>
+            <div className="text-sm font-medium text-gray-600">
+              {stat.label}
+            </div>
           </div>
         ))}
       </div>
@@ -290,7 +306,7 @@ const Rankings = ({ campId }) => {
             Based on{" "}
             {rawEvaluations.reduce(
               (sum, r) => sum + (r.total_evaluations || 0),
-              0
+              0,
             )}{" "}
             submitted evaluations
           </p>
@@ -316,7 +332,7 @@ const Rankings = ({ campId }) => {
                         >
                           {flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                           {header.column.getIsSorted() ? (
                             header.column.getIsSorted() === "asc" ? (
@@ -331,7 +347,7 @@ const Rankings = ({ campId }) => {
                       ) : (
                         flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )
                       )}
                     </th>
@@ -359,7 +375,7 @@ const Rankings = ({ campId }) => {
                       <td key={cell.id} className="px-6 py-5">
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </td>
                     ))}
