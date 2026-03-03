@@ -45,7 +45,7 @@ const Rankings = ({ campId }) => {
       return {
         referee_id: item.referee_id,
         name: item.referee_name || "Unknown Referee",
-        avatar: item.avatar || null,
+        avatar: item.referee_avatar || null,
         count: item.total_evaluations || 0,
         call_accuracy: averages.call_accuracy || 0,
         communication_skills: averages.communication_skills || 0,

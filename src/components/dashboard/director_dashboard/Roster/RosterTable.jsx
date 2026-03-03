@@ -141,7 +141,7 @@ const RosterTable = ({ referees = [], campId }) => {
         referees: old.referees.filter((ref) => ref.id !== refereeId),
       };
     });
-
+    console.log(campId, refereeId, 'ids');
     try {
       await axiosInstance.delete(
         `/v1/director/camps/${campId}/referees/${refereeId}`,

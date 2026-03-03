@@ -119,7 +119,7 @@ const CourtSlotBox = ({
                   className="w-10 h-10 rounded-full object-cover border border-gray-300"
                 />
                 <span className="text-sm font-medium truncate">
-                  {member.referee_name}
+                  {member.referee_name} {member.jersey_number && `#${member.jersey_number}`}
                 </span>
               </div>
             ))}

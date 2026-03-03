@@ -102,7 +102,6 @@ const PendingEvaluator2 = ({ pendingEvaluatorData = [] }) => {
                   className="w-full h-full rounded-full object-cover border-4 border-gray-100 shadow-md"
                   onError={(e) => (e.target.src = "/default-avatar.png")}
                 />
-                <div className="absolute inset-0 rounded-full bg-yellow-400/10"></div>
               </div>
 
               <h6 className="text-base sm:text-lg font-bold text-gray-800 text-center line-clamp-1">
