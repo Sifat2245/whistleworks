@@ -21,6 +21,7 @@ export default function CampDetailsPage() {
   const [searchParams] = useSearchParams();
   const data = useLoaderData();
   const campData = data?.data?.data;
+  const campName = campData?.camp_name
 
   const refereeRegistrationStatus = campData?.referee_registration_status;
   const evaluatorRegistrationStatus = campData?.evaluator_registration_status;
@@ -157,7 +158,7 @@ export default function CampDetailsPage() {
 
             {/* Ranking Report: Available to BOTH registered evaluators AND registered referees */}
             {(isEvaluator && isEvaluatorRegistered) || (isReferee && isRefereeRegistered) ? (
-              tab === "ranking-report" && <RankingReport camp_id={id} />
+              tab === "ranking-report" && <RankingReport camp_id={id} campName={campName} />
             ) : null}
           </>
         )}

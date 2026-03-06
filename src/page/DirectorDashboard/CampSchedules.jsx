@@ -42,8 +42,14 @@ const CampSchedules = () => {
 
   // Transform games
   const games = useMemo(() => {
-    if (!campData?.schedule?.game_courts || !Array.isArray(campData.schedule.game_courts)) {
-      console.warn("No game_courts found or invalid format:", campData?.schedule);
+    if (
+      !campData?.schedule?.game_courts ||
+      !Array.isArray(campData.schedule.game_courts)
+    ) {
+      console.warn(
+        "No game_courts found or invalid format:",
+        campData?.schedule,
+      );
       return [];
     }
 
@@ -80,20 +86,23 @@ const CampSchedules = () => {
     if (!searchQuery.trim()) return games;
     const query = searchQuery.toLowerCase();
     return games.filter((game) =>
-      Object.values(game).some((val) =>
-        Array.isArray(val)
-          ? val.some((item) => item.toLowerCase().includes(query))
-          : val.toString().toLowerCase().includes(query)
-      )
+      Object.values(game).some((val) => {
+        if (val == null) return false; 
+
+        if (Array.isArray(val)) {
+          return val.some(
+            (item) =>
+              item != null && String(item).toLowerCase().includes(query),
+          );
+        }
+
+        return String(val).toLowerCase().includes(query); // String() handles null/undefined gracefully
+      }),
     );
   }, [games, searchQuery]);
 
-  const {
-    visibleCount,
-    loaderRef,
-    scrollContainerRef,
-    reset,
-  } = useInfiniteScroll(filteredGames.length, 10);
+  const { visibleCount, loaderRef, scrollContainerRef, reset } =
+    useInfiniteScroll(filteredGames.length, 10);
 
   const visibleGames = useMemo(() => {
     return filteredGames.slice(0, visibleCount);
@@ -178,7 +187,8 @@ const CampSchedules = () => {
             Games Overview
           </h1>
           <p className="text-base text-[#666666] mt-2">
-            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""} scheduled
+            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""}{" "}
+            scheduled
           </p>
         </div>
 

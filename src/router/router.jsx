@@ -43,14 +43,13 @@ import CampDetailsPageForNoAuth from "@/page/CampDetailsPageForNoAuth";
 import CampSchedules from "@/page/DirectorDashboard/CampSchedules";
 import PrivacyPolicy from "@/page/PrivacyPolicy";
 import TermsConditions from "@/page/TermsConditions";
-
 const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
     children: [
       {
-        path: "/",
+        index: true,
         element: <Home />,
       },
       {
@@ -66,13 +65,13 @@ const router = createBrowserRouter([
         element: <TermsConditions />,
       },
       {
-        path:'all-camps',
-        element: <AllCamps/>
+        path: "all-camps",
+        element: <AllCamps />,
       },
       {
         path: "all-camps/:id",
-        element: <CampDetailsPageForNoAuth/>
-      }
+        element: <CampDetailsPageForNoAuth />,
+      },
     ],
   },
   //
@@ -114,14 +113,14 @@ const router = createBrowserRouter([
         element: <CreatedCourt />,
         loader: async ({ params }) => {
           const response = await axiosSecureInstance.get(
-            `/v1/camp/details/${params.id}`
+            `/v1/camp/details/${params.id}`,
           );
           return response;
         },
       },
       {
         path: "camp-schedules/:id",
-        element: <CampSchedules/>
+        element: <CampSchedules />,
       },
       {
         path: "ranking/:id",

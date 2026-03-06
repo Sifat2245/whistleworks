@@ -5,17 +5,11 @@ import useGetCampDetails from "@/hooks/get-camp-details";
 const EvaluatorRefereeList = ({ camp_id }) => {
   const { campDetails, isLoading } = useGetCampDetails({ camp_id });
   const referees = campDetails?.referees || [];
-  const evaluators = campDetails?.evaluators || [];
 
   const [selectedMember, setSelectedMember] = useState(null);
 
   const allMembers = [
     ...referees.map((r) => ({ ...r, role: "Referee", status: r.status })),
-    ...evaluators.map((e) => ({
-      ...e,
-      role: "Evaluator",
-      status: "registered",
-    })),
   ];
 
   const handleCardClick = (member) => {
@@ -48,7 +42,7 @@ const EvaluatorRefereeList = ({ camp_id }) => {
   return (
     <div className="w-full flex flex-col gap-6">
       <h1 className="text-2xl font-semibold text-center">
-        Referees & Evaluators ({allMembers.length})
+        Referees ({allMembers.length})
       </h1>
 
       {/* Grid */}

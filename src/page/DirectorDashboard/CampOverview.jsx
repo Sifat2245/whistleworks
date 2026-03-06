@@ -10,8 +10,6 @@ import { BsCheckCircle } from "react-icons/bs";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import { useAuth } from "@/hooks/useAuth";
-import { Select } from "antd";
-import toast from "react-hot-toast";
 
 const CampOverview = () => {
   const campData = useLoaderData();
@@ -77,7 +75,7 @@ const CampOverview = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-12">
       <BackBtn />
 
       {/* ================= Overview ================= */}

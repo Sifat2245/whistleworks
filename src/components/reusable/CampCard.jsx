@@ -69,7 +69,7 @@ const CampCard = ({ camp }) => {
       {/* Title and Logo */}
       <div className="flex justify-between items-start mb-4 gap-4">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold leading-snug flex-1">
+          <h2 className="text-lg font-semibold leading-snug flex-1 line-clamp-2">
             {camp_name || "Untitled Camp"}
           </h2>
           <p className="text-sm text-neutral-600">
@@ -90,12 +90,12 @@ const CampCard = ({ camp }) => {
       <div className="space-y-3 text-gray-700 text-sm">
         <div className="flex items-center gap-2">
           <MdSportsTennis className="text-primary shrink-0" />
-          <span>{sports_type}</span>
+          <span className="line-clamp-1">{sports_type}</span>
         </div>
 
         <div className="flex items-center gap-2">
           <FaMapMarkerAlt className="text-primary shrink-0" />
-          <span>{campLocation || "Location not specified"}</span>
+          <span className="line-clamp-1">{campLocation || "Location not specified"}</span>
         </div>
 
         <div className="flex items-center gap-2">
