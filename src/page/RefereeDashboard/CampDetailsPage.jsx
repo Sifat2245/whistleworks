@@ -143,8 +143,8 @@ export default function CampDetailsPage() {
             {/* Evaluator-Only Tabs */}
             {isEvaluator && isEvaluatorRegistered && (
               <>
-                {tab === "evaluate" && <EvaluateV2 camp_id={id} />}
-                {tab === "schedule" && <Schedule camp_id={id} />}
+                {tab === "evaluate" && <EvaluateV2 camp_id={id} campName={campName} />}
+                {tab === "schedule" && <Schedule camp_id={id} campName={campName} />}
               </>
             )}
 

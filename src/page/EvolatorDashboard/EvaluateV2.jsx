@@ -3,13 +3,13 @@ import CommonSectionTitle from "@/components/dashboard/director_dashboard/Common
 import EvaluationFormV2 from "@/components/dashboard/director_dashboard/Evaluate/EvaluationFormV2";
 import EvaluationGuideline from "@/components/dashboard/director_dashboard/Evaluate/EvaluationGuideline";
 
-const EvaluateV2 = ({ camp_id }) => {
+const EvaluateV2 = ({ camp_id, campName }) => {
     return (
         <div className="w-full pb-16">
             <BackBtn />
 
             <CommonSectionTitle
-                text="Evaluate - Elite Officials Summer Cam 2024"
+                text={`Evaluate - ${campName}`}
                 subText="Submit performance evaluations for referees"
             />
             <div className="flex flex-col lg:flex-row gap-6 mt-10">
