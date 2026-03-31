@@ -3,30 +3,41 @@ import BackBtn from "@/components/common/BackBtn";
 import PendingEvaluator2 from "./PendingEvaluator2";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
-import { Spin } from "antd"; 
+import { useParams, useSearchParams } from "react-router-dom";
+import { Spin } from "antd";
 
 const ActiveEvaluate = () => {
-  const { id } = useParams(); 
+  const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page")) || 1;
+
   const axiosInstance = useAxiosSecure();
 
   const {
-    data: registrations = [],
+    data: responseData,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
-    queryKey: ["evaluator-registrations", id],
+    queryKey: ["evaluator-registrations", id, currentPage],
     queryFn: async () => {
       const response = await axiosInstance.get(
-        `/director/evaluator-registrations/camp/${id}`
+        `/director/evaluator-registrations/camp/${id}?page=${currentPage}`,
       );
-      return response?.data?.data?.registrations || [];
+      return response?.data?.data || {}; // Return full data object
     },
     enabled: !!id,
   });
 
+  const registrations = responseData?.registrations || [];
+  const pagination = responseData?.pagination || {
+    total: 0,
+    per_page: 12,
+    current_page: 1,
+    last_page: 1,
+  };
 
-  // Separate approved and pending evaluators
+  // Separate approved and pending (only from current page)
   const approvedEvaluators = registrations
     .filter((reg) => reg.status === "approved")
     .map((reg) => ({
@@ -52,6 +63,19 @@ const ActiveEvaluate = () => {
       registeredAt: reg.registered_at,
     }));
 
+  const handlePageChange = (page) => {
+    setSearchParams({ page });
+  };
+
+  const handleRemoveEvaluator = async (registrationId) => {
+    try {
+
+      refetch();
+    } catch (error) {
+      console.error("Failed to remove evaluator:", error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="w-full flex justify-center items-center min-h-screen">
@@ -68,13 +92,18 @@ const ActiveEvaluate = () => {
     );
   }
 
-  // console.log(approvedEvaluators,'qwerwer');
-
   return (
     <div className="w-full flex flex-col items-start gap-10 mb-16">
       <BackBtn />
+
       <PendingEvaluator2 pendingEvaluatorData={pendingEvaluators} />
-      <ActiveEvalutorList2 activeEvaluatorData={approvedEvaluators} />
+
+      <ActiveEvalutorList2
+        activeEvaluatorData={approvedEvaluators}
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onRemoveEvaluator={handleRemoveEvaluator}
+      />
     </div>
   );
 };
