@@ -35,7 +35,7 @@ const CommonInputWrapper = ({
     if (selectMode === "multiple" || selectMode === "tags") {
       if (Array.isArray(val)) {
         return val.map((item) =>
-          typeof item === "object" ? item.value : item
+          typeof item === "object" ? item.value : item,
         );
       }
       return val ? [typeof val === "object" ? val.value : val] : [];
@@ -47,16 +47,14 @@ const CommonInputWrapper = ({
 
   // Note: detect JSX label (image case)
   const hasJSXLabel = useMemo(() => {
-    return options?.some(
-      (opt) => typeof opt?.label === "object"
-    );
+    return options?.some((opt) => typeof opt?.label === "object");
   }, [options]);
 
   return (
     <div
       className={cn(
         "w-full flex flex-col gap-2 justify-start items-start relative text-base text-black",
-        wrapperClass
+        wrapperClass,
       )}
     >
       {/* Label */}
@@ -74,10 +72,9 @@ const CommonInputWrapper = ({
         <button
           type="button"
           onClick={() => setShow((prev) => !prev)}
-          className={`absolute cursor-pointer right-5 top-[50%] text-neutral-500 transform ${errorMessage
-            ? "translate-y-[-46%]"
-            : "translate-y-[50%]"
-            }`}
+          className={`absolute cursor-pointer right-5 top-[50%] text-neutral-500 transform ${
+            errorMessage ? "translate-y-[-46%]" : "translate-y-[50%]"
+          }`}
         >
           {show ? <FaEye /> : <FaEyeSlash />}
         </button>
@@ -92,7 +89,7 @@ const CommonInputWrapper = ({
           defaultValue={value}
           className={cn(
             "w-full resize-none min-h-40 px-4 py-5 rounded-lg placeholder-[#5A5C5F] outline-none text-black border border-gray-300 shadow-input bg-[rgba(255,255,255,0.05)]",
-            textareaClass
+            textareaClass,
           )}
           {...register(register_as, validationRules)}
         />
@@ -100,7 +97,7 @@ const CommonInputWrapper = ({
         <div
           className={cn(
             "w-full text-black border-black/20 flex gap-2 px-4 py-2 sm:min-h-[66px] items-center border rounded-lg",
-            selectClass
+            selectClass,
           )}
         >
           <Controller
@@ -116,20 +113,49 @@ const CommonInputWrapper = ({
                 options={options}
                 value={
                   normalizeValue(field.value) === "" ||
-                    normalizeValue(field.value)?.length === 0
+                  normalizeValue(field.value)?.length === 0
                     ? undefined
                     : normalizeValue(field.value)
                 }
                 onChange={(selectedValue) => {
                   field.onChange(selectedValue);
                 }}
-                // Note: only use optionFilterProp when label is string
-                {...(!hasJSXLabel && {
-                  optionFilterProp: "label",
-                })}
                 showSearch
                 allowClear
                 className="w-full bg-transparent placeholder-neutral-600 h-[49px]"
+                // Add these props for better search
+                filterOption={(input, option) => {
+                  // Extract text label for searching (even with JSX)
+                  const labelText =
+                    typeof option?.label === "object"
+                      ? option?.label?.props?.children?.[1]?.props?.children ||
+                        "" // Extract text from your label structure
+                      : option?.label;
+
+                  // Also search by jersey number if present
+                  const jerseyMatch = option?.value?.toString() || "";
+
+                  return (
+                    (labelText?.toLowerCase?.() || "").includes(
+                      input.toLowerCase(),
+                    ) || jerseyMatch.includes(input.toLowerCase())
+                  );
+                }}
+                optionFilterProp="children"
+                filterSort={(optionA, optionB) => {
+                  // Sort search results
+                  const labelA =
+                    typeof optionA.label === "object"
+                      ? optionA.label.props.children[1].props.children
+                      : optionA.label;
+                  const labelB =
+                    typeof optionB.label === "object"
+                      ? optionB.label.props.children[1].props.children
+                      : optionB.label;
+                  return (labelA?.toLowerCase() || "").localeCompare(
+                    labelB?.toLowerCase() || "",
+                  );
+                }}
               />
             )}
           />
@@ -144,7 +170,7 @@ const CommonInputWrapper = ({
           readOnly={readOnly}
           className={cn(
             "w-full px-4 sm:py-3 py-3 rounded-lg placeholder-[#5A5C5F] outline-none text-black shadow-input border border-black/20 bg-[rgba(255,255,255,0.05)]",
-            inputClass
+            inputClass,
           )}
           {...register(register_as, validationRules)}
         />

@@ -6,6 +6,7 @@ import useGetRoaseter from "@/hooks/get-roaster";
 import { Modal } from "antd";
 import { MdClose, MdEmail, MdPhone, MdLocationOn } from "react-icons/md";
 import { IoCheckboxOutline } from "react-icons/io5";
+import { AiFillProfile } from "react-icons/ai";
 
 export default function Evaluator({ camp_id }) {
   const { roasterData } = useGetRoaseter(camp_id);
@@ -175,6 +176,17 @@ export default function Evaluator({ camp_id }) {
                     <p className="text-sm text-gray-500">Status</p>
                     <p className="font-medium text-green-600">
                       {selectedEvaluator.status || "Registered"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* biography */}
+                <div className="flex items-center gap-3">
+                  <AiFillProfile className="text-gray-400 text-xl" />
+                  <div>
+                    <p className="text-sm text-gray-500">Biography</p>
+                    <p className="font-medium">
+                      {selectedEvaluator.biography || "not added"}
                     </p>
                   </div>
                 </div>

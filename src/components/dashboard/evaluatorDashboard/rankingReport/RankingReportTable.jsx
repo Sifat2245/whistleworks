@@ -1,4 +1,4 @@
-import { Table, ConfigProvider, Avatar, Select, Input, Button, Alert, Spin } from "antd";
+import { Table, ConfigProvider, Select, Input, Button, Alert, Spin } from "antd";
 import { ReloadOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import badge from "@/assets/svg/badge.svg";
 import Icon from "@/components/common/Icon";
@@ -56,7 +56,7 @@ export default function RankingReportTable({ camp_id }) {
       return {
         key: item.referee_id,
         name: item.referee_name,
-        avatarUrl: null,
+        avatarUrl: item.referee_avatar,
         overall: parseFloat(item.averages.overall.toFixed(3)),
         callAccur: parseFloat(item.averages.call_accuracy.toFixed(1)),
         mech: parseFloat(item.averages.court_position_mechanics.toFixed(1)),
@@ -119,7 +119,7 @@ export default function RankingReportTable({ camp_id }) {
       fixed: "left",
       render: (_, record) => (
         <div className="flex items-center gap-3">
-          <Avatar size="large">{record.name?.charAt(0) || "R"}</Avatar>
+          <img src={record.avatarUrl} className="w-12 h-12 rounded-full object-cover shrink-0" alt="" />
           <div>
             <div className="font-medium">{record.name}</div>
             <div className="text-xs text-gray-500">
