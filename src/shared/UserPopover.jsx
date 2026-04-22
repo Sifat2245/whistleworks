@@ -23,8 +23,7 @@ const UserPopover = () => {
   const items = [
     { id: "1", label: "Dashboard", path: dashboardPath },
     { id: "1", label: "Profile", path: profilePath },
-    { id: "2", label: "Privacy", path: "" },
-    { id: "3", label: "Setting", path: "" },
+    { id: "3", label: "Privacy Policy", path: "/privacy-policy" },
     { id: "4", label: "Logout", isAction: true },
   ];
 

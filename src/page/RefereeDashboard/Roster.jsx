@@ -2,11 +2,11 @@ import RosterTabs from "@/components/dashboard/refereeDashboard/roster/RosterTab
 import { useSearchParams } from "react-router-dom";
 import Evaluator from "@/components/dashboard/refereeDashboard/roster/Evaluator";
 import EvaluatorRefereeList from "../EvolatorDashboard/EvaluatorRefereeList";
+import Crews from "../EvolatorDashboard/Crews";
 
 export default function Roster({ camp_id }) {
   const [searchParams] = useSearchParams();
   const subTab = searchParams.get("subTab");
-  console.log("Current subTab:", subTab);
   return (
     <section>
       <div className="flex justify-end mb-5">
@@ -19,9 +19,7 @@ export default function Roster({ camp_id }) {
         </div>
       )}
       {subTab === "crews" && (
-        <div className="border border-border rounded-xl p-5 text-[#666666] min-h-[calc(100vh-400px)] flex items-center justify-center text-3xl font-semibold">
-          Coming Soon
-        </div>
+      <Crews camp_id={camp_id}/>
       )}
     </section>
   );

@@ -2,226 +2,366 @@ import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { formatDate } from "@/utils/formatDate";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
+import { useForm, useFieldArray } from "react-hook-form";
+import Swal from "sweetalert2";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { useNavigate, useParams } from "react-router-dom";
+import { LoadScript, Autocomplete } from "@react-google-maps/api";
+import { useRef } from "react";
+
+const libraries = ["places"];
 
 const DailyTimeRange = ({ getDateRange }) => {
   const axiosSecure = useAxiosSecure();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { start_date, end_date, dates = [] } = getDateRange || {};
+  const {
+    start_date,
+    end_date,
+    timezone,
+    timezoneName,
+    dates = [],
+  } = getDateRange || {};
 
-  // Note: react hook form
   const {
     handleSubmit,
     register,
+    control,
     formState: { errors },
-  } = useForm();
+    setValue,
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      locations: [
+        { location_name: "", court_count: "", latitude: "", longitude: "" },
+      ],
+    },
+  });
 
-  // Note: create schedule mutation
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "locations",
+  });
+
   const createScheduleMutation = useMutation({
     mutationKey: ["create-schedule"],
     mutationFn: async (data) => {
       const response = await axiosSecure.post(
         `/v1/camp/${id}/schedule/create`,
-        data
+        data,
       );
       return response?.data;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "Schedule created successfully.");
-      navigate("/director-dashboard");
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: data?.message || "Schedule created successfully.",
+        confirmButtonColor: "#00AEEF",
+      });
+      navigate(`/director-dashboard/court-list/${id}`);
     },
     onError: (err) => {
-      console.log(err);
-      toast.error(
-        err?.response?.data?.message ||
-        "Please field the all input field properly"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err?.response?.data?.message || "Please fill all fields properly",
+        confirmButtonColor: "#00AEEF",
+      });
     },
   });
 
-  // Note: onSubmit
   const onSubmit = (data) => {
-    const filteredTimeRanges = (data.time_ranges || []).filter(
-      (range) => range?.start_time && range?.end_time
+    const validLocations = data.locations.filter(
+      (loc) =>
+        loc.location_name && loc.court_count && loc.latitude && loc.longitude,
     );
 
-    if (filteredTimeRanges.length === 0) {
-      toast.error("Please provide at least one valid time range");
+    if (validLocations.length === 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Location Required",
+        text: "Please select at least one valid location with court count",
+      });
       return;
     }
 
     const body = {
       game_duration: Number(data.game_duration),
-      time_ranges: filteredTimeRanges,
-      locations: data.locations,
+      time_ranges: (data.time_ranges || []).filter(
+        (r) => r.start_time && r.end_time,
+      ),
+      locations: validLocations.map((loc) => ({
+        location_name: loc.location_name,
+        court_count: Number(loc.court_count),
+        latitude: Number(loc.latitude),
+        longitude: Number(loc.longitude),
+        address: loc.address,
+      })),
+      max_referees_per_slot: Number(data.max_referees_per_slot),
     };
-
-    console.log("Final Body:", body);
     createScheduleMutation.mutate(body);
   };
 
+  const LocationInput = ({ index }) => {
+    const autocompleteRef = useRef(null);
 
-  // Note: main ui component
+    const onPlaceChanged = () => {
+      if (autocompleteRef.current) {
+        const place = autocompleteRef.current.getPlace();
+        if (place?.geometry?.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          const name = place.formatted_address || place.name || "";
+
+          setValue(`locations.${index}.location_name`, name);
+          setValue(`locations.${index}.latitude`, lat.toFixed(8));
+          setValue(`locations.${index}.longitude`, lng.toFixed(8));
+        }
+      }
+    };
+
+    return (
+      <div className="w-full">
+        <div className="relative">
+          <Autocomplete
+            onLoad={(ac) => (autocompleteRef.current = ac)}
+            onPlaceChanged={onPlaceChanged}
+            options={{
+              fields: ["formatted_address", "geometry", "name"],
+              types: ["establishment", "geocode"],
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Location Address"
+              className="w-full px-6 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00AEEF] focus:border-[#00AEEF] text-base bg-white shadow-sm transition-all duration-200"
+              {...register(`locations.${index}.location_name`, {
+                required: "Please select a valid location",
+              })}
+            />
+          </Autocomplete>
+
+          <input type="hidden" {...register(`locations.${index}.latitude`)} />
+          <input type="hidden" {...register(`locations.${index}.longitude`)} />
+        </div>
+
+        {errors.locations?.[index]?.location_name && (
+          <p className="text-red-600 text-sm mt-2 pl-1">
+            {errors.locations[index].location_name.message}
+          </p>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <>
-      <div className="my-10 w-full flex flex-col gap-5">
-        <p className="text-xl font-medium text-[#333]">Camp Date Range:</p>
-        <p className="text-[#333] text-base font-normal">
-          {formatDate(start_date)} / {formatDate(end_date)}
+    <LoadScript
+      googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+      libraries={libraries}
+    >
+      {/* Camp Date Header */}
+      <div className="my-12 w-full bg-linear-to-r from-[#00AEEF]/5 to-blue-50 rounded-2xl p-8 border border-[#00AEEF]/20 shadow-sm">
+        <p className="text-2xl font-semibold text-[#333]">Camp Date Range:</p>
+        <p className="text-xl text-[#333] mt-3 font-medium">
+          {start_date} — {end_date}
         </p>
       </div>
+
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col gap-3 sm:gap-4 md:gap-5 mb-6 sm:mb-8 md:mb-10"
+        className="w-full flex flex-col gap-10"
       >
-        <p className="text-[#333] text-lg sm:text-xl md:text-2xl font-medium">
-          Daily Time Ranges:
-        </p>
-
-        {/* time schedule */}
-        <div className="flex flex-col gap-2 sm:gap-3 bg-[rgba(245,245,245,0.50)] rounded-xl sm:rounded-2xl">
-          {dates?.map((range, index) => {
-            return (
+        {/* Daily Time Ranges */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="bg-[#00AEEF] text-white px-8 py-5">
+            <p className="text-2xl font-semibold">Daily Time Ranges</p>
+          </div>
+          <div className="p-8 space-y-6">
+            {dates?.map((range, index) => (
               <div
                 key={range.id}
-                className="w-full flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 md:gap-10 px-3 sm:px-4 md:px-5 py-3 sm:py-4"
+                className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
               >
-                {/* Date display */}
-                <div className="w-full sm:w-auto min-w-[180px]">
-                  <p className="text-[#333] text-base sm:text-lg font-normal">
-                    {/* {range.monthName} {range.monthDateTime} */}
-                    {range?.formatted}
-                  </p>
+                <div className="font-semibold text-lg text-[#333] min-w-[180px] text-center sm:text-left">
+                  {range.formatted}
                 </div>
-                {/* Time inputs */}
-                <div className="w-full flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+                  <div>
                     <CommonInputWrapper
                       type="time"
                       register={register}
                       register_as={`time_ranges.${index}.start_time`}
-                      // validationRules={{ required: "Start time is required" }}
+                      validationRules={{ required: "Start time required" }}
                     />
-
-                    <p className="text-[#333] font-medium text-sm sm:text-base px-1 sm:px-2">
-                      To
-                    </p>
-
+                  </div>
+                  <span className="text-2xl font-bold text-gray-500">→</span>
+                  <div>
                     <CommonInputWrapper
                       type="time"
                       register={register}
                       register_as={`time_ranges.${index}.end_time`}
-                      // validationRules={{ required: "End time is required" }}
-                    />
-                    {/* Hidden date field */}
-                    <input
-                      type="hidden"
-                      value={range.date}
-                      {...register(`time_ranges.${index}.date`)}
+                      validationRules={{ required: "End time required" }}
                     />
                   </div>
                 </div>
+                <input
+                  type="hidden"
+                  {...register(`time_ranges.${index}.date`)}
+                  value={range.date}
+                />
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
 
-        {/* game duration */}
-        <div className="w-full flex flex-col items-start gap-2 sm:gap-3 md:gap-4">
-          <p className="text-lg sm:text-xl md:text-2xl font-medium text-[#333]">
-            Game Duration:
-          </p>
-
-          {/* input field */}
-          <div className="w-full bg-[rgba(245,245,245,0.50)] rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5">
+        {/* Game Duration & Max Referees */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+            <p className="text-xl font-semibold text-[#333] mb-6">
+              Game Duration
+            </p>
             <CommonInputWrapper
               type="number"
-              placeholder="Game Duration (minutes)"
-              className="w-full text-sm sm:text-base"
-              name="game_duration"
+              placeholder="e.g. 60min"
               register={register}
               register_as="game_duration"
-              errors={errors}
+              validationRules={{
+                required: "Game duration required",
+                min: { value: 1, message: "Minimum 1 minute" },
+              }}
+            />
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+            <p className="text-xl font-semibold text-[#333] mb-6">
+              Referees per Slot
+            </p>
+            <CommonInputWrapper
+              type="number"
+              placeholder="e.g. 3"
+              register={register}
+              register_as="max_referees_per_slot"
+              validationRules={{
+                required: "Required",
+                min: { value: 1, message: "At least 1" },
+              }}
             />
           </div>
         </div>
 
-        {/* location and courts */}
-        <div className="w-full flex flex-col items-start gap-2 sm:gap-3 md:gap-4">
-          {/* title and add location */}
-          <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-            <p className="text-lg sm:text-xl md:text-2xl font-semibold text-[#333]">
-              Location & Courts
-            </p>
+        {/* Locations Section */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="bg-[#00AEEF] text-white px-8 py-5 flex justify-between items-center">
+            <p className="text-2xl font-semibold">Location & Courts</p>
             <button
               type="button"
-              className="text-base sm:text-lg md:text-xl font-semibold text-[#00AEEF] hover:text-[#0098d6] transition-colors cursor-pointer"
+              onClick={() =>
+                append({
+                  location_name: "",
+                  court_count: "",
+                  latitude: "",
+                  longitude: "",
+                })
+              }
+              className="bg-white text-[#00AEEF] px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition shadow"
             >
               + Add Location
             </button>
           </div>
 
-          {/* location and number of courts */}
-          <div className="w-full flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 md:gap-5 bg-[rgba(245,245,245,0.50)] rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5">
-            {/* location name */}
-            <CommonInputWrapper
-              type="text"
-              name="locations[0].location_name"
-              register={register}
-              register_as="locations.0.location_name"
-              placeholder="Location Name"
-            />
-            {/* Number of court */}
-            <CommonInputWrapper
-              type="number"
-              name="locations[0].court_count"
-              register={register}
-              register_as="locations.0.court_count"
-              placeholder="Number of Courts"
-            />
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+            <div className="flex items-start gap-3">
+              <div className="text-amber-600 text-xl mt-0.5">⚠️</div>
+              <div>
+                <p className="font-medium text-amber-800">
+                  Important: Location & Timezone Consistency
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  Please make sure all locations and venues you add to the
+                  schedule are within the camp&apos;s selected timezone:{" "}
+                  <span className="font-semibold text-amber-800">
+                    {timezoneName} ({timezone})
+                  </span>
+                  .
+                </p>
+                <p className="text-sm text-amber-700 mt-2">
+                  Incorrect timezone settings may cause schedule times to
+                  display incorrectly for referees and affect time
+                  synchronization.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8 space-y-8">
+            {fields.map((field, index) => (
+              <div
+                key={field.id}
+                className="bg-linear-to-br from-gray-50 to-white rounded-2xl p-8 shadow-md border border-gray-200 hover:shadow-xl transition-shadow flex flex-col md:flex-row gap-8 items-center"
+              >
+                <div className="flex flex-col md:flex-row gap-6 justify-center items-center w-full">
+                  <LocationInput index={index} />
+                  <div>
+                    <CommonInputWrapper
+                      type="text"
+                      placeholder="Location Name"
+                      register={register}
+                      register_as={`locations.${index}.address`}
+                      validationRules={{
+                        required: "Address required",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full md:w-64">
+                  <CommonInputWrapper
+                    type="number"
+                    placeholder="Number of courts"
+                    register={register}
+                    register_as={`locations.${index}.court_count`}
+                    validationRules={{
+                      required: "Court count required",
+                      min: { value: 1, message: "At least 1 court" },
+                    }}
+                  />
+                </div>
+
+                {fields.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="text-red-600 hover:bg-red-50 p-4 rounded-xl transition mt-4 md:mt-0"
+                  >
+                    <RiDeleteBinLine size={32} />
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* buttons */}
-        <div className="w-full mt-4 sm:mt-6 md:mt-8 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4 sm:gap-0">
-          {/* delete and select location button */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-            <button
-              className="cursor-pointer border border-red-500 rounded-md p-3 hover:bg-gray-100 transition-all duration-300 flex items-center justify-center w-full sm:w-auto"
-              type="button"
-            >
-              <RiDeleteBinLine className="text-lg sm:text-xl text-red-500" />
-            </button>
-            <CommonSubmitBtn
-              type="button"
-              variant="primary"
-              className="w-full sm:w-auto justify-center"
-            >
-              Select Location
-            </CommonSubmitBtn>
-          </div>
-
-          {/* create schedule button link={true} path="/director-dashboard/court-list"*/}
+        {/* Submit Button */}
+        <div className="flex justify-end mb-16">
           <CommonSubmitBtn
-            variant="primary"
             type="submit"
-            className="w-full sm:w-auto justify-center"
+            variant="primary"
+            disabled={createScheduleMutation.isPending}
           >
-            {createScheduleMutation?.isPending ? (
-              <LoaderV2 />
+            {createScheduleMutation.isPending ? (
+              <>
+                <LoaderV2 /> Generating Schedule...
+              </>
             ) : (
               "Generate Schedule"
             )}
           </CommonSubmitBtn>
         </div>
       </form>
-    </>
+    </LoadScript>
   );
 };
+
 export default DailyTimeRange;

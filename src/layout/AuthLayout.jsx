@@ -20,10 +20,10 @@ const AuthLayout = () => {
 
   // Note: main ui 
   return (
-    <div className="flex flex-col lg:flex-row w-screen min-h-screen overflow-auto lg:overflow-hidden">
+    <div className="flex flex-col lg:flex-row w-screen overflow-auto lg:overflow-hidden">
       {/* Left Side - Hero Section */}
       <motion.div
-        className="w-full lg:w-1/2 flex flex-col items-center justify-center bg-neutral-100 px-4 md:px-6 lg:px-10 py-8 lg:py-0 relative min-h-[40vh] lg:min-h-screen"
+        className="w-full lg:w-1/2 hidden lg:flex flex-col items-center justify-center bg-neutral-100 px-4 md:px-6 lg:px-10 py-8 lg:py-0 relative "
         initial={{ opacity: 0, x: isMobile ? 0 : -80 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
@@ -42,7 +42,7 @@ const AuthLayout = () => {
           <motion.img
             src={authLogo}
             alt="Logo"
-            className="w-40 h-32 md:w-52 md:h-40 lg:w-60 lg:h-44 object-contain  lg:mb-6"
+            className="w-40 h-32 md:w-52 md:h-40 lg:w-60 lg:h-44 object-contain lg:mb-6"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.2 }}
@@ -72,7 +72,7 @@ const AuthLayout = () => {
       </motion.div>
 
       {/* Right Side - Form Section */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-white p-4 md:p-6 lg:p-8 min-h-[60vh] lg:min-h-screen">
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-white p-4 md:p-6 lg:p-8 min-h-[60vh] overflow-y-auto lg:min-h-screen">
         <div className="w-full max-w-md mx-auto">
           <Outlet />
         </div>

@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { Link, useLoaderData, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Select } from "antd";
-import { toast } from "react-hot-toast";
 import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { FaEdit, FaTrashAlt, FaMapMarkerAlt } from "react-icons/fa";
@@ -11,28 +9,34 @@ import { AiOutlineCalendar } from "react-icons/ai";
 import { BsCheckCircle } from "react-icons/bs";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import Swal from "sweetalert2";
+import { useAuth } from "@/hooks/useAuth";
 
 const CampOverview = () => {
   const campData = useLoaderData();
   const data = campData?.data?.data;
   const axiosInstance = useAxiosSecure();
+  const { userData } = useAuth();
+  const directorEmail = data?.director?.email;
+  const userEmail = userData?.email;
+
+  // console.log(campData, 'data');
 
   const navigate = useNavigate();
 
   const [status, setStatus] = useState(data?.status);
 
-  const handleStatusChange = async (value) => {
-    setStatus(value);
+  // const handleStatusChange = async (value) => {
+  //   setStatus(value);
 
-    try {
-      await axiosInstance.post(`/v1/camp/status/${data.id}`, {
-        status: value,
-      });
-      toast.success("Status updated successfully");
-    } catch (error) {
-      toast.error(error || "Failed to update status");
-    }
-  };
+  //   try {
+  //     await axiosInstance.post(`/v1/camp/status/${data.id}`, {
+  //       status: value,
+  //     });
+  //     toast.success("Status updated successfully");
+  //   } catch (error) {
+  //     toast.error(error || "Failed to update status");
+  //   }
+  // };
 
   /* ================= Delete Camp ================= */
   const handleDelete = async () => {
@@ -71,7 +75,7 @@ const CampOverview = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-12">
       <BackBtn />
 
       {/* ================= Overview ================= */}
@@ -79,36 +83,41 @@ const CampOverview = () => {
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-xl font-medium">Overview</h3>
 
-          <div className="flex items-center gap-6">
-            <Link to={`/director-dashboard/edit-camp/${data?.id}`}>
-              <CommonSubmitBtn
-                variant="primary"
-                className="flex items-center gap-1 py-2!"
+          {directorEmail === userEmail && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+              {/* ↑ added flex-wrap + responsive gap */}
+
+              <Link to={`/director-dashboard/edit-camp/${data?.id}`}>
+                <CommonSubmitBtn
+                  variant="primary"
+                  className="flex items-center gap-1 py-1.5! px-4" // ← ensure decent padding
+                >
+                  <FaEdit />
+                  Edit
+                </CommonSubmitBtn>
+              </Link>
+
+              {/* <Select
+                value={status}
+                size="large"
+                onChange={handleStatusChange}
+                className="w-36 min-w-[120px] border border-black/15 rounded-lg" // ← min-w prevents too small
+                // Optional: dropdownMatchSelectWidth={false} if dropdown overflows badly
               >
-                <FaEdit />
-                Edit
-              </CommonSubmitBtn>
-            </Link>
+                <Select.Option value="active">Active</Select.Option>
+                <Select.Option value="inactive">Inactive</Select.Option>
+              </Select> */}
 
-            <Select
-              value={status}
-              size="large"
-              onChange={handleStatusChange}
-              className="w-36 border border-black/15 rounded-lg active p-4!"
-              options={[
-                { value: "active", label: "Active" },
-                { value: "inactive", label: "Inactive" },
-              ]}
-            />
-
-            <button
-              onClick={handleDelete}
-              className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-md text-sm cursor-pointer"
-            >
-              <FaTrashAlt />
-              Delete
-            </button>
-          </div>
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-md text-sm cursor-pointer whitespace-nowrap"
+                // ↑ whitespace-nowrap prevents text breaking awkwardly
+              >
+                <FaTrashAlt />
+                Delete
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 mb-4">
@@ -134,7 +143,12 @@ const CampOverview = () => {
       {/* ================= Description ================= */}
       <div className="border border-border p-5 rounded-[10px]">
         <h3 className="text-xl font-medium mb-3">Camp Description</h3>
-        <p className="text-gray-600">{data?.camp_details}</p>
+        <div
+          className="text-gray-600 prose prose-sm sm:prose lg:prose-base max-w-none"
+          dangerouslySetInnerHTML={{
+            __html: data?.camp_details || "<p>No description available.</p>",
+          }}
+        />
       </div>
 
       {/* ================= Dates ================= */}
@@ -145,8 +159,7 @@ const CampOverview = () => {
         </h3>
 
         <p className="mb-2">
-          {new Date(data?.start_date).toDateString()} —{" "}
-          {new Date(data?.end_date).toDateString()}
+          {data?.start_date} — {data?.end_date}
         </p>
 
         <ul className="mt-2 text-sm text-gray-600">

@@ -8,7 +8,7 @@ const useRegisteredReferees = (camp_id, page = 1) => {
     queryKey: ["registered-referees", camp_id, page],
     queryFn: async () => {
       const response = await axiosInstance.get(
-        `/referee/evaluation/camp/${camp_id}/all-registered-in-referees`,
+        `/referee/evaluation/camp/${camp_id}/all-referees`,
         {
           params: { page },
         }

@@ -1,143 +1,187 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import OtpWrapper from "@/components/auth/OtpWrapper";
 import ResendCode from "@/components/auth/ResendCode";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
+import { useAuth } from "@/hooks/useAuth";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
 import { maskEmail } from "@/utils/maskEmail";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 
 const VerifyOtp = () => {
   const axiosPublic = useAxiosPublic();
-  const get_email = sessionStorage.getItem("verify_email");
-  const get_otp = sessionStorage.getItem("testing_purpose_otp");
-  const [otp, setOtp] = useState("");
-  const [error, setError] = useState(false);
   const navigate = useNavigate();
-  const [seconds, setSeconds] = useState(30);
-  const [resendActive, setResendActive] = useState(false);
-  const [testingOtp, setTestingOtp] = useState(get_otp)
+  const { handleLogin, userRefetch } = useAuth();
 
-  // Note: handle otp submit mutaition
-  const handleOtpSubmitMutation = useMutation({
-    mutationKey: ["confirmSignUpOtp"],
-    mutationFn: async (data) => {
-      const response = await axiosPublic.post(`/verify-email`, data);
-      return response?.data;
+  const email = sessionStorage.getItem("verify_email") || "";
+  const [otp, setOtp] = useState("");
+  const [showOtpError, setShowOtpError] = useState(false);
+
+  const [countdown, setCountdown] = useState(30);
+  const [canResend, setCanResend] = useState(false);
+
+  const verifyMutation = useMutation({
+    mutationKey: ["verify-email"],
+    mutationFn: async (payload) => {
+      const response = await axiosPublic.post("/verify-email", payload);
+      return response.data;
     },
     onSuccess: (data) => {
       toast.success(data?.message || "OTP verification successful");
+
+      const token = data?.token;
+      const role = data?.data?.role;
+
+      handleLogin(token);
+      userRefetch();
+
       sessionStorage.removeItem("verify_email");
       sessionStorage.removeItem("testing_purpose_otp");
-      setTimeout(() => {
-        // Navigate to signin and replace history
-        navigate("/auth/signin", {
-          replace: true,
-          state: { fromVerification: true }
-        });
-        toast.success("Please Login Your Account.");
-      }, 1500);
-    }
-  });
-  // Note: handle otp submit
-  const handleOtpSubmit = () => {
-    if (otp.length !== 4) return setError(true);
-    handleOtpSubmitMutation.mutate({ otp, email: get_email });
-  }
 
-  // Note: handle resend otp mutation
-  const handleResendOtpMutation = useMutation({
+      const intendedCampId = sessionStorage.getItem("intended_camp_id");
+      sessionStorage.removeItem("intended_camp_id");
+      sessionStorage.removeItem("intended_from_signup");
+
+      setTimeout(() => {
+        redirectAfterVerification(role, intendedCampId);
+      }, 900);
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Verification failed");
+    },
+  });
+
+  const resendMutation = useMutation({
     mutationKey: ["resend-otp"],
     mutationFn: async () => {
-      const response = await axiosPublic.post(`/resend-otp`, { email: get_email });
-      return response?.data;
+      const response = await axiosPublic.post("/resend-otp", { email });
+      return response.data;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "OTP Resend successful. Please check your email.");
-      if (data?.otp) {
-        setTestingOtp(data?.otp.toString())
-        sessionStorage.setItem("testing_purpose_otp", data?.otp.toString())
-      } else {
-        console.log("No otp found in response", data);
-      }
+      toast.success(data?.message || "New OTP sent. Check your email.");
+      setCountdown(30);
+      setCanResend(false);
     },
-    onError: (error) => {
-      toast.error(error?.response?.data?.message || "Something went wrong! Please try again.");
-    }
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Failed to resend OTP");
+    },
   });
 
-  const OtpChange = (val) => {
-    setOtp(val);
-  };
+  const redirectAfterVerification = (role, campId) => {
+    const userRole = (role || "").toLowerCase();
 
-  const handleResend = () => {
-    if (!resendActive) return;
-    setSeconds(30);
-    setResendActive(false);
-    console.log("Resend OTP clicked");
-    handleResendOtpMutation.mutate();
-  };
-
-  useEffect(() => {
-    let timer;
-    if (seconds > 0) {
-      timer = setInterval(() => setSeconds((prev) => prev - 1), 1000);
-    } else {
-      setResendActive(true);
-    }
-    return () => clearInterval(timer);
-  }, [seconds]);
-
-  // Note: main ui component
-  return (
-    <div className="w-full max-w-2xl mx-auto">
-
-      <h1 className="text-2xl font-semibold mb-4 text-center">Verify OTP</h1>
-      <p className="text-center text-sm text-neutral-600">
-        Enter the 4-digit code sent to your email or phone
-      </p>
-
-      <div className="space-y-2 my-5 text-neutral-600">
-        <p className="text-center">Please check on your email</p>
-        <p className="text-sm font-medium text-center text-[#333]">{maskEmail(get_email)}</p>
-      </div>
-
-      <div className="w-full flex flex-col gap-2 items-center mb-4">
-        <p className="text-center text-red-400 font-semibold">This otp shown only for testing purpose. It will be remove the production version</p>
-
-        <p className="w-fit bg-red-300 text-white font-medium py-2 px-4 rounded-sm">Using this OTP: {testingOtp}</p>
-      </div>
-
-      <OtpWrapper otp={otp} OtpChange={OtpChange} />
-      {
-        error && (
-          <p className="text-sm text-red-500 text-center mt-2">
-            Please enter a valid 4-digit code
-          </p>
-        )
+    // Came from camp registration / details page
+    if (campId) {
+      if (userRole === "evaluator") {
+        navigate(`/evaluator-dashboard/camp/${campId}?tab=camp-details`, {
+          replace: true,
+        });
+        return;
+      }
+      if (userRole === "referee") {
+        navigate(`/referee-dashboard/camp/${campId}?tab=camp-details`, {
+          replace: true,
+        });
+        return;
+      }
+      if (userRole === "director") {
+        navigate(`/director-dashboard/camp-overview/${campId}`, {
+          replace: true,
+        });
+        return;
       }
 
-      {/* Submit */}
+      navigate(`/camp/details/${campId}`, { replace: true });
+      return;
+    }
+
+    // Default dashboard by role
+    if (userRole === "director") {
+      navigate("/director-dashboard", { replace: true });
+    } else if (userRole === "evaluator") {
+      navigate("/evaluator-dashboard", { replace: true });
+    } else if (userRole === "referee") {
+      navigate("/referee-dashboard", { replace: true });
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
+
+  const handleVerify = () => {
+    if (otp.length !== 4) {
+      setShowOtpError(true);
+      return;
+    }
+
+    setShowOtpError(false);
+    verifyMutation.mutate({ email, otp });
+  };
+
+  const handleResendClick = () => {
+    if (!canResend) return;
+    resendMutation.mutate();
+  };
+
+  // Countdown timer
+  useEffect(() => {
+    if (countdown <= 0) {
+      setCanResend(true);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  return (
+    <div className="w-full max-w-2xl mx-auto px-4">
+      <h1 className="text-2xl font-semibold text-center mb-4">Verify OTP</h1>
+
+      <p className="text-center text-sm text-neutral-600 mb-6">
+        Enter the 4-digit code sent to your email
+      </p>
+
+      <div className="text-center space-y-1 mb-8">
+        <p className="text-neutral-600">Sent to</p>
+        <p className="font-medium text-[#222]">
+          {maskEmail(email) || "your email"}
+        </p>
+      </div>
+
+      <p className="text-center text-sm text-gray-500 mb-8 italic">
+        Didn&apos;t receive the code? Check your <strong>spam</strong> or{" "}
+        <strong>junk</strong> folder.
+      </p>
+
+      <OtpWrapper otp={otp} OtpChange={setOtp} />
+
+      {showOtpError && (
+        <p className="text-sm text-red-500 text-center mt-2">
+          Please enter a valid 4-digit code
+        </p>
+      )}
+
       <CommonSubmitBtn
-        type="button"
         variant="primary"
         className="w-full my-8"
-        disabled={handleOtpSubmitMutation.isPending}
-        onClick={handleOtpSubmit}
+        disabled={verifyMutation.isPending || !email}
+        onClick={handleVerify}
       >
-        {handleOtpSubmitMutation.isPending ? <LoaderV2 /> : "Continue"}
+        {verifyMutation.isPending ? <LoaderV2 /> : "Continue"}
       </CommonSubmitBtn>
 
-      {/* Resend OTP */}
       <ResendCode
-        resendActive={resendActive}
-        seconds={seconds}
-        handleResend={handleResend}
+        resendActive={canResend}
+        seconds={countdown}
+        handleResend={handleResendClick}
       />
-
     </div>
   );
 };
+
 export default VerifyOtp;

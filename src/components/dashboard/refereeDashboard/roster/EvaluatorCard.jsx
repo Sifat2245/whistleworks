@@ -2,6 +2,25 @@ import { Card, Avatar } from "antd";
 import profile from "@/assets/dashboard/profile.png";
 
 const EvaluatorCard = ({ evaluator }) => {
+  const formatPhone = (phone) => {
+    if (!phone) return "N/A";
+
+    // Remove all non-digit characters
+    const digits = phone.replace(/\D/g, "");
+
+    // If we don't have exactly 10 digits → return original digits or N/A
+    if (digits.length !== 10) {
+      return digits.length === 0 ? "N/A" : digits;
+    }
+
+    // Format as (xxx) xxx-xxxx
+    const areaCode = digits.slice(0, 3);
+    const part1 = digits.slice(3, 6);
+    const part2 = digits.slice(6, 10);
+
+    return `(${areaCode}) ${part1}-${part2}`;
+  };
+
   return (
     <Card
       hoverable
@@ -18,11 +37,12 @@ const EvaluatorCard = ({ evaluator }) => {
         <Avatar
           size={80}
           src={evaluator?.avatar || profile}
+          alt={evaluator?.name || "Evaluator"}
         />
 
         <div className="space-y-1">
           <h3 className="text-lg font-medium text-black">
-            {evaluator?.name}
+            {evaluator?.name || "Unnamed Evaluator"}
           </h3>
 
           <p className="text-sm text-gray-500">
@@ -32,7 +52,9 @@ const EvaluatorCard = ({ evaluator }) => {
 
           <p className="text-sm text-gray-500">
             <span className="font-medium text-[#444]">Phone:</span>{" "}
-            {evaluator?.phone || "N/A"}
+            <span className="tracking-wide font-medium">
+              {formatPhone(evaluator?.phone)}
+            </span>
           </p>
         </div>
       </div>

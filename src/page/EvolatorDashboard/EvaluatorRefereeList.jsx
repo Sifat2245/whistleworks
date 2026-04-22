@@ -1,86 +1,172 @@
-"use client";
-
-import { Avatar, Pagination, Card } from "antd";
 import { useState } from "react";
-import useRegisteredReferees from "@/hooks/get-registered-referees";
+import { Avatar, Card, Modal, Descriptions } from "antd";
+import useGetCampDetails from "@/hooks/get-camp-details";
 
 const EvaluatorRefereeList = ({ camp_id }) => {
-    const [page, setPage] = useState(1);
+  const { campDetails, isLoading } = useGetCampDetails({ camp_id });
+  const referees = campDetails?.referees || [];
 
-    const {
-        getRegisterReferess = [],
-        pagination = {},
-        isLoading,
-    } = useRegisteredReferees(camp_id, page);
+  const [selectedMember, setSelectedMember] = useState(null);
 
-    // Note: main ui component
-    return (
-        <div className="w-full flex flex-col gap-6">
-            <h1 className="text-2xl font-semibold text-center">
-                Registered Referees list ({getRegisterReferess.length})
-            </h1>
+  const allMembers = [
+    ...referees.map((r) => ({ ...r, role: "Referee", status: r.status })),
+  ];
 
-            {/* Grid */}
-            {isLoading ? (
-                <p className="text-center">Loading...</p>
-            ) : getRegisterReferess.length === 0 ? (
-                <p className="text-center text-gray-500">
-                    No referees found
-                </p>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    {getRegisterReferess.map((ref) => (
-                        <Card
-                            key={ref.id}
-                            hoverable
-                            className="group relative overflow-hidden rounded-xl border border-black/10 shadow-sm transition-all duration-300"
-                        >
-                            {/* CENTER GRADIENT OVERLAY */}
-                            <div
-                                className=" pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_center,rgba(0,175,239,0.35),rgba(0,175,239,0.10),transparent_70%)]"
-                            />
+  const handleCardClick = (member) => {
+    setSelectedMember(member);
+  };
 
-                            <div className="relative z-10 flex flex-col items-center text-center gap-3">
-                                <Avatar size={80} src={ref?.avatar} />
+  const handleCloseModal = () => {
+    setSelectedMember(null);
+  };
 
-                                <div>
-                                    <h3 className="text-lg font-medium text-black">
-                                        {ref?.name}
-                                    </h3>
+  const formatPhone = (phone) => {
+    if (!phone) return "N/A";
 
-                                    <p className="text-sm text-gray-500">
-                                        <span className="font-medium text-[#444]">
-                                            Email:
-                                        </span>{" "}
-                                        {ref?.email}
-                                    </p>
+    // Remove all non-digit characters
+    const digits = phone.replace(/\D/g, "");
 
-                                    <p className="text-sm text-gray-500">
-                                        <span className="font-medium text-[#444]">
-                                            Phone:
-                                        </span>{" "}
-                                        {ref?.phone}
-                                    </p>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
+    // If we don't have exactly 10 digits → return original digits or N/A
+    if (digits.length !== 10) {
+      return digits.length === 0 ? "N/A" : digits;
+    }
+
+    // Format as (xxx) xxx-xxxx
+    const areaCode = digits.slice(0, 3);
+    const part1 = digits.slice(3, 6);
+    const part2 = digits.slice(6, 10);
+
+    return `(${areaCode}) ${part1}-${part2}`;
+  };
+
+  return (
+    <div className="w-full flex flex-col gap-6">
+      <h1 className="text-2xl font-semibold text-center">
+        Referees ({allMembers.length})
+      </h1>
+
+      {/* Grid */}
+      {isLoading ? (
+        <p className="text-center">Loading...</p>
+      ) : allMembers.length === 0 ? (
+        <p className="text-center text-gray-500">No team members found</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {allMembers.map((member) => (
+            <Card
+              key={member.id}
+              hoverable
+              className="group relative overflow-hidden rounded-xl border border-black/10 shadow-sm transition-all duration-300 cursor-pointer"
+              onClick={() => handleCardClick(member)}
+            >
+              {/* CENTER GRADIENT OVERLAY */}
+              <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_center,rgba(0,175,239,0.35),rgba(0,175,239,0.10),transparent_70%)]" />
+
+              <div className="relative z-10 flex flex-col items-center text-center gap-3 p-4">
+                <Avatar
+                  size={80}
+                  src={member?.avatar || "/default-avatar.png"}
+                  alt={member?.name || "Member"}
+                />
+
+                <div className="space-y-1">
+                  <h3 className="text-lg font-medium text-black">
+                    {member?.name || "Unnamed Member"}{" "}
+                    {member?.jourcy_number && `#${member.jourcy_number}`}
+                  </h3>
+
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-[#444]">Email:</span>{" "}
+                    {member?.email || "N/A"}
+                  </p>
+
+                  {member?.phone && (
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium text-[#444]">Phone:</span>{" "}
+                      <span className="tracking-wide font-medium">
+                        {formatPhone(member.phone)}
+                      </span>
+                    </p>
+                  )}
                 </div>
-            )}
-
-            {/* Pagination */}
-            {pagination?.total > pagination?.per_page && (
-                <div className="flex justify-center mt-6">
-                    <Pagination
-                        current={pagination?.current_page}
-                        total={pagination?.total}
-                        pageSize={pagination?.per_page}
-                        onChange={(p) => setPage(p)}
-                        showSizeChanger={false}
-                    />
-                </div>
-            )}
+              </div>
+            </Card>
+          ))}
         </div>
-    );
+      )}
+
+      {/* Modal with full information */}
+      <Modal
+        title={
+          <div className="flex items-center gap-3">
+            <Avatar size={48} src={selectedMember?.avatar} />
+            <span>{selectedMember?.name || "Member Details"}</span>
+          </div>
+        }
+        open={!!selectedMember}
+        onCancel={handleCloseModal}
+        footer={null}
+        width={700}
+        centered
+      >
+        {selectedMember && (
+          <div className="py-6">
+            <Descriptions
+              bordered
+              column={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 2, xs: 1 }}
+              size="middle"
+            >
+              <Descriptions.Item label="Full Name" span={2}>
+                {selectedMember.name || "—"}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Email">
+                {selectedMember.email || "Not provided"}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Phone">
+                {formatPhone(selectedMember.phone)}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Address">
+                {selectedMember.address || "Not provided"}
+              </Descriptions.Item>
+
+              {selectedMember.role === "Referee" && (
+                <Descriptions.Item label="Assigned Games">
+                  {selectedMember.assigned_games_count ?? "0"}
+                </Descriptions.Item>
+              )}
+
+              <Descriptions.Item label="Biography" span={2}>
+                {selectedMember.biography ? (
+                  selectedMember.biography
+                ) : (
+                  <span className="text-gray-500 italic">
+                    No biography provided
+                  </span>
+                )}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Jersey Number" span={2}>
+                {selectedMember.jourcy_number || "—"}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Role">
+                {selectedMember.role}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Status">
+                {selectedMember.status === "checked_in"
+                  ? "Checked In"
+                  : selectedMember.status || "Registered"}
+              </Descriptions.Item>
+            </Descriptions>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
 };
+
 export default EvaluatorRefereeList;

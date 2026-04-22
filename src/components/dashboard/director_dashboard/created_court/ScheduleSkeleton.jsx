@@ -8,7 +8,7 @@ const ScheduleSkeleton = () => {
         {[...Array(7)].map((_, i) => (
           <div
             key={i}
-            className="border border-gray-200 bg-gray-100 rounded-xl px-10 py-5 min-w-[160px]"
+            className="border border-gray-200 bg-gray-100 rounded-xl px-10 py-5 min-w-40"
           >
             <div className="h-5 bg-gray-300 rounded w-28 mx-auto" />
           </div>

@@ -20,7 +20,6 @@ import Ranking from "@/page/DirectorDashboard/Ranking";
 import Roster from "@/page/DirectorDashboard/Roster";
 import Evaluate from "@/page/DirectorDashboard/Evaluate";
 import ActiveCamps from "@/page/RefereeDashboard/ActiveCamps";
-import RankingReport from "@/page/DirectorDashboard/RankingReport";
 import Profile from "@/components/common/Profile";
 import PreviousCamps from "@/page/RefereeDashboard/PreviousCamps";
 import FindCamps from "@/page/RefereeDashboard/FindCamps";
@@ -34,19 +33,44 @@ import ResetPasswordOtp from "@/page/auth/ResetPasswordOtp";
 import CampOverview from "@/page/DirectorDashboard/CampOverview";
 import axiosSecureInstance from "@/hooks/axiosInstace";
 import EditCampPage from "@/page/DirectorDashboard/EditCampPage";
-
+import PaymentSuccess from "@/page/RefereeDashboard/PaymentSuccess";
+import PaymentCancel from "@/page/RefereeDashboard/PaymentCancel";
+import MyCamps from "@/page/EvolatorDashboard/MyCamp";
+import CrewDetailsPage from "@/page/DirectorDashboard/CrewDetailsPage";
+import MakeAnnouncement from "@/page/DirectorDashboard/MakeAnnouncement";
+import AllCamps from "@/page/AllCamps";
+import CampDetailsPageForNoAuth from "@/page/CampDetailsPageForNoAuth";
+import CampSchedules from "@/page/DirectorDashboard/CampSchedules";
+import PrivacyPolicy from "@/page/PrivacyPolicy";
+import TermsConditions from "@/page/TermsConditions";
 const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
     children: [
       {
-        path: "/",
+        index: true,
         element: <Home />,
       },
       {
         path: "about-us",
         element: <AboutUs />,
+      },
+      {
+        path: "privacy-policy",
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: "terms-conditions",
+        element: <TermsConditions />,
+      },
+      {
+        path: "all-camps",
+        element: <AllCamps />,
+      },
+      {
+        path: "all-camps/:id",
+        element: <CampDetailsPageForNoAuth />,
       },
     ],
   },
@@ -74,7 +98,7 @@ const router = createBrowserRouter([
         path: "edit-camp/:id",
         element: <EditCampPage />,
         loader: async ({ params }) =>
-          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
+          await axiosSecureInstance.get(`/v1/camp/edit/${params.id}`),
       },
       {
         path: "create-new-camp",
@@ -89,34 +113,42 @@ const router = createBrowserRouter([
         element: <CreatedCourt />,
         loader: async ({ params }) => {
           const response = await axiosSecureInstance.get(
-            `/v1/camp/details/${params.id}`
+            `/v1/camp/details/${params.id}`,
           );
           return response;
         },
       },
       {
-        path: "ranking",
-        element: <Ranking />,
+        path: "camp-schedules/:id",
+        element: <CampSchedules />,
       },
       {
         path: "ranking/:id",
-        element: <RankingReport />,
+        element: <Ranking />,
       },
       {
         path: "roster/:id",
         element: <Roster />,
       },
       {
+        path: "make-announcement/:id",
+        element: <MakeAnnouncement />,
+      },
+      {
         path: "evaluate/:id",
         element: <Evaluate />,
       },
       {
-        path: "active-evaluate",
+        path: "active-evaluate/:id",
         element: <ActiveEvaluate />,
       },
       {
-        path: "active-crews",
+        path: "active-crews/:id",
         element: <ActiveCrews />,
+      },
+      {
+        path: "crew-details/:crewId",
+        element: <CrewDetailsPage />,
       },
       {
         path: "profile",
@@ -141,10 +173,10 @@ const router = createBrowserRouter([
         index: true,
         element: <EvolatorDashboard />,
       },
-      // {
-      //   path: "active-camps",
-      //   element: <ActiveCamps />,
-      // },
+      {
+        path: "active-camps",
+        element: <MyCamps />,
+      },
       {
         path: "camp/:id",
         element: <CampDetailsPage />,
@@ -195,6 +227,14 @@ const router = createBrowserRouter([
       {
         path: "find-camps",
         element: <FindCamps />,
+      },
+      {
+        path: "payment-success",
+        element: <PaymentSuccess />,
+      },
+      {
+        path: "payment-cancel",
+        element: <PaymentCancel />,
       },
       {
         path: "profile",

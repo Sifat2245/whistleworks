@@ -31,6 +31,7 @@ const useAxiosPublic = () => {
             return Promise.reject(error)
         }
     );
+
     return axiosPublic
 };
 export default useAxiosPublic

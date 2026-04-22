@@ -4,18 +4,21 @@ import location from "@/assets/svg/location.svg";
 import phone from "@/assets/svg/phone.svg";
 import email from "@/assets/svg/email.svg";
 import CommonContactInfo from "./CommonContactInfo";
-import book from "@/assets/svg/book.svg";
 import ActiveCmpsBackBtn from "./ActiveCmpsBackBtn";
 import { SlCamera } from "react-icons/sl";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import toast from "react-hot-toast";
+import { useState } from "react";
+import EditProfileModal from "./EditProfileModal";
 
 export default function Profile() {
   const axiosInstance = useAxiosSecure();
   const { userData } = useAuth();
   const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false);
+
 
   // Note: profile image update mutation
   const changeProfileImageMutation = useMutation({
@@ -61,6 +64,9 @@ export default function Profile() {
     changeProfileImageMutation.mutate(file);
   };
 
+  // Note: profile info update mutation
+
+
   // Note: main ui component
   return (
     <section className="container w-full px-4 mx-auto mt-10 mb-18">
@@ -97,7 +103,7 @@ export default function Profile() {
             </label>
           </div>
           <div>
-            <p className="text-[30px] font-medium mb-3">John Anderson</p>
+            <p className="text-[30px] font-medium mb-3">{`${userData?.first_name} ${userData?.last_name}`}</p>
             <button className="text-base font-medium text-primary bg-[#E6F7FD] py-2.5 px-9 rounded-md mb-6">
               {userData?.role?.toUpperCase()}
             </button>
@@ -109,15 +115,16 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* edit profile info button
+        {/* edit profile info button */}
         <div className="w-full flex justify-end items-end">
-          <Link
-            to="/profile/1"
-            className="bg-primary py-2 px-5 rounded-md text-white"
+          <button
+            onClick={() => setOpen(true)}
+            className="cursor-pointer bg-primary py-2 px-5 rounded-md text-white border border-primary hover:bg-transparent hover:text-primary transition-all duration-300"
           >
             Edit Profile Info
-          </Link>
-        </div> */}
+          </button>
+        </div>
+
 
         {/* Contact information */}
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
@@ -131,11 +138,11 @@ export default function Profile() {
             <Divider />
             <CommonContactInfo icon={phone} label="Number" info={userData?.phone || "N/F"} />
             <Divider />
-            <CommonContactInfo
+            {/* <CommonContactInfo
               icon={book}
               label="Current Conferences"
               info={userData?.conferences || "demo@company.com"}
-            />
+            /> */}
           </div>
           <div className="border border-border p-5 rounded-[10px] space-y-4">
             <h4 className="text-xl font-medium">Biography</h4>
@@ -145,6 +152,12 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* modal */}
+      <EditProfileModal
+        open={open}
+        onClose={() => setOpen(false)}
+      />
     </section>
   );
 }

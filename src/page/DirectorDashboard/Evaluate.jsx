@@ -2,11 +2,21 @@ import BackBtn from "@/components/common/BackBtn";
 import CommonSectionTitle from "@/components/dashboard/director_dashboard/CommonSectionTitle";
 import EvaluationForm from "@/components/dashboard/director_dashboard/Evaluate/EvaluationForm";
 import EvaluationGuideline from "@/components/dashboard/director_dashboard/Evaluate/EvaluationGuideline";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
+import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 
 const Evaluate = () => {
   const { id: camp_id } = useParams();
-  console.log("Camp id", camp_id)
+  const axiosInstance = useAxiosSecure()
+
+   const {data: campData} = useQuery({
+    queryKey: ["camp-details"],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/v1/camp/details/${camp_id}`)
+      return response?.data?.data;
+    }
+  })
 
   // Note: main ui component
   return (
@@ -14,7 +24,7 @@ const Evaluate = () => {
       <BackBtn />
 
       <CommonSectionTitle
-        text="Evaluate - Elite Officials Summer Cam 2024"
+        text={`Evaluate - ${campData?.camp_name}`}
         subText="Submit performance evaluations for referees"
       />
       <div className="flex flex-col lg:flex-row gap-6 mt-10">

@@ -76,6 +76,7 @@ const AuthProvider = ({ children }) => {
             queryClient.clear()
         }
     });
+    
 
     // note: handle logout
     const handleLogout = async () => {
@@ -111,7 +112,8 @@ const AuthProvider = ({ children }) => {
         staleTime: 0,
         cacheTime: 0,
     });
-    console.log("User Data-->", userData);
+
+    const isLoggedIn = !!accessToken && (userData || isFetching || isLoading);
 
     if (isLoading) return <ScreenLoading />
 
@@ -122,8 +124,9 @@ const AuthProvider = ({ children }) => {
             userRefetch,
             handleLogin,
             handleLogout,
+            isLoggedIn,
             accessToken,
-            isLoading: !!accessToken && (isFetching || userData === undefined)
+            isLoading: !!accessToken && (isFetching || userData === undefined || isLoading)
         }}>
             {children}
         </AuthContext.Provider>

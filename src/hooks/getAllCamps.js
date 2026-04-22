@@ -1,4 +1,3 @@
-// hooks/useCamps.js
 import { useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "./useAxiosSecure";
 
@@ -11,7 +10,6 @@ export const useCamps = (filters = {}) => {
     if (filters.sports_type_id) {
       params.append("sports_type_id", filters.sports_type_id);
     }
-
     if (filters.location?.trim()) {
       params.append("location", filters.location.trim());
     }
@@ -35,21 +33,43 @@ export const useCamps = (filters = {}) => {
   };
 
   const {
-    data: camps = [],
+    data = {},
     isLoading,
     isError,
   } = useQuery({
     queryKey: ["camps", filters],
     queryFn: async () => {
       const paramsString = buildParams();
-      const url = paramsString
-        ? `/v1/camp/list?${paramsString}`
-        : "/v1/camp/list";
+      const url = paramsString ? `/v1/camp/list?${paramsString}` : "/v1/camp/list";
       const res = await axiosInstance.get(url);
-      return res?.data?.data?.camp_list || [];
+
+      const rawData = res?.data?.data || {};
+
+      const normalizedCamps = (rawData.camp_list || []).map((camp) => ({
+        id: camp.id,
+        camp_name: camp.camp_name || "Unnamed Camp",
+        camp_logo: camp.camp_logo || null,
+        sports_type: camp.sports_type_name || "—",
+        location: camp.location || "—",
+        start_date: camp.start_date || null,
+        end_date: camp.end_date || null,
+        price: camp.price ?? "0.00",
+        referee_registration_status: camp.status || "completed", 
+        director: camp.director || {},
+      }));
+
+      return {
+        camp_list: normalizedCamps,
+        pagination: rawData.pagination || {},
+      };
     },
     keepPreviousData: true,
   });
 
-  return { camps, isLoading, isError };
+  return {
+    camps: data.camp_list || [],
+    pagination: data.pagination || {},
+    isLoading,
+    isError,
+  };
 };
