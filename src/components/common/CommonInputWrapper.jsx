@@ -143,15 +143,25 @@ const CommonInputWrapper = ({
                 }}
                 optionFilterProp="children"
                 filterSort={(optionA, optionB) => {
-                  // Sort search results
+                  const valA = Number(optionA.value);
+                  const valB = Number(optionB.value);
+
+                  // If both are numbers → numeric sort
+                  if (!isNaN(valA) && !isNaN(valB)) {
+                    return valA - valB;
+                  }
+
+                  // fallback to string sort (for referee names etc.)
                   const labelA =
                     typeof optionA.label === "object"
                       ? optionA.label.props.children[1].props.children
                       : optionA.label;
+
                   const labelB =
                     typeof optionB.label === "object"
                       ? optionB.label.props.children[1].props.children
                       : optionB.label;
+
                   return (labelA?.toLowerCase() || "").localeCompare(
                     labelB?.toLowerCase() || "",
                   );
