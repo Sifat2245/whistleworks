@@ -10,7 +10,7 @@ import Swal from "sweetalert2";
 const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `${i + 1}`,
   value: i + 1,
-}));
+})).sort((a, b) => a.value - b.value);
 
 const levelOptions = [
   { label: "NCAA D1", value: "NCAA D1" },
@@ -93,7 +93,7 @@ const EvaluationForm = ({ camp_id }) => {
         <p className="text-sm text-gray-600 mt-1">Who are you evaluating?</p>
       </div>
 
-      {/* Select Referee */}
+      Select Referee
       <CommonInputWrapper
         type="select"
         selectClass={"text-center!"}

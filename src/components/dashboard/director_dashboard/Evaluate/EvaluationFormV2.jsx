@@ -11,7 +11,7 @@ import Swal from "sweetalert2";
 const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `${i + 1}`,
   value: i + 1,
-}));
+})).sort((a, b) => a.value - b.value);
 
 const levelOptions = [
   { label: "NCAA D1", value: "NCAA D1" },
@@ -156,6 +156,7 @@ const EvaluationFormV2 = ({ camp_id }) => {
         register_as="communication_skills"
         control={control}
         options={scoreOptions}
+        
         validationRules={{ required: "Required" }}
         errors={errors}
       />
