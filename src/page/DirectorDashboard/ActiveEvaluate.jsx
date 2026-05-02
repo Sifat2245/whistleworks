@@ -13,55 +13,69 @@ const ActiveEvaluate = () => {
 
   const axiosInstance = useAxiosSecure();
 
-  const {
-    data: responseData,
-    isLoading,
-    isError,
-    refetch,
+  // Pending Evaluators
+  const { 
+    data: pendingData, 
+    isLoading: pendingLoading, 
+    isError: pendingError 
   } = useQuery({
-    queryKey: ["evaluator-registrations", id, currentPage],
+    queryKey: ["pending-evaluators", id, currentPage],
     queryFn: async () => {
-      const response = await axiosInstance.get(
-        `/director/evaluator-registrations/camp/${id}?page=${currentPage}`,
+      const res = await axiosInstance.get(
+        `/roster/evaluator-registrations/camp/${id}/pending`
       );
-      return response?.data?.data || {}; // Return full data object
+      return res?.data?.data || { registrations: [], pagination: {} };
     },
-    enabled: !!id,
   });
 
-  const registrations = responseData?.registrations || [];
-  const pagination = responseData?.pagination || {
+  // Approved Evaluators
+  const { 
+    data: approvedData, 
+    isLoading: approvedLoading, 
+    isError: approvedError,
+    refetch: refetchApproved 
+  } = useQuery({
+    queryKey: ["approved-evaluators", id, currentPage],
+    queryFn: async () => {
+      const res = await axiosInstance.get(
+        `/roster/evaluator-registrations/camp/${id}/approved`
+      );
+      return res?.data?.data || { registrations: [], pagination: {} };
+    },
+  });
+
+  const isLoading = pendingLoading || approvedLoading;
+  const isError = pendingError || approvedError;
+
+  // Transform approved evaluators
+  const approvedEvaluators = (approvedData?.registrations || []).map((reg) => ({
+    id: reg.id,
+    image: reg.evaluator?.avatar,
+    name: reg.evaluator?.name?.trim() || "Unnamed Evaluator",
+    evaluatorMail: reg.evaluator?.email,
+    evaluatorAddress: reg.evaluator?.address,
+    evaluatorNumber: reg.evaluator?.phone,
+    registeredAt: reg.registered_at,
+    approvedAt: reg.approved_at,
+  }));
+
+  // Transform pending evaluators
+  const pendingEvaluators = (pendingData?.registrations || []).map((reg) => ({
+    id: reg.id,
+    image: reg.evaluator?.avatar,
+    name: reg.evaluator?.name?.trim() || "Unnamed Evaluator",
+    evaluatorMail: reg.evaluator?.email,
+    evaluatorAddress: "",
+    evaluatorNumber: "",
+    registeredAt: reg.registered_at,
+  }));
+
+  const pagination = approvedData?.pagination || {
     total: 0,
     per_page: 12,
     current_page: 1,
     last_page: 1,
   };
-
-  // Separate approved and pending (only from current page)
-  const approvedEvaluators = registrations
-    .filter((reg) => reg.status === "approved")
-    .map((reg) => ({
-      id: reg.id,
-      image: reg.evaluator.avatar,
-      name: reg.evaluator.name?.trim() || "Unnamed Evaluator",
-      evaluatorMail: reg.evaluator.email,
-      evaluatorAddress: reg.evaluator.address,
-      evaluatorNumber: reg.evaluator.phone,
-      registeredAt: reg.registered_at,
-      approvedAt: reg.approved_at,
-    }));
-
-  const pendingEvaluators = registrations
-    .filter((reg) => reg.status === "pending")
-    .map((reg) => ({
-      id: reg.id,
-      image: reg.evaluator.avatar,
-      name: reg.evaluator.name?.trim() || "Unnamed Evaluator",
-      evaluatorMail: reg.evaluator.email,
-      evaluatorAddress: "",
-      evaluatorNumber: "",
-      registeredAt: reg.registered_at,
-    }));
 
   const handlePageChange = (page) => {
     setSearchParams({ page });
@@ -69,8 +83,9 @@ const ActiveEvaluate = () => {
 
   const handleRemoveEvaluator = async (registrationId) => {
     try {
-
-      refetch();
+      // Add your remove logic here (API call)
+      await axiosInstance.delete(`/roster/evaluator-registrations/${registrationId}`);
+      refetchApproved(); // Refresh approved list after removal
     } catch (error) {
       console.error("Failed to remove evaluator:", error);
     }

@@ -75,7 +75,7 @@ const FilterCamps = ({ limit }) => {
       : undefined,
     sort: selectedSort,
     page: currentPage,
-    per_page: 10, // Matches your API
+    per_page: 32, // Matches your API
   };
 
   const {

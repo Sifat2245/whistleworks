@@ -1,49 +1,38 @@
-// src/components/evaluators/ActiveEvaluatorList2.jsx
-import PaginationV2 from "@/components/common/PaginationV2";
+import { useState } from "react";
+import { useInView } from "react-intersection-observer";
+import { useEffect } from "react";
+import { Spin } from "antd";
 import EvaluatorCard from "@/components/dashboard/director_dashboard/Roster/EvaluatorCard";
 import EvaluatorDetailsModal from "@/components/dashboard/director_dashboard/Roster/EvaluatorDetailsModal";
-import { useState } from "react";
-import Swal from "sweetalert2";
 
 const ActiveEvaluatorList2 = ({
-  activeEvaluatorData = [], 
-  pagination,      
-  onPageChange,   
-  onRemoveEvaluator,                  
+  activeEvaluatorData = [],
+  hasMore = false,
+  isLoadingMore = false,
+  onLoadMore,
+  onRemoveEvaluator,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvaluator, setSelectedEvaluator] = useState(null);
 
-  const { current_page = 1, per_page = 12, total = 0 } = pagination || {};
+  const { ref, inView } = useInView({
+    threshold: 0.5,
+    rootMargin: "150px",
+  });
+
+  useEffect(() => {
+    if (inView && hasMore && !isLoadingMore && onLoadMore) {
+      onLoadMore();
+    }
+  }, [inView, hasMore, isLoadingMore, onLoadMore]);
 
   const openModal = (evaluator) => {
     setSelectedEvaluator(evaluator);
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedEvaluator(null);
-  };
-
   const handleRemove = (evaluatorId) => {
-    if (onRemoveEvaluator) {
-      onRemoveEvaluator(evaluatorId);
-    }
-
-    Swal.fire({
-      title: "Removed!",
-      text: "The evaluator has been successfully removed.",
-      icon: "success",
-      timer: 1800,
-      showConfirmButton: false,
-    });
-  };
-
-  const handlePageChange = (page) => {
-    if (onPageChange) {
-      onPageChange(page);
-    }
+    if (onRemoveEvaluator) onRemoveEvaluator(evaluatorId);
   };
 
   return (
@@ -52,56 +41,42 @@ const ActiveEvaluatorList2 = ({
         ACTIVE EVALUATORS
       </h2>
 
-      {activeEvaluatorData.length > 0 ? (
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
-          {activeEvaluatorData.map((evaluator) => (
-            <EvaluatorCard
-              key={evaluator.id}
-              evaluator={evaluator}
-              onCardClick={openModal}
-              onRemove={handleRemove}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="w-full border-2 border-dashed border-gray-300 rounded-2xl p-10 sm:p-16 text-center bg-gray-50/50">
-          {/* Empty state remains the same */}
-          <div className="w-20 h-20 mx-auto mb-6 bg-gray-200 rounded-full flex items-center justify-center">
-            <svg
-              className="w-10 h-10 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeWidth="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0A5.002 5.002 0 019 5c0-1.052-.143-2.074-.414-3.006m4.828 0A5.002 5.002 0 0113 5c0 1.052.143 2.074.414 3.006m-6.828 0A5.002 5.002 0 017 15c0 1.052.143 2.074.414 3.006"
+      {/* Scrollable Container with Fixed Height */}
+      <div className="h-[550px] overflow-y-auto pr-2 custom-scrollbar">
+        {activeEvaluatorData.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
+            {activeEvaluatorData.map((evaluator) => (
+              <EvaluatorCard
+                key={evaluator.id}
+                evaluator={evaluator}
+                onCardClick={openModal}
+                onRemove={handleRemove}
               />
-            </svg>
+            ))}
           </div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-3">
-            No Active Evaluators Yet
-          </h3>
-          <p className="text-gray-500 max-w-md mx-auto">
-            Approved evaluators will appear here once they are confirmed.
-          </p>
-        </div>
-      )}
+        ) : (
+          <div className="h-full flex items-center justify-center text-center py-20">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-700">No Active Evaluators Yet</h3>
+              <p className="text-gray-500 mt-2">Approved evaluators will appear here.</p>
+            </div>
+          </div>
+        )}
 
-      {/* Show pagination only if there are multiple pages */}
-      {total > per_page && (
-        <PaginationV2
-          currentPage={current_page}
-          perPage={per_page}
-          totalItem={total}
-          handlePageClick={handlePageChange}
-        />
-      )}
+        {/* Infinite Scroll Trigger */}
+        {hasMore && (
+          <div ref={ref} className="py-10 flex justify-center">
+            {isLoadingMore && <Spin size="large" />}
+          </div>
+        )}
+      </div>
 
       <EvaluatorDetailsModal
         isOpen={isModalOpen}
-        onClose={closeModal}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedEvaluator(null);
+        }}
         evaluator={selectedEvaluator}
       />
     </div>
