@@ -123,16 +123,12 @@ const CommonInputWrapper = ({
                 showSearch
                 allowClear
                 className="w-full bg-transparent placeholder-neutral-600 h-[49px]"
-                // Add these props for better search
                 filterOption={(input, option) => {
-                  // Extract text label for searching (even with JSX)
                   const labelText =
                     typeof option?.label === "object"
                       ? option?.label?.props?.children?.[1]?.props?.children ||
-                        "" // Extract text from your label structure
+                        ""
                       : option?.label;
-
-                  // Also search by jersey number if present
                   const jerseyMatch = option?.value?.toString() || "";
 
                   return (
@@ -142,30 +138,7 @@ const CommonInputWrapper = ({
                   );
                 }}
                 optionFilterProp="children"
-                filterSort={(optionA, optionB) => {
-                  const valA = Number(optionA.value);
-                  const valB = Number(optionB.value);
-
-                  // If both are numbers → numeric sort
-                  if (!isNaN(valA) && !isNaN(valB)) {
-                    return valA - valB;
-                  }
-
-                  // fallback to string sort (for referee names etc.)
-                  const labelA =
-                    typeof optionA.label === "object"
-                      ? optionA.label.props.children[1].props.children
-                      : optionA.label;
-
-                  const labelB =
-                    typeof optionB.label === "object"
-                      ? optionB.label.props.children[1].props.children
-                      : optionB.label;
-
-                  return (labelA?.toLowerCase() || "").localeCompare(
-                    labelB?.toLowerCase() || "",
-                  );
-                }}
+                filterSort={null}
               />
             )}
           />

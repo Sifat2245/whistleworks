@@ -23,6 +23,8 @@ const levelOptions = [
 
 const EvaluationForm = ({ camp_id }) => {
   const { getRegisterReferess } = useRegisteredReferees(camp_id);
+  console.log(getRegisterReferess, 'referees');
+
   const {
     submitEvaluation,
     isSubmitting,
@@ -93,7 +95,6 @@ const EvaluationForm = ({ camp_id }) => {
         <p className="text-sm text-gray-600 mt-1">Who are you evaluating?</p>
       </div>
 
-      Select Referee
       <CommonInputWrapper
         type="select"
         selectClass={"text-center!"}

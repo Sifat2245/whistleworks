@@ -204,7 +204,7 @@ const RosterTable = ({ referees = [], campId }) => {
       Swal.fire({
         title: "Error",
         text:
-          error.response?.data?.message || "Failed to update jersey number.",
+          error.response?.data?.data || "Failed to update jersey number.",
         icon: "error",
       });
     } finally {
