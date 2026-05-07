@@ -57,6 +57,7 @@ export default function RankingReportTable({ camp_id }) {
         key: item.referee_id,
         name: item.referee_name,
         avatarUrl: item.referee_avatar,
+        address: item.referee_address,
         overall: parseFloat(item.averages.overall.toFixed(3)),
         callAccur: parseFloat(item.averages.call_accuracy.toFixed(1)),
         mech: parseFloat(item.averages.court_position_mechanics.toFixed(1)),
@@ -123,7 +124,7 @@ export default function RankingReportTable({ camp_id }) {
           <div>
             <div className="font-medium">{record.name}</div>
             <div className="text-xs text-gray-500">
-              {record.totalEvaluations} evaluation{record.totalEvaluations !== 1 ? "s" : ""}
+              {record.address}
             </div>
           </div>
         </div>

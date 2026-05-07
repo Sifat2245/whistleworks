@@ -150,7 +150,7 @@ const Rankings = ({ campId }) => {
               size={48}
               src={row.original.avatar}
               alt={`${row.original.name} avatar`}
-              className="bg-gray-200 border border-gray-300 shadow-sm flex-shrink-0"
+              className="bg-gray-200 border border-gray-300 shadow-sm shrink-0"
             >
               {row.original.name
                 .split(" ")
