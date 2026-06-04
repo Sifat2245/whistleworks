@@ -1,14 +1,17 @@
+import NoticePopup from "@/components/dashboard/NoticePopup";
 import DashboardHeader from "@/shared/DashboardHeader";
 import { Outlet } from "react-router-dom";
 
 const DirectorLayout = () => {
     return (
-        <div className="w-full">
+        <div className="w-full relative">
             <DashboardHeader />
             <main className="w-full container pt-10">
                 <Outlet />
             </main>
+            <NoticePopup />
         </div>
     );
 };
+
 export default DirectorLayout;

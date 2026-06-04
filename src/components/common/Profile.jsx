@@ -1,6 +1,6 @@
 import { Divider, Image } from "antd";
 import profile from "@/assets/dashboard/profile.png";
-import location from "@/assets/svg/location.svg";
+import locationIcon from "@/assets/svg/location.svg";
 import phone from "@/assets/svg/phone.svg";
 import email from "@/assets/svg/email.svg";
 import CommonContactInfo from "./CommonContactInfo";
@@ -10,14 +10,24 @@ import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EditProfileModal from "./EditProfileModal";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Profile() {
   const axiosInstance = useAxiosSecure();
   const { userData } = useAuth();
   const queryClient = useQueryClient()
+  const routerLocation = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!routerLocation.state?.openEditProfile) return;
+
+    setOpen(true);
+    navigate(routerLocation.pathname, { replace: true, state: {} });
+  }, [navigate, routerLocation.pathname, routerLocation.state]);
 
 
   // Note: profile image update mutation
@@ -108,7 +118,7 @@ export default function Profile() {
               {userData?.role?.toUpperCase()}
             </button>
             <CommonContactInfo
-              icon={location}
+              icon={locationIcon}
               label="Location"
               info={userData?.address || "N/A"}
             />

@@ -5,9 +5,13 @@ import CommonInputWrapper from "./CommonInputWrapper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import { useAuth } from "@/hooks/useAuth";
+
+// Phone number input
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 const libraries = ["places"];
 
@@ -16,12 +20,10 @@ const EditProfileModal = ({ open, onClose }) => {
   const axiosInstance = useAxiosSecure();
 
   const { userData } = useAuth();
-  // console.log(userData, "from modal");
 
   const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-
   const autocompleteRef = useRef(null);
 
   const {
@@ -29,6 +31,7 @@ const EditProfileModal = ({ open, onClose }) => {
     register,
     formState: { errors },
     setValue,
+    watch,
   } = useForm({
     defaultValues: {
       first_name: userData?.first_name || "",
@@ -38,6 +41,8 @@ const EditProfileModal = ({ open, onClose }) => {
       biography: userData?.biography || "",
     },
   });
+
+  const phoneValue = watch("phone");
 
   const updateProfilInfoMutation = useMutation({
     mutationKey: ["update-profile-info"],
@@ -107,7 +112,7 @@ const EditProfileModal = ({ open, onClose }) => {
             onClick={onClose}
           >
             <motion.div
-              className="bg-white rounded-lg p-6 w-[700px] max-w-[90vw]"
+              className="bg-white rounded-lg p-6 w-[700px] max-w-[90vw] max-h-[90vh] overflow-y-auto"
               initial={{ scale: 0.8, y: 50 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.8, y: 50 }}
@@ -178,14 +183,30 @@ const EditProfileModal = ({ open, onClose }) => {
                     )}
                   </div>
 
-                  <CommonInputWrapper
-                    label="Phone"
-                    placeholder="Enter your number"
-                    register_as="phone"
-                    register={register}
-                    errors={errors}
-                    validationRules={{ required: "Phone is required" }}
-                  />
+                  {/* Phone Number with Country Code Selector */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    
+                    <PhoneInput
+                      international
+                      defaultCountry="US"
+                      value={phoneValue}
+                      onChange={(value) => setValue("phone", value, { shouldValidate: true })}
+                      placeholder="Enter phone number"
+                      className="phone-input-custom w-full"
+                      error={errors.phone?.message}
+                      limitMaxLength={true}
+                      smartCaret={true}
+                    />
+                    
+                    {errors.phone && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.phone.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <CommonInputWrapper
@@ -224,6 +245,25 @@ const EditProfileModal = ({ open, onClose }) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Add custom styles for phone input */}
+      <style>{`
+        .phone-input-custom {
+          width: 100%;
+          padding: 0.5rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+        }
+        .phone-input-custom:focus-within {
+          outline: none;
+          border-color: #3b82f6;
+          ring: 2px solid #3b82f6;
+        }
+        .phone-input-custom .PhoneInputCountry {
+          margin-right: 0.5rem;
+        }
+      `}</style>
     </LoadScript>
   );
 };

@@ -1,3 +1,4 @@
+import NoticePopup from "@/components/dashboard/NoticePopup";
 import DashboardHeader from "@/shared/DashboardHeader";
 import { Outlet } from "react-router-dom";
 
@@ -8,6 +9,7 @@ const EvolatorLayout = () => {
       <main className="w-full">
         <Outlet />
       </main>
+      <NoticePopup />
     </div>
   );
 };
