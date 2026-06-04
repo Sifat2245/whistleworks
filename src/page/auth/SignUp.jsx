@@ -9,9 +9,13 @@ import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import LoaderV2 from "@/components/common/LoaderV2";
 
-// ── Google Maps Autocomplete ──────────────────────────────────────────────
+// Google Maps Autocomplete
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import { useState, useRef } from "react";
+
+// Phone number input
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 const libraries = ["places"];
 
@@ -22,12 +26,10 @@ const SignUp = () => {
 
   const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-  // Track Google Maps script load state
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-
   const autocompleteRef = useRef(null);
 
-  // Note: react hook form
+  // React Hook Form
   const {
     register,
     handleSubmit,
@@ -35,8 +37,15 @@ const SignUp = () => {
     watch,
     formState: { errors },
     setValue,
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      receive_sms_notifications: false,
+      phone: "",
+    },
+  });
+
   const password = watch("password");
+  const phoneValue = watch("phone");
 
   const getCampIdFromFromPath = () => {
     const from = location.state?.from || "";
@@ -51,19 +60,18 @@ const SignUp = () => {
     }
   };
 
-  // Note: sign up mutation
+  // Sign Up Mutation
   const signUpMutation = useMutation({
     mutationKey: ["sign-up"],
     mutationFn: async (formData) => {
       const response = await axiosPublic.post(`/register`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data"
-        }
+          "Content-Type": "multipart/form-data",
+        },
       });
       return response?.data;
     },
     onSuccess: (data) => {
-      // console.log("Sign up data:", data);
       toast.success(data?.message || "Sign up successful");
 
       sessionStorage.setItem("verify_email", data?.data?.email);
@@ -79,6 +87,13 @@ const SignUp = () => {
   });
 
   const onSubmit = (data) => {
+    // Convert boolean to 1/0 to match backend expectation
+    data.receive_sms_notifications = data.receive_sms_notifications ? 1 : 0;
+
+    if (data.phone) {
+      data.phone = data.phone.toString();
+    }
+
     signUpMutation.mutate(data);
   };
 
@@ -92,7 +107,6 @@ const SignUp = () => {
     }
   };
 
-  // Note: main ui component
   return (
     <LoadScript
       googleMapsApiKey={googleApiKey}
@@ -132,7 +146,7 @@ const SignUp = () => {
             validationRules={{ required: "Last name is required" }}
           />
 
-          {/* Address - Google Places Autocomplete */}
+          {/* Address with Google Autocomplete */}
           <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Address <span className="text-red-500">*</span>
@@ -169,26 +183,41 @@ const SignUp = () => {
             )}
 
             {errors.address && (
-              <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.address.message}
+              </p>
             )}
           </div>
 
-          {/* Phone Number */}
-          <CommonInputWrapper
-            label="Phone Number"
-            type="tel"
-            placeholder="Enter your phone number"
-            register_as="phone"
-            register={register}
-            errors={errors}
-            validationRules={{
-              required: "Phone number is required",
-              pattern: {
-                value: /^[0-9]{6,15}$/,
-                message: "Enter a valid phone number",
-              },
-            }}
-          />
+          {/* Phone Number with Country Code Selector */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number <span className="text-red-500">*</span>
+            </label>
+
+            <PhoneInput
+              international
+              defaultCountry="US"
+              value={phoneValue}
+              onChange={(value) =>
+                setValue("phone", value, { shouldValidate: true })
+              }
+              placeholder="Enter phone number"
+              className="phone-input-custom"
+              error={errors.phone?.message}
+              limitMaxLength={true}
+              smartCaret={true}
+              countrySelectProps={{
+                className: "country-select-custom",
+              }}
+            />
+
+            {errors.phone && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.phone.message}
+              </p>
+            )}
+          </div>
 
           {/* Email */}
           <CommonInputWrapper
@@ -234,7 +263,8 @@ const SignUp = () => {
             errors={errors}
             validationRules={{
               required: "Please confirm your password",
-              validate: (value) => value === password || "Passwords do not match",
+              validate: (value) =>
+                value === password || "Passwords do not match",
             }}
           />
 
@@ -256,14 +286,13 @@ const SignUp = () => {
             }}
           />
 
-          {/* Agree Terms */}
-          <div className="flex items-start gap-2 mt-3">
+          <div className="flex items-start gap-3 mt-3">
             <input
               type="checkbox"
               {...register("agree", {
                 required: "You must agree to the terms and conditions",
               })}
-              className="w-4 h-4 accent-primary mt-1"
+              className="w-5 h-5 accent-primary mt-0.5 flex-shrink-0"
             />
             <p className="text-sm text-neutral-600">
               I agree to the{" "}
@@ -284,13 +313,34 @@ const SignUp = () => {
             </p>
           </div>
           {errors.agree && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.agree.message}
-            </p>
+            <p className="text-red-500 text-sm mt-1">{errors.agree.message}</p>
           )}
 
+          {/* Receive SMS Notifications */}
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              {...register("receive_sms_notifications")}
+              className="w-5 h-5 accent-primary mt-0.5 flex-shrink-0"
+            />
+            <p className="text-sm text-neutral-600">
+              I agree to receive <span className="font-semibold">SMS</span>{" "}
+              notifications about{" "}
+              <span className="font-semibold">
+                game assignments, schedule changes, and camp updates
+              </span>
+              . Message frequency varies. Msg & data rates may apply. Reply STOP
+              to opt out.
+            </p>
+          </div>
+
           {/* Submit Button */}
-          <CommonSubmitBtn disabled={signUpMutation.isPending} variant="primary" type="submit" className="w-full">
+          <CommonSubmitBtn
+            disabled={signUpMutation.isPending}
+            variant="primary"
+            type="submit"
+            className="w-full"
+          >
             {signUpMutation.isPending ? <LoaderV2 /> : "Sign Up"}
           </CommonSubmitBtn>
         </form>
@@ -298,11 +348,37 @@ const SignUp = () => {
         {/* Footer */}
         <p className="text-center text-sm text-neutral-600 mt-6">
           Already have an account?{" "}
-          <a href="/auth/signin" className="text-primary font-medium hover:underline">
+          <a
+            href="/auth/signin"
+            className="text-primary font-medium hover:underline"
+          >
             Sign In
           </a>
         </p>
       </div>
+
+      {/* Add custom styles for phone input */}
+      <style>{`
+        .phone-input-custom {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          font-size: 1rem;
+        }
+        .phone-input-custom:focus {
+          outline: none;
+          border-color: #3b82f6;
+          ring: 2px solid #3b82f6;
+        }
+        .phone-input-custom .PhoneInputCountry {
+          margin-right: 0.5rem;
+        }
+        .country-select-custom {
+          padding: 0.5rem;
+          border-radius: 0.375rem;
+        }
+      `}</style>
     </LoadScript>
   );
 };
