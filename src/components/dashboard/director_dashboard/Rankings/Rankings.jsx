@@ -46,6 +46,7 @@ const Rankings = ({ campId }) => {
         referee_id: item.referee_id,
         name: item.referee_name || "Unknown Referee",
         avatar: item.referee_avatar || null,
+        address: item.referee_address || "Unknown Address",
         count: item.total_evaluations || 0,
         call_accuracy: averages.call_accuracy || 0,
         communication_skills: averages.communication_skills || 0,
@@ -144,12 +145,12 @@ const Rankings = ({ campId }) => {
         accessorKey: "name",
         header: "Referee",
         cell: ({ row }) => (
-          <div className="flex items-center gap-4 min-w-[220px]">
+          <div className="flex items-center gap-4 min-w-[220px] max-w-[280px]">
             <Avatar
               size={48}
               src={row.original.avatar}
               alt={`${row.original.name} avatar`}
-              className="bg-gray-200 border border-gray-300 shadow-sm"
+              className="bg-gray-200 border border-gray-300 shadow-sm shrink-0"
             >
               {row.original.name
                 .split(" ")
@@ -157,16 +158,18 @@ const Rankings = ({ campId }) => {
                 .slice(0, 2)
                 .join("")}
             </Avatar>
-            <div>
+            <div className="min-w-0 flex-1">
               <button
                 onClick={() => openModal(row.original)}
-                className="font-medium text-blue-600 hover:underline focus:outline-none"
+                className="font-medium text-blue-600 hover:underline focus:outline-none truncate block w-full text-left"
               >
                 {row.original.name}
               </button>
-              <div className="text-xs text-gray-500 mt-0.5">
-                {row.original.count} evaluation
-                {row.original.count !== 1 ? "s" : ""}
+              <div
+                className="text-xs text-gray-500 mt-0.5 truncate"
+                title={row.original.address}
+              >
+                {row.original.address}
               </div>
             </div>
           </div>

@@ -22,7 +22,8 @@ const ActiveEvaluate = () => {
     queryKey: ["pending-evaluators", id, currentPage],
     queryFn: async () => {
       const res = await axiosInstance.get(
-        `/roster/evaluator-registrations/camp/${id}/pending`
+        `/roster/evaluator-registrations/camp/${id}/pending`,
+        { params: { page: currentPage } }   // Ensure pagination is sent
       );
       return res?.data?.data || { registrations: [], pagination: {} };
     },
@@ -38,7 +39,8 @@ const ActiveEvaluate = () => {
     queryKey: ["approved-evaluators", id, currentPage],
     queryFn: async () => {
       const res = await axiosInstance.get(
-        `/roster/evaluator-registrations/camp/${id}/approved`
+        `/roster/evaluator-registrations/camp/${id}/approved`,
+        { params: { page: currentPage } }
       );
       return res?.data?.data || { registrations: [], pagination: {} };
     },
@@ -66,11 +68,18 @@ const ActiveEvaluate = () => {
     name: reg.evaluator?.name?.trim() || "Unnamed Evaluator",
     evaluatorMail: reg.evaluator?.email,
     evaluatorAddress: "",
-    evaluatorNumber: "",
+    evaluatorNumber: reg.evaluator?.phone || "",
     registeredAt: reg.registered_at,
   }));
 
-  const pagination = approvedData?.pagination || {
+  const approvedPagination = approvedData?.pagination || {
+    total: 0,
+    per_page: 12,
+    current_page: 1,
+    last_page: 1,
+  };
+
+  const pendingPagination = pendingData?.pagination || {
     total: 0,
     per_page: 12,
     current_page: 1,
@@ -79,13 +88,13 @@ const ActiveEvaluate = () => {
 
   const handlePageChange = (page) => {
     setSearchParams({ page });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleRemoveEvaluator = async (registrationId) => {
     try {
-      // Add your remove logic here (API call)
       await axiosInstance.delete(`/roster/evaluator-registrations/${registrationId}`);
-      refetchApproved(); // Refresh approved list after removal
+      refetchApproved();
     } catch (error) {
       console.error("Failed to remove evaluator:", error);
     }
@@ -111,11 +120,15 @@ const ActiveEvaluate = () => {
     <div className="w-full flex flex-col items-start gap-10 mb-16">
       <BackBtn />
 
-      <PendingEvaluator2 pendingEvaluatorData={pendingEvaluators} />
+      <PendingEvaluator2 
+        pendingEvaluatorData={pendingEvaluators}
+        pagination={pendingPagination}
+        onPageChange={handlePageChange}
+      />
 
       <ActiveEvalutorList2
         activeEvaluatorData={approvedEvaluators}
-        pagination={pagination}
+        pagination={approvedPagination}
         onPageChange={handlePageChange}
         onRemoveEvaluator={handleRemoveEvaluator}
       />
