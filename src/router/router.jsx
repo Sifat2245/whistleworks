@@ -43,6 +43,8 @@ import CampDetailsPageForNoAuth from "@/page/CampDetailsPageForNoAuth";
 import CampSchedules from "@/page/DirectorDashboard/CampSchedules";
 import PrivacyPolicy from "@/page/PrivacyPolicy";
 import TermsConditions from "@/page/TermsConditions";
+import FAQ from "@/page/FAQ";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -63,6 +65,10 @@ const router = createBrowserRouter([
       {
         path: "terms-conditions",
         element: <TermsConditions />,
+      },
+      {
+        path: "faq",
+        element: <FAQ />,
       },
       {
         path: "all-camps",

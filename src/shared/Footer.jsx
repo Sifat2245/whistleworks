@@ -10,7 +10,7 @@ const Footer = () => {
           <div className="flex items-center space-x-3 mb-4">
             <Logo className={"h-14 w-20"} />
             <h1 className="text-xl text-primary font-semibold">
-              WHISTLE WORKERS
+              WHISTLE WORKS
             </h1>
           </div>
         </Link>
@@ -54,6 +54,11 @@ const Footer = () => {
             <li>
               <a href="/privacy-policy" className="hover:text-black transition-colors">
                 Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="/faq" className="hover:text-black transition-colors">
+                FAQ
               </a>
             </li>
           </ul>
