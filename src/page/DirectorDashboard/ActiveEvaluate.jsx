@@ -4,9 +4,10 @@ import PendingEvaluator2 from "./PendingEvaluator2";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useSearchParams } from "react-router-dom";
+import { useMemo } from "react";
 import { Spin } from "antd";
 
-const ActiveEvaluate = () => {
+const ActiveEvaluate = ({ searchQuery = "" }) => {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get("page")) || 1;
@@ -23,7 +24,7 @@ const ActiveEvaluate = () => {
     queryFn: async () => {
       const res = await axiosInstance.get(
         `/roster/evaluator-registrations/camp/${id}/pending`,
-        { params: { page: currentPage } }   // Ensure pagination is sent
+        { params: { page: currentPage } }
       );
       return res?.data?.data || { registrations: [], pagination: {} };
     },
@@ -50,18 +51,32 @@ const ActiveEvaluate = () => {
   const isError = pendingError || approvedError;
 
   // Transform approved evaluators
-  const approvedEvaluators = (approvedData?.registrations || []).map((reg) => ({
-    id: reg.id,
-    image: reg.evaluator?.avatar,
-    name: reg.evaluator?.name?.trim() || "Unnamed Evaluator",
-    evaluatorMail: reg.evaluator?.email,
-    evaluatorAddress: reg.evaluator?.address,
-    evaluatorNumber: reg.evaluator?.phone,
-    registeredAt: reg.registered_at,
-    approvedAt: reg.approved_at,
-  }));
+  const approvedEvaluators = useMemo(() => {
+    const raw = (approvedData?.registrations || []).map((reg) => ({
+      id: reg.id,
+      image: reg.evaluator?.avatar,
+      name: reg.evaluator?.name?.trim() || "Unnamed Evaluator",
+      evaluatorMail: reg.evaluator?.email,
+      evaluatorAddress: reg.evaluator?.address,
+      evaluatorNumber: reg.evaluator?.phone,
+      registeredAt: reg.registered_at,
+      approvedAt: reg.approved_at,
+    }));
 
-  // Transform pending evaluators
+    // Client-side search filter
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return raw;
+
+    return raw.filter((ev) => {
+      return (
+        ev.name?.toLowerCase().includes(query) ||
+        ev.evaluatorMail?.toLowerCase().includes(query) ||
+        ev.id.toString().includes(query)
+      );
+    });
+  }, [approvedData, searchQuery]);
+
+  // Transform pending evaluators (no search for pending)
   const pendingEvaluators = (pendingData?.registrations || []).map((reg) => ({
     id: reg.id,
     image: reg.evaluator?.avatar,

@@ -1,4 +1,5 @@
 import GameRow from "@/components/dashboard/evaluatorDashboard/schedule/GameRow";
+import ScheduleRefereeModal from "@/components/common/ScheduleRefereeModal";
 import { Input } from "antd";
 import { CiFilter, CiSearch } from "react-icons/ci";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
@@ -10,6 +11,8 @@ import useInfiniteScroll from "@/hooks/infinity-scroll-hook";
 export default function Schedule({ camp_id }) {
   const axiosSecure = useAxiosSecure();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedReferee, setSelectedReferee] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {
     data: campData,
@@ -23,7 +26,6 @@ export default function Schedule({ camp_id }) {
 
       const response = await axiosSecure.get(`/roster/camp/details/${camp_id}`);
 
-      // Validate response structure
       if (!response?.data?.success) {
         throw new Error(response?.data?.message || "Failed to fetch camp");
       }
@@ -37,7 +39,16 @@ export default function Schedule({ camp_id }) {
     enabled: !!camp_id,
     retry: 1,
   });
-  // console.log(campData);
+
+  const handleRefereeClick = (referee) => {
+    setSelectedReferee(referee);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedReferee(null);
+  };
 
   // Transform games
   const games = useMemo(() => {
@@ -45,30 +56,38 @@ export default function Schedule({ camp_id }) {
       !campData?.schedule?.game_courts ||
       !Array.isArray(campData.schedule.game_courts)
     ) {
-      console.warn(
-        "No game_courts found or invalid format:",
-        campData?.schedule,
-      );
       return [];
     }
 
     return campData.schedule.game_courts.map((slot) => {
       const date = slot.game_date;
-
       const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
-
-      const location = slot?.location;
+      const location = slot?.address;
 
       const courtMatch = slot.court_name.match(/Court (\d+)/);
       const court = courtMatch ? `Court ${courtMatch[1]}` : slot.court_name;
 
       const referees = (slot.assignments || []).map((assignment) => {
         if (assignment.type === "individual") {
-          return assignment.name || "Unnamed Referee";
+          const name = assignment.name || "Unnamed Referee";
+          const jourcyNumber = assignment.jourcy_number;
+          return {
+            type: "individual",
+            referee_id: assignment.referee_id,
+            name: name,
+            avatar: assignment.avatar,
+            email: assignment.email,
+            jourcy_number: jourcyNumber,
+            displayName: jourcyNumber ? `${name} | ${jourcyNumber}` : name,
+          };
         } else if (assignment.type === "crew") {
-          return `Crew: ${assignment.crew_name || "Unnamed Crew"}`;
+          return {
+            type: "crew",
+            crew_name: assignment.crew_name || "Unnamed Crew",
+            displayName: `Crew: ${assignment.crew_name || "Unnamed Crew"}`,
+          };
         }
-        return "Unknown Assignment";
+        return { type: "unknown", displayName: "Unknown Assignment" };
       });
 
       return {
@@ -83,39 +102,37 @@ export default function Schedule({ camp_id }) {
     });
   }, [campData]);
 
-  // Note: filtered Games
+  // filtered Games
   const filteredGames = useMemo(() => {
     if (!searchQuery.trim()) return games;
     const query = searchQuery.toLowerCase();
     return games.filter((game) =>
       Object.values(game).some((val) =>
         Array.isArray(val)
-          ? val.some((item) => item.toLowerCase().includes(query))
-          : val.toString().toLowerCase().includes(query),
+          ? val.some((item) =>
+              typeof item === "object"
+                ? (item.displayName || "").toLowerCase().includes(query)
+                : String(item).toLowerCase().includes(query)
+            )
+          : String(val).toLowerCase().includes(query),
       ),
     );
   }, [games, searchQuery]);
 
-  // Note: infinity scroll hook
   const { visibleCount, loaderRef, scrollContainerRef, reset } =
     useInfiniteScroll(filteredGames.length, 10);
 
-  // Note: infinity scroll function
   const visibleGames = useMemo(() => {
     return filteredGames.slice(0, visibleCount);
   }, [filteredGames, visibleCount]);
 
-  // console.log(visibleGames, 'games');
-
   useEffect(() => {
     reset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const totalGames = games.length;
   const displayedGames = filteredGames.length;
 
-  // Loading State
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -124,10 +141,7 @@ export default function Schedule({ camp_id }) {
     );
   }
 
-  // Error State - Show detailed message
   if (isError) {
-    console.error("Schedule fetch error:", error); // Check browser console!
-
     return (
       <div className="container mx-auto px-4 py-10 text-center">
         <div className="max-w-md mx-auto bg-red-50 border border-red-200 rounded-xl p-8">
@@ -156,7 +170,6 @@ export default function Schedule({ camp_id }) {
     );
   }
 
-  // Success - No games
   if (games.length === 0) {
     return (
       <div className="container mx-auto px-4 py-10 text-center">
@@ -172,7 +185,6 @@ export default function Schedule({ camp_id }) {
     );
   }
 
-  // Main UI
   return (
     <section className="container mx-auto px-4 py-6">
       <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-8 gap-6">
@@ -181,8 +193,7 @@ export default function Schedule({ camp_id }) {
             Games Overview
           </h1>
           <p className="text-base text-[#666666] mt-2">
-            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""}{" "}
-            scheduled
+            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""} scheduled
           </p>
         </div>
 
@@ -215,7 +226,7 @@ export default function Schedule({ camp_id }) {
             className="divide-y divide-gray-100 h-[650px] overflow-y-auto"
           >
             {visibleGames.map((game) => (
-              <GameRow key={game.id} game={game} />
+              <GameRow key={game.id} game={game} onRefereeClick={handleRefereeClick} />
             ))}
 
             <div ref={loaderRef} className="py-6 text-center">
@@ -228,6 +239,15 @@ export default function Schedule({ camp_id }) {
           </div>
         </div>
       </div>
+
+      {/* Referee Details Modal */}
+      <ScheduleRefereeModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        refereeData={selectedReferee}
+        campId={camp_id}
+        userRole="evaluator"
+      />
     </section>
   );
 }

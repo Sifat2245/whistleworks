@@ -50,26 +50,35 @@ const Roster = () => {
   const handleTabClick = (path) => {
     navigate(path);
     setShowMobileMenu(false);
+    setSearchQuery("");
   };
 
   // Filter referees based on search query
   const filteredReferees = useMemo(() => {
-    if (!campData?.referees || !isRefereesActive) return [];
+    if (!campData?.referees) return [];
 
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return campData?.referees;
+    if (!query) return campData.referees;
 
-    return campData?.referees?.filter((ref) => {
+    return campData.referees.filter((ref) => {
       return (
         ref.name?.toLowerCase().includes(query) ||
         ref.email?.toLowerCase().includes(query) ||
-        ref.id.toString().includes(query)
+        ref.id.toString().includes(query) ||
+        ref.phone?.toString().includes(query)
       );
     });
-  }, [campData?.referees, searchQuery, isRefereesActive]);
+  }, [campData?.referees, searchQuery]);
 
   const totalReferees = campData?.referees?.length || 0;
   const displayedCount = filteredReferees.length;
+
+  // Dynamic counter label based on active tab
+  const counterLabel = isEvaluatorsActive
+    ? `${campData?.evaluators?.length || 0} Evaluator${campData?.evaluators?.length !== 1 ? "s" : ""}`
+    : isCrewsActive
+    ? "Crews"
+    : `${displayedCount} of ${totalReferees} Referee${displayedCount !== 1 ? "s" : ""} Shown`;
 
   if (isLoading) {
     return (
@@ -153,35 +162,40 @@ const Roster = () => {
 
         <div className="flex items-center gap-4">
           <button className="bg-[#00AEEF]/10 text-[#00AEEF] px-6 py-3 rounded-lg font-semibold text-base whitespace-nowrap">
-            {displayedCount} of {totalReferees} Referee{displayedCount !== 1 ? "s" : ""} Shown
+            {counterLabel}
           </button>
         </div>
       </div>
 
-      {/* Functional Search Bar */}
-      <div className="relative mb-10">
-        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xl" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by name, email, or ID..."
-          className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-[#00AEEF] focus:ring-4 focus:ring-[#00AEEF]/10 text-base placeholder-gray-500 transition"
-        />
-        {/* Clear button */}
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-          >
-            <ImCross className="w-5 h-5" />
-          </button>
-        )}
-      </div>
+      {/* Search Bar - works for both Referees and Evaluators tabs */}
+      {!isCrewsActive && (
+        <div className="relative mb-10">
+          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xl" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={
+              isEvaluatorsActive
+                ? "Search evaluators by name, email, or ID..."
+                : "Search referees by name, email, phone, or ID..."
+            }
+            className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-[#00AEEF] focus:ring-4 focus:ring-[#00AEEF]/10 text-base placeholder-gray-500 transition"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+            >
+              <ImCross className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="mt-8">
-        {isEvaluatorsActive && <ActiveEvaluate />}
+        {isEvaluatorsActive && <ActiveEvaluate searchQuery={searchQuery} />}
         {isRefereesActive && (
           <RosterTable
             referees={filteredReferees}

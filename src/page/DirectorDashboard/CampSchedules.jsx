@@ -1,5 +1,6 @@
 import BackBtn from "@/components/common/BackBtn";
 import GameRow from "@/components/dashboard/evaluatorDashboard/schedule/GameRow";
+import ScheduleRefereeModal from "@/components/common/ScheduleRefereeModal";
 import useInfiniteScroll from "@/hooks/infinity-scroll-hook";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
@@ -11,8 +12,20 @@ import { useParams } from "react-router-dom";
 const CampSchedules = () => {
   const axiosSecure = useAxiosSecure();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedReferee, setSelectedReferee] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { id: camp_id } = useParams();
+
+  const handleRefereeClick = (referee) => {
+    setSelectedReferee(referee);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedReferee(null);
+  };
 
   const {
     data: campData,
@@ -63,11 +76,25 @@ const CampSchedules = () => {
 
       const referees = (slot.assignments || []).map((assignment) => {
         if (assignment.type === "individual") {
-          return assignment.name || "Unnamed Referee";
+          const name = assignment.name || "Unnamed Referee";
+          const jourcyNumber = assignment.jourcy_number;
+          return {
+            type: "individual",
+            referee_id: assignment.referee_id,
+            name: name,
+            avatar: assignment.avatar,
+            email: assignment.email,
+            jourcy_number: jourcyNumber,
+            displayName: jourcyNumber ? `${name} | ${jourcyNumber}` : name,
+          };
         } else if (assignment.type === "crew") {
-          return `Crew: ${assignment.crew_name || "Unnamed Crew"}`;
+          return {
+            type: "crew",
+            crew_name: assignment.crew_name || "Unnamed Crew",
+            displayName: `Crew: ${assignment.crew_name || "Unnamed Crew"}`,
+          };
         }
-        return "Unknown Assignment";
+        return { type: "unknown", displayName: "Unknown Assignment" };
       });
 
       return {
@@ -87,16 +114,19 @@ const CampSchedules = () => {
     const query = searchQuery.toLowerCase();
     return games.filter((game) =>
       Object.values(game).some((val) => {
-        if (val == null) return false; 
+        if (val == null) return false;
 
         if (Array.isArray(val)) {
-          return val.some(
-            (item) =>
-              item != null && String(item).toLowerCase().includes(query),
-          );
+          return val.some((item) => {
+            if (item == null) return false;
+            if (typeof item === "object") {
+              return (item.displayName || "").toLowerCase().includes(query);
+            }
+            return String(item).toLowerCase().includes(query);
+          });
         }
 
-        return String(val).toLowerCase().includes(query); // String() handles null/undefined gracefully
+        return String(val).toLowerCase().includes(query);
       }),
     );
   }, [games, searchQuery]);
@@ -110,15 +140,12 @@ const CampSchedules = () => {
 
   useEffect(() => {
     reset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const totalGames = games.length;
   const displayedGames = filteredGames.length;
 
-  // ────────────────────────────────────────────────
-  // Loading / Error / Empty states (unchanged)
-  // ────────────────────────────────────────────────
+  // Loading / Error / Empty states
 
   if (isLoading) {
     return (
@@ -173,9 +200,7 @@ const CampSchedules = () => {
     );
   }
 
-  // ────────────────────────────────────────────────
-  // Main UI - Improved mobile horizontal scroll
-  // ────────────────────────────────────────────────
+  // Main UI
 
   return (
     <section className="container mx-auto px-4 py-6">
@@ -187,8 +212,7 @@ const CampSchedules = () => {
             Games Overview
           </h1>
           <p className="text-base text-[#666666] mt-2">
-            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""}{" "}
-            scheduled
+            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""} scheduled
           </p>
         </div>
 
@@ -207,12 +231,9 @@ const CampSchedules = () => {
         </div>
       </div>
 
-      {/* Horizontal scroll wrapper – key change for mobile */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {/* Minimum width prevents collapsing too much on very small screens */}
           <div className="min-w-[640px] md:min-w-full">
-            {/* Header */}
             <div className="grid grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-5 py-4 md:px-6 md:py-5 border-b border-gray-200 bg-gray-50 text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider">
               <div>Date & Time</div>
               <div className="text-center">Location</div>
@@ -220,13 +241,12 @@ const CampSchedules = () => {
               <div className="text-center">Assigned Referees</div>
             </div>
 
-            {/* Scrollable content area */}
             <div
               ref={scrollContainerRef}
               className="divide-y divide-gray-100 max-h-[65vh] overflow-y-auto"
             >
               {visibleGames.map((game) => (
-                <GameRow key={game.id} game={game} />
+                <GameRow key={game.id} game={game} onRefereeClick={handleRefereeClick} />
               ))}
 
               <div ref={loaderRef} className="py-6 text-center">
@@ -241,12 +261,20 @@ const CampSchedules = () => {
         </div>
       </div>
 
-      {/* Optional hint for mobile users */}
       {filteredGames.length > 0 && (
         <p className="text-center text-xs text-gray-500 mt-3 md:hidden">
           ← Swipe left/right to see all columns →
         </p>
       )}
+
+      {/* Referee Details Modal */}
+      <ScheduleRefereeModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        refereeData={selectedReferee}
+        campId={camp_id}
+        userRole="director"
+      />
     </section>
   );
 };
