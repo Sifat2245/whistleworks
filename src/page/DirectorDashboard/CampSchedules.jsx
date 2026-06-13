@@ -6,7 +6,7 @@ import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import { Input, Spin } from "antd";
 import { useEffect, useMemo, useState } from "react";
-import { CiFilter, CiSearch } from "react-icons/ci";
+import { CiSearch } from "react-icons/ci";
 import { useParams } from "react-router-dom";
 
 const CampSchedules = () => {
@@ -225,9 +225,6 @@ const CampSchedules = () => {
             className="w-full md:w-96 h-12 rounded-xl border-gray-300 focus:border-[#00AEEF]"
             allowClear
           />
-          <button className="border border-gray-300 rounded-xl p-3 hover:bg-gray-50 transition">
-            <CiFilter className="text-xl text-[#666666]" />
-          </button>
         </div>
       </div>
 

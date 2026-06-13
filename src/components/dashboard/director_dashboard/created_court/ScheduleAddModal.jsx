@@ -473,6 +473,7 @@ const ScheduleAddModal = ({
                             )}
                           </div>
                           <p className="text-sm text-gray-500">{ref.email}</p>
+                          <p className="text-xs font-semibold text-gray-500">Total Games Assigned: {ref.total_assignments}</p>
                           {ref.status_message && (
                             <p
                               className={`text-xs mt-1 ${isHardConflict ? "text-red-600" : "text-orange-600"}`}

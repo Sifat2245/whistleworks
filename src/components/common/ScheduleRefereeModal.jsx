@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MdClose, MdArrowBack, MdOutlineSportsHandball } from "react-icons/md";
-import { Avatar, Spin, Tag } from "antd";
+import { Avatar, Spin } from "antd";
 import { useGetRefereeDetails } from "@/hooks/get-referee-details";
 import useSubmitEvaluation from "@/hooks/submit-evaluation-hook";
 import { useForm } from "react-hook-form";
@@ -98,7 +98,6 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
 
   const details = refereeDetails?.referee;
   const statistics = refereeDetails?.statistics;
-  const evaluations = refereeDetails?.evaluations || [];
   const assignedSlots = refereeDetails?.assigned_slots;
   const camp = refereeDetails?.camp;
 
@@ -286,50 +285,6 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
                                   )}
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Recent Evaluations */}
-                    {evaluations.length > 0 && (
-                      <div className="border-t border-gray-100 pt-4">
-                        <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-                          Recent Evaluations ({evaluations.length})
-                        </h4>
-                        <div className="space-y-3">
-                          {evaluations.slice(0, 5).map((evalItem) => (
-                            <div key={evalItem.id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-semibold text-gray-800">{evalItem.evaluator?.name}</span>
-                                  <span className="text-xs text-gray-400">({evalItem.submitted_at})</span>
-                                </div>
-                                <Tag color="purple" className="m-0">
-                                  Avg: {Number(evalItem.average_score).toFixed(1)}/10
-                                </Tag>
-                              </div>
-                              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-xs">
-                                {evalItem.scores && Object.entries(evalItem.scores).map(([key, score]) => (
-                                  <div key={key} className="bg-white rounded-lg p-2 border border-gray-50">
-                                    <div className="font-bold text-gray-800">{score}</div>
-                                    <div className="text-gray-400 truncate">
-                                      {key.replace(/_/g, " ")}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              {evalItem.recommended_level && (
-                                <div className="mt-2 text-xs text-gray-500">
-                                  Recommended: <span className="font-semibold text-amber-700">{evalItem.recommended_level}</span>
-                                </div>
-                              )}
-                              {evalItem.referee_feedback && (
-                                <div className="mt-2 text-xs text-gray-600 italic border-t border-gray-200 pt-2">
-                                  "{evalItem.referee_feedback}"
-                                </div>
-                              )}
                             </div>
                           ))}
                         </div>

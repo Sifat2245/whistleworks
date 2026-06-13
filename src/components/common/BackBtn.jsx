@@ -3,12 +3,22 @@ import { useNavigate } from "react-router-dom";
 
 const BackBtn = () => {
   const navigate = useNavigate();
+
   return (
-    <div className="w-fit flex gap-4 items-center border border-border rounded-lg mb-4">
-      <button type="button" className="sm:w-10 w-8 sm:h-10 h-8 rounded-full flex justify-center items-center p-2.5 cursor-pointer"  onClick={() => navigate(-1)}>
-        <LuMoveLeft className="text-xl" />
+    <div className="mb-4">
+      <button
+        type="button"
+        onClick={() => navigate('/director-dashboard')}
+        className="group flex items-center gap-2 border border-border rounded-lg px-3 py-2 cursor-pointer overflow-hidden"
+      >
+        <LuMoveLeft className="text-xl transition-transform duration-300 group-hover:-translate-x-1" />
+
+        <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out group-hover:max-w-[180px] group-hover:opacity-100">
+          Back to dashboard
+        </span>
       </button>
     </div>
   );
 };
+
 export default BackBtn;
