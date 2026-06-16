@@ -63,6 +63,22 @@ export default function Schedule({ camp_id }) {
     setSelectedCrew(null);
   };
 
+  const formatTime = (time) => {
+    if (!time) return "";
+
+    // Extract hours and minutes (handles "09:00", "09:00:00", etc.)
+    const [hourStr, minuteStr] = time.split(":");
+    let hour = parseInt(hourStr, 10);
+    const minutes = minuteStr?.slice(0, 2) || "00";
+
+    if (isNaN(hour)) return time; // Fallback
+
+    const period = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+
+    return `${hour12}:${minutes} ${period}`;
+  };
+
   // Transform games
   const games = useMemo(() => {
     if (
@@ -74,7 +90,9 @@ export default function Schedule({ camp_id }) {
 
     return campData.schedule.game_courts.map((slot) => {
       const date = slot.game_date;
-      const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
+      const startFormatted = formatTime(slot.start_time);
+      const endFormatted = formatTime(slot.end_time);
+      const time = `${startFormatted} - ${endFormatted}`;
       const location = slot?.address;
 
       const courtMatch = slot.court_name.match(/Court (\d+)/);
@@ -126,7 +144,7 @@ export default function Schedule({ camp_id }) {
           ? val.some((item) =>
               typeof item === "object"
                 ? (item.displayName || "").toLowerCase().includes(query)
-                : String(item).toLowerCase().includes(query)
+                : String(item).toLowerCase().includes(query),
             )
           : String(val).toLowerCase().includes(query),
       ),
@@ -207,7 +225,8 @@ export default function Schedule({ camp_id }) {
             Games Overview
           </h1>
           <p className="text-base text-[#666666] mt-2">
-            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""} scheduled
+            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""}{" "}
+            scheduled
           </p>
         </div>
 
@@ -240,7 +259,12 @@ export default function Schedule({ camp_id }) {
             className="divide-y divide-gray-100 h-[650px] overflow-y-auto"
           >
             {visibleGames.map((game) => (
-              <GameRow key={game.id} game={game} onRefereeClick={handleRefereeClick} onCrewClick={handleCrewClick} />
+              <GameRow
+                key={game.id}
+                game={game}
+                onRefereeClick={handleRefereeClick}
+                onCrewClick={handleCrewClick}
+              />
             ))}
 
             <div ref={loaderRef} className="py-6 text-center">
