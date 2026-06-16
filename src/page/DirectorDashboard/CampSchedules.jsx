@@ -1,6 +1,7 @@
 import BackBtn from "@/components/common/BackBtn";
 import GameRow from "@/components/dashboard/evaluatorDashboard/schedule/GameRow";
 import ScheduleRefereeModal from "@/components/common/ScheduleRefereeModal";
+import CrewDetailsModal from "@/components/common/CrewDetailsModal";
 import useInfiniteScroll from "@/hooks/infinity-scroll-hook";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +15,8 @@ const CampSchedules = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReferee, setSelectedReferee] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCrew, setSelectedCrew] = useState(null);
+  const [isCrewModalOpen, setIsCrewModalOpen] = useState(false);
 
   const { id: camp_id } = useParams();
 
@@ -22,9 +25,19 @@ const CampSchedules = () => {
     setIsModalOpen(true);
   };
 
+  const handleCrewClick = (crew) => {
+    setSelectedCrew(crew);
+    setIsCrewModalOpen(true);
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedReferee(null);
+  };
+
+  const handleCloseCrewModal = () => {
+    setIsCrewModalOpen(false);
+    setSelectedCrew(null);
   };
 
   const {
@@ -90,6 +103,7 @@ const CampSchedules = () => {
         } else if (assignment.type === "crew") {
           return {
             type: "crew",
+            crew_id: assignment.crew_id,
             crew_name: assignment.crew_name || "Unnamed Crew",
             displayName: `Crew: ${assignment.crew_name || "Unnamed Crew"}`,
           };
@@ -243,7 +257,7 @@ const CampSchedules = () => {
               className="divide-y divide-gray-100 max-h-[65vh] overflow-y-auto"
             >
               {visibleGames.map((game) => (
-                <GameRow key={game.id} game={game} onRefereeClick={handleRefereeClick} />
+                <GameRow key={game.id} game={game} onRefereeClick={handleRefereeClick} onCrewClick={handleCrewClick} />
               ))}
 
               <div ref={loaderRef} className="py-6 text-center">
@@ -269,6 +283,16 @@ const CampSchedules = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         refereeData={selectedReferee}
+        campId={camp_id}
+        userRole="director"
+      />
+
+      {/* Crew Details Modal */}
+      <CrewDetailsModal
+        isOpen={isCrewModalOpen}
+        onClose={handleCloseCrewModal}
+        crewId={selectedCrew?.crew_id}
+        crewName={selectedCrew?.crew_name}
         campId={camp_id}
         userRole="director"
       />

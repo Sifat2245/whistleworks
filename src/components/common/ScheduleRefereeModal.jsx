@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MdClose, MdArrowBack, MdOutlineSportsHandball } from "react-icons/md";
 import { Avatar, Spin } from "antd";
@@ -35,6 +35,7 @@ const StatCard = ({ label, value, color = "text-[#00AEEF]" }) => (
 
 const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole = "evaluator" }) => {
   const [view, setView] = useState("details");
+  const scrollContainerRef = useRef(null);
 
   const refereeId = refereeData?.referee_id;
   const { refereeDetails, isLoading } = useGetRefereeDetails(campId, refereeId);
@@ -140,7 +141,7 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
             </div>
 
             {/* Body */}
-            <div className="overflow-y-auto" style={{ maxHeight: "calc(90vh - 80px)" }}>
+            <div ref={scrollContainerRef} className="overflow-y-auto" style={{ maxHeight: "calc(90vh - 80px)" }}>
               {view === "details" ? (
                 isLoading ? (
                   <div className="flex justify-center items-center py-24">
@@ -295,7 +296,11 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
                     {userRole !== "referee" && (
                       <div className="border-t border-gray-100 pt-4">
                         <button
-                          onClick={() => setView("evaluation")}
+                          onClick={() => {
+                            setView("evaluation");
+                            // Scroll to top when switching to evaluation form
+                            scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
                           className="w-full py-3 bg-[#00AEEF] hover:bg-[#0099d4] text-white font-semibold rounded-xl transition-all shadow-lg shadow-[#00AEEF]/20 hover:shadow-[#00AEEF]/30"
                         >
                           Evaluate This Referee

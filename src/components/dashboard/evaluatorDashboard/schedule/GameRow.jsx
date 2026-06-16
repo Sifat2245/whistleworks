@@ -1,9 +1,15 @@
-export default function GameRow({ game, onRefereeClick }) {
+export default function GameRow({ game, onRefereeClick, onCrewClick }) {
   const hasReferees = game.referees.length > 0;
 
   const handleRefClick = (referee) => {
     if (referee.type === "individual" && onRefereeClick) {
       onRefereeClick(referee);
+    }
+  };
+
+  const handleCrewClick = (referee) => {
+    if (referee.type === "crew" && onCrewClick) {
+      onCrewClick(referee);
     }
   };
 
@@ -39,18 +45,21 @@ export default function GameRow({ game, onRefereeClick }) {
                 {referee.displayName || referee.name || "Unnamed Referee"}
               </button>
             ) : (
-              <span
+              <button
                 key={idx}
-                className="px-3 py-1.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                onClick={() => handleCrewClick(referee)}
+                className="px-3 py-1.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 hover:bg-purple-200 transition-all cursor-pointer"
+                title={`Click to view ${referee.crew_name || "crew"} details`}
               >
                 {referee.displayName || "Crew: Unnamed Crew"}
-              </span>
+              </button>
             )
           )
         ) : (
-          <span className="text-gray-400 text-sm italic">No assignment yet</span>
+          <span className="text-gray-400 text-sm italic">No Game</span>
         )}
       </div>
     </div>
   );
 }
+

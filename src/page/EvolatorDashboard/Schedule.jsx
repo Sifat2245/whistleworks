@@ -1,5 +1,6 @@
 import GameRow from "@/components/dashboard/evaluatorDashboard/schedule/GameRow";
 import ScheduleRefereeModal from "@/components/common/ScheduleRefereeModal";
+import CrewDetailsModal from "@/components/common/CrewDetailsModal";
 import { Input } from "antd";
 import { CiFilter, CiSearch } from "react-icons/ci";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
@@ -13,6 +14,8 @@ export default function Schedule({ camp_id }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReferee, setSelectedReferee] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCrew, setSelectedCrew] = useState(null);
+  const [isCrewModalOpen, setIsCrewModalOpen] = useState(false);
 
   const {
     data: campData,
@@ -45,9 +48,19 @@ export default function Schedule({ camp_id }) {
     setIsModalOpen(true);
   };
 
+  const handleCrewClick = (crew) => {
+    setSelectedCrew(crew);
+    setIsCrewModalOpen(true);
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedReferee(null);
+  };
+
+  const handleCloseCrewModal = () => {
+    setIsCrewModalOpen(false);
+    setSelectedCrew(null);
   };
 
   // Transform games
@@ -83,6 +96,7 @@ export default function Schedule({ camp_id }) {
         } else if (assignment.type === "crew") {
           return {
             type: "crew",
+            crew_id: assignment.crew_id,
             crew_name: assignment.crew_name || "Unnamed Crew",
             displayName: `Crew: ${assignment.crew_name || "Unnamed Crew"}`,
           };
@@ -226,7 +240,7 @@ export default function Schedule({ camp_id }) {
             className="divide-y divide-gray-100 h-[650px] overflow-y-auto"
           >
             {visibleGames.map((game) => (
-              <GameRow key={game.id} game={game} onRefereeClick={handleRefereeClick} />
+              <GameRow key={game.id} game={game} onRefereeClick={handleRefereeClick} onCrewClick={handleCrewClick} />
             ))}
 
             <div ref={loaderRef} className="py-6 text-center">
@@ -245,6 +259,16 @@ export default function Schedule({ camp_id }) {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         refereeData={selectedReferee}
+        campId={camp_id}
+        userRole="evaluator"
+      />
+
+      {/* Crew Details Modal */}
+      <CrewDetailsModal
+        isOpen={isCrewModalOpen}
+        onClose={handleCloseCrewModal}
+        crewId={selectedCrew?.crew_id}
+        crewName={selectedCrew?.crew_name}
         campId={camp_id}
         userRole="evaluator"
       />
