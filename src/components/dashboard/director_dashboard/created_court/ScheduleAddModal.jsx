@@ -472,7 +472,7 @@ const ScheduleAddModal = ({
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500">{ref.email}</p>
+                          <p className="text-sm text-gray-500">Contact: {ref.phone}</p>
                           <p className="text-xs font-semibold text-gray-500">Total Games Assigned: {ref.total_assignments}</p>
                           {ref.status_message && (
                             <p

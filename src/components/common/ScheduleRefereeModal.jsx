@@ -9,8 +9,7 @@ import Swal from "sweetalert2";
 import CommonInputWrapper from "./CommonInputWrapper";
 import CommonSubmitBtn from "./CommonSubmitBtn";
 import LoaderV2 from "./LoaderV2";
-import { BsTrophy, BsPersonCheck } from "react-icons/bs";
-import { HiOutlineCalendar, HiOutlineLocationMarker } from "react-icons/hi";
+import { BsPersonCheck } from "react-icons/bs";
 
 const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `${i + 1}`,
@@ -26,12 +25,6 @@ const levelOptions = [
   { label: "JH/ELEM", value: "JH/ELEM" },
 ];
 
-const StatCard = ({ label, value, color = "text-[#00AEEF]" }) => (
-  <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
-    <div className={`text-2xl font-bold ${color}`}>{value ?? "—"}</div>
-    <div className="text-xs text-gray-500 mt-1 uppercase tracking-wide font-medium">{label}</div>
-  </div>
-);
 
 const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole = "evaluator" }) => {
   const [view, setView] = useState("details");
@@ -98,8 +91,8 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
   };
 
   const details = refereeDetails?.referee;
-  const statistics = refereeDetails?.statistics;
-  const assignedSlots = refereeDetails?.assigned_slots;
+  // const statistics = refereeDetails?.statistics;
+  // const assignedSlots = refereeDetails?.assigned_slots;
   const camp = refereeDetails?.camp;
 
   return (
@@ -217,78 +210,6 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
                       <div>
                         <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">Biography</span>
                         <p className="text-sm text-gray-600 mt-1 leading-relaxed">{details.biography}</p>
-                      </div>
-                    )}
-
-                    {/* Performance Stats */}
-                    {statistics && (
-                      <>
-                        <div className="border-t border-gray-100 pt-4">
-                          <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
-                            Performance Overview
-                          </h4>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                            <StatCard label="Overall" value={statistics.averages?.overall?.toFixed(1)} color="text-purple-600" />
-                            <StatCard label="Evaluations" value={statistics.total_evaluations} color="text-[#00AEEF]" />
-                            <StatCard label="Evaluators" value={statistics.unique_evaluators} color="text-emerald-600" />
-                            <StatCard label="Call Accuracy" value={statistics.averages?.call_accuracy?.toFixed(1)} />
-                            <StatCard label="Communication" value={statistics.averages?.communication_skills?.toFixed(1)} />
-                            <StatCard label="Consistency" value={statistics.averages?.consistency_of_calls?.toFixed(1)} />
-                            <StatCard label="Court Position" value={statistics.averages?.court_position_mechanics?.toFixed(1)} />
-                            <StatCard label="Fitness" value={statistics.averages?.fitness_mobility?.toFixed(1)} />
-                            <StatCard label="Game Awareness" value={statistics.averages?.game_awareness?.toFixed(1)} />
-                          </div>
-                        </div>
-
-                        {/* Recommended Level */}
-                        {statistics.highest_recommended_level && (
-                          <div className="flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200">
-                            <BsTrophy className="w-8 h-8 text-amber-500 shrink-0" />
-                            <div>
-                              <p className="text-xs text-amber-700 uppercase tracking-wide font-medium">Highest Recommended Level</p>
-                              <p className="text-lg font-bold text-amber-800">{statistics.highest_recommended_level}</p>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {/* Assigned Game Slots */}
-                    {assignedSlots?.slots?.length > 0 && (
-                      <div className="border-t border-gray-100 pt-4">
-                        <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-                          Assigned Games ({assignedSlots.total_slots})
-                        </h4>
-                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                          {assignedSlots.slots.map((slot) => (
-                            <div
-                              key={slot.game_slot_id}
-                              className="flex items-start gap-3 bg-gray-50 rounded-lg p-3 border border-gray-100"
-                            >
-                              <div className="shrink-0 w-2 h-full bg-[#00AEEF] rounded-full mt-1" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-800">
-                                  {slot.game_details?.court_name || "Court"}
-                                </p>
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mt-1">
-                                  <span className="inline-flex items-center gap-1">
-                                    <HiOutlineCalendar className="w-3.5 h-3.5" />
-                                    {slot.game_details?.date}
-                                  </span>
-                                  <span>
-                                    {slot.game_details?.start_time?.slice(0, 5)} - {slot.game_details?.end_time?.slice(0, 5)}
-                                  </span>
-                                  {slot.location?.address && (
-                                    <span className="inline-flex items-center gap-1">
-                                      <HiOutlineLocationMarker className="w-3.5 h-3.5" />
-                                      {slot.location.address}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
                       </div>
                     )}
 

@@ -13,6 +13,8 @@ export default function GameRow({ game, onRefereeClick, onCrewClick }) {
     }
   };
 
+  
+
   return (
     <div className="grid grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-6 py-6 hover:bg-gray-50 transition">
       {/* Date & Time */}

@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { MdClose, MdEmail, MdPhone, MdLocationOn, MdPerson } from "react-icons/md";
-import { IoCheckboxOutline } from "react-icons/io5";
 import { Tag, Spin } from "antd";
 import { useGetRefereeDetails } from "@/hooks/get-referee-details";
 import { format } from "date-fns";
@@ -11,7 +10,6 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
   if (!referee || !isOpen) return null;
 
   const refData = refereeDetails?.referee;
-  const assignedSlots = refereeDetails?.assigned_slots;
 
   const formatPhone = (phone) => {
     if (!phone) return "N/A";
@@ -158,16 +156,6 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
                         </div>
                       </div>
                     )}
-
-                    <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-                      <IoCheckboxOutline className="text-gray-400 text-xl shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Games Assigned</p>
-                        <p className="text-2xl font-bold text-[#00AEEF]">
-                          {assignedSlots?.total_slots ?? 0}
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </div>
 

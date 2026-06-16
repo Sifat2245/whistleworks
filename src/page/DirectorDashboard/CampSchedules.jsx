@@ -66,6 +66,22 @@ const CampSchedules = () => {
     retry: 1,
   });
 
+  const formatTime = (time) => {
+    if (!time) return "";
+    
+    // Extract hours and minutes (handles "09:00", "09:00:00", etc.)
+    const [hourStr, minuteStr] = time.split(":");
+    let hour = parseInt(hourStr, 10);
+    const minutes = minuteStr?.slice(0, 2) || "00";
+
+    if (isNaN(hour)) return time; // Fallback
+
+    const period = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+
+    return `${hour12}:${minutes} ${period}`;
+  };
+
   // Transform games
   const games = useMemo(() => {
     if (
@@ -81,7 +97,9 @@ const CampSchedules = () => {
 
     return campData.schedule.game_courts.map((slot) => {
       const date = slot.game_date;
-      const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
+      const startFormatted = formatTime(slot.start_time);
+      const endFormatted = formatTime(slot.end_time);
+      const time = `${startFormatted} - ${endFormatted}`;
 
       const location = slot?.address;
       const courtMatch = slot.court_name.match(/Court (\d+)/);
