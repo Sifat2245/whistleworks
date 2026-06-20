@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import useGetCrewDetails from "@/hooks/get-crew-details";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import MemberCard from "@/components/dashboard/director_dashboard/CrewDetails/MemberCard";
 import BackBtn from "@/components/common/BackBtn";
@@ -21,16 +22,10 @@ const CrewDetailsPage = () => {
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
 
   const {
-    data: crewData,
+    crewDetails: crewData,
     isLoading,
     isError,
-  } = useQuery({
-    queryKey: ["crew", crewId],
-    queryFn: async () => {
-      const response = await axiosInstance.get(`/v1/crew/${crewId}`);
-      return response?.data?.data;
-    },
-  });
+  } = useGetCrewDetails(crewId);
 
   // Delete Mutation
   const deleteMutation = useMutation({
