@@ -1,22 +1,13 @@
-import Features from "@/components/home/Features";
-import Hero from "@/components/home/Hero";
-import Partners from "@/components/home/Partners";
-import ReadyToTrasform from "@/components/home/ReadyToTrasform";
-import Reviews from "@/components/home/Reviews";
-import TrainingCamps from "@/components/home/TrainingCamps";
-import useAxiosPublic from "@/hooks/useAxiosPublic";
-import { useQuery } from "@tanstack/react-query";
+import Features from "@/page/home/components/Features";
+import Hero from "@/page/home/components/Hero";
+import Partners from "@/page/home/components/Partners";
+import ReadyToTrasform from "@/page/home/components/ReadyToTrasform";
+import Reviews from "@/page/home/components/Reviews";
+import TrainingCamps from "@/page/home/components/TrainingCamps";
+import { useHomeCms } from "@/hooks/api/useCms";
 
 const Home = () => {
-  const axiosInstance = useAxiosPublic();
-
-  const { data: cmsData, isLoading } = useQuery({
-    queryKey: ["home-cms"],
-    queryFn: async () => {
-      const response = await axiosInstance.get("/cms/home");
-      return response?.data?.message; 
-    },
-  });
+  const { data: cmsData, isLoading } = useHomeCms();
 
   if (isLoading) {
     return (

@@ -5,13 +5,11 @@ import CommonText from "@/components/common/CommonText";
 import { FaArrowLeft } from "react-icons/fa6";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { Link, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
-import useAxiosPublic from "@/hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import LoaderV2 from "@/components/common/LoaderV2";
+import { useForgotPassword } from "@/hooks/api/useAuth";
 
 const ForgetPassword = () => {
-  const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
 
   // Note: react hook form
@@ -22,17 +20,9 @@ const ForgetPassword = () => {
   } = useForm();
 
   // Note: Forgot password mutation
-  const forgotPasswordMutation = useMutation({
-    mutationKey: ["forgot-password"],
-    mutationFn: async (formData) => {
-      const response = await axiosPublic.post(`/forgot-password`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
-      });
-      return response?.data;
-    },
-    onSuccess: (data) => {
+  const forgotPasswordMutation = useForgotPassword({
+    onSuccess: (res) => {
+      const data = res?.data;
       toast.success(data?.message || "Please check your email.");
       sessionStorage.setItem("verify_email", data?.data?.email);
       sessionStorage.setItem("testing_purpose_otp", data?.data?.otp);

@@ -1,5 +1,5 @@
 import NoticePopup from "@/components/dashboard/NoticePopup";
-import DashboardHeader from "@/shared/DashboardHeader";
+import DashboardHeader from "@/components/shared/DashboardHeader";
 import { Outlet } from "react-router-dom";
 
 const EvolatorLayout = () => {

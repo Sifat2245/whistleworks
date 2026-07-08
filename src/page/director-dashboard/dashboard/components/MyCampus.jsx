@@ -1,10 +1,10 @@
 import { useState } from "react";
 import MyCampusCart from "./MyCampusCart";
-import MyCampCartSkeleton from "./MyCampCartSkeleton";
-import { useGetMyCamp } from "@/hooks/get-my-camp-list";
+import MyCampCartSkeleton from "../../../../components/dashboard/director_dashboard/MyCampCartSkeleton";
+import { useGetMyCamp } from "@/hooks/api/director-hooks/useCamps";
 import PaginationV2 from "@/components/common/PaginationV2";
 
-const MyCampus = () => {
+const MyCamps = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // We no longer control perPage from frontend — backend always decides (currently fixed at 8)
@@ -66,4 +66,4 @@ const MyCampus = () => {
   );
 };
 
-export default MyCampus;
+export default MyCamps;

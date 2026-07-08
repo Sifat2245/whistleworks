@@ -5,13 +5,11 @@ import CommonText from "@/components/common/CommonText";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa6";
-import { useMutation } from "@tanstack/react-query";
-import useAxiosPublic from "@/hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import LoaderV2 from "@/components/common/LoaderV2";
+import { useResetPassword } from "@/hooks/api/useAuth";
 
 const ResetPassword = () => {
-  const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
 
   // Note: react hook form
@@ -24,16 +22,7 @@ const ResetPassword = () => {
   const password = watch("password_confirmation");
 
   // Note: reset password mutation
-  const resetPasswordMutation = useMutation({
-    mutationKey: ["reset-password"],
-    mutationFn: async (data) => {
-      const response = await axiosPublic.post(`/reset-password`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
-      });
-      return response;
-    },
+  const resetPasswordMutation = useResetPassword({
     onSuccess: (res) => {
       const message = res?.data?.message;
       toast.success(message || "OTP verification successful");

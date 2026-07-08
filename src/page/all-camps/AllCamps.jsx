@@ -1,7 +1,7 @@
 // AllCamps.jsx
 import CommonText from "@/components/common/CommonText";
 import CommonTitle from "@/components/common/CommonTitle";
-import FilterCamps from "@/shared/FilterCamps";
+import FilterCamps from "@/page/all-camps/components/FilterCamps";
 
 const AllCamps = () => {
   return (

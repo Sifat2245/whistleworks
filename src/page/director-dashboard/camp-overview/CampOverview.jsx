@@ -1,42 +1,48 @@
 /* eslint-disable no-unused-vars */
-import { Link, useLoaderData, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
+import ScreenLoading from "@/components/common/ScreenLoading";
 import { FaEdit, FaTrashAlt, FaMapMarkerAlt } from "react-icons/fa";
 import { MdSportsSoccer, MdOutlineAttachMoney } from "react-icons/md";
 import { AiOutlineCalendar } from "react-icons/ai";
 import { BsCheckCircle } from "react-icons/bs";
-import useAxiosSecure from "@/hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  useGetCampDetails,
+  useDeleteCamp,
+} from "@/hooks/api/director-hooks/useCamps";
 
 const CampOverview = () => {
-  const campData = useLoaderData();
-  const data = campData?.data?.data;
-  const axiosInstance = useAxiosSecure();
+  const { id } = useParams();
   const { userData } = useAuth();
-  const directorEmail = data?.director?.email;
-  const userEmail = userData?.email;
-
-  // console.log(campData, 'data');
-
   const navigate = useNavigate();
 
-  const [status, setStatus] = useState(data?.status);
+  const { data: campData, isLoading } = useGetCampDetails(id);
+  const deleteCampMutation = useDeleteCamp({
+    onSuccess: () => {
+      Swal.fire({
+        title: "Deleted!",
+        text: "Camp has been deleted successfully.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      navigate("/director-dashboard");
+    },
+    onError: () => {
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to delete camp.",
+        icon: "error",
+      });
+    },
+  });
 
-  // const handleStatusChange = async (value) => {
-  //   setStatus(value);
-
-  //   try {
-  //     await axiosInstance.post(`/v1/camp/status/${data.id}`, {
-  //       status: value,
-  //     });
-  //     toast.success("Status updated successfully");
-  //   } catch (error) {
-  //     toast.error(error || "Failed to update status");
-  //   }
-  // };
+  const status = campData?.status;
+  const directorEmail = campData?.director?.email;
+  const userEmail = userData?.email;
 
   /* ================= Delete Camp ================= */
   const handleDelete = async () => {
@@ -52,27 +58,10 @@ const CampOverview = () => {
     });
 
     if (!result.isConfirmed) return;
-
-    try {
-      await axiosInstance.delete(`/v1/camp/delete/${data.id}`);
-
-      Swal.fire({
-        title: "Deleted!",
-        text: "Camp has been deleted successfully.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-
-      navigate("/director-dashboard");
-    } catch (error) {
-      Swal.fire({
-        title: "Error!",
-        text: "Failed to delete camp.",
-        icon: "error",
-      });
-    }
+    deleteCampMutation.mutate(id);
   };
+
+  if (isLoading) return <ScreenLoading />;
 
   return (
     <div className="space-y-4 pb-12">
@@ -85,33 +74,19 @@ const CampOverview = () => {
 
           {directorEmail === userEmail && (
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-              {/* ↑ added flex-wrap + responsive gap */}
-
-              <Link to={`/director-dashboard/edit-camp/${data?.id}`}>
+              <Link to={`/director-dashboard/edit-camp/${campData?.id}`}>
                 <CommonSubmitBtn
                   variant="primary"
-                  className="flex items-center gap-1 py-1.5! px-4" // ← ensure decent padding
+                  className="flex items-center gap-1 py-1.5! px-4"
                 >
                   <FaEdit />
                   Edit
                 </CommonSubmitBtn>
               </Link>
 
-              {/* <Select
-                value={status}
-                size="large"
-                onChange={handleStatusChange}
-                className="w-36 min-w-[120px] border border-black/15 rounded-lg" // ← min-w prevents too small
-                // Optional: dropdownMatchSelectWidth={false} if dropdown overflows badly
-              >
-                <Select.Option value="active">Active</Select.Option>
-                <Select.Option value="inactive">Inactive</Select.Option>
-              </Select> */}
-
               <button
                 onClick={handleDelete}
                 className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-md text-sm cursor-pointer whitespace-nowrap"
-                // ↑ whitespace-nowrap prevents text breaking awkwardly
               >
                 <FaTrashAlt />
                 Delete
@@ -122,21 +97,21 @@ const CampOverview = () => {
 
         <div className="flex items-center gap-2 mb-4">
           <img
-            src={data?.camp_logo}
-            alt={data?.camp_name}
+            src={campData?.camp_logo}
+            alt={campData?.camp_name}
             className="w-9 h-9 rounded-full"
           />
-          <p className="text-xl font-medium">{data?.camp_name}</p>
+          <p className="text-xl font-medium">{campData?.camp_name}</p>
         </div>
 
         <p className="flex items-center gap-2 text-sm text-gray-600 mb-2">
           <FaMapMarkerAlt className="text-primary" />
-          {data?.location}
+          {campData?.location}
         </p>
 
         <p className="flex items-center gap-2 text-sm text-gray-600 font-semibold">
           <MdSportsSoccer className="text-primary" />
-          {data?.sport?.sports_name}
+          {campData?.sport?.sports_name}
         </p>
       </div>
 
@@ -146,7 +121,7 @@ const CampOverview = () => {
         <div
           className="text-gray-600 prose prose-sm sm:prose lg:prose-base max-w-none"
           dangerouslySetInnerHTML={{
-            __html: data?.camp_details || "<p>No description available.</p>",
+            __html: campData?.camp_details || "<p>No description available.</p>",
           }}
         />
       </div>
@@ -159,11 +134,11 @@ const CampOverview = () => {
         </h3>
 
         <p className="mb-2">
-          {data?.start_date} — {data?.end_date}
+          {campData?.start_date} — {campData?.end_date}
         </p>
 
         <ul className="mt-2 text-sm text-gray-600">
-          {data?.date_range?.map((d, i) => (
+          {campData?.date_range?.map((d, i) => (
             <li key={i}>• {d.day}</li>
           ))}
         </ul>
@@ -175,7 +150,7 @@ const CampOverview = () => {
 
         <p className="flex items-center gap-2 mb-1">
           <MdOutlineAttachMoney className="text-primary" />
-          Price: ${data?.price}
+          Price: ${campData?.price}
         </p>
 
         <p className="flex items-center gap-2 mb-1">
@@ -184,7 +159,7 @@ const CampOverview = () => {
         </p>
 
         <p className="text-sm text-gray-500 mt-2">
-          Created at: {data?.created_at}
+          Created at: {campData?.created_at}
         </p>
       </div>
     </div>

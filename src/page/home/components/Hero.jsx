@@ -1,5 +1,5 @@
 import heroBg from "@/assets/hero-bg.png";
-import CommonSubmitBtn from "../common/CommonSubmitBtn";
+import CommonSubmitBtn from "../../../components/common/CommonSubmitBtn";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 

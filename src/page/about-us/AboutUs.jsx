@@ -1,16 +1,7 @@
-import useAxiosPublic from "@/hooks/useAxiosPublic";
-import { useQuery } from "@tanstack/react-query";
+import { useAboutCms } from "@/hooks/api/useCms";
 
 const AboutUs = () => {
-  const axiosInstance = useAxiosPublic();
-
-  const { data: aboutData, isLoading } = useQuery({
-    queryKey: ["about-us"],
-    queryFn: async () => {
-      const response = await axiosInstance.get("/cms/about");
-      return response?.data?.data;
-    },
-  });
+  const { data: aboutData, isLoading } = useAboutCms();
 
   // Fallback if loading or no data
   if (isLoading || !aboutData) {

@@ -1,6 +1,6 @@
-import CommonSubmitBtn from "../common/CommonSubmitBtn";
-import CommonText from "../common/CommonText";
-import CommonTitle from "../common/CommonTitle";
+import CommonSubmitBtn from "../../../components/common/CommonSubmitBtn";
+import CommonText from "../../../components/common/CommonText";
+import CommonTitle from "../../../components/common/CommonTitle";
 
 const ReadyToTrasform = ({operationData}) => {
   return (

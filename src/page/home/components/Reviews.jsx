@@ -1,5 +1,5 @@
-import CommonTitle from "../common/CommonTitle";
-import CommonText from "../common/CommonText";
+import CommonTitle from "../../../components/common/CommonTitle";
+import CommonText from "../../../components/common/CommonText";
 
 const Reviews = ({ testimonialTitle, testimonials = [] }) => {
   const title = testimonialTitle?.title || "What Our Users Say";

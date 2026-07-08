@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import CommonTitle from "../common/CommonTitle";
+import CommonTitle from "../../../components/common/CommonTitle";
 import Marquee from "react-fast-marquee";
 
 const Partners = ({ partnerLogos = [], partners = [] }) => {

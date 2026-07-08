@@ -1,6 +1,7 @@
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
-import CommonSectionTitle from "./CommonSectionTitle";
-import MyCampus from "./MyCampus";
+import CommonSectionTitle from "@/components/dashboard/director_dashboard/CommonSectionTitle";
+import MyCamps from "@/page/director-dashboard/dashboard/components/MyCampus";
+
 
 const DirectorHome = () => {
     return (
@@ -16,7 +17,7 @@ const DirectorHome = () => {
             </div>
 
             {/* My campus list */}
-            <MyCampus />
+            <MyCamps />
         </div>
     );
 };

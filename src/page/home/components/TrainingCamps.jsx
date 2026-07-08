@@ -1,7 +1,7 @@
-import FilterCamps from "@/shared/FilterCamps";
-import CommonText from "../common/CommonText";
-import CommonTitle from "../common/CommonTitle";
-import CommonSubmitBtn from "../common/CommonSubmitBtn";
+import FilterCamps from "@/page/all-camps/components/FilterCamps";
+import CommonText from "../../../components/common/CommonText";
+import CommonTitle from "../../../components/common/CommonTitle";
+import CommonSubmitBtn from "../../../components/common/CommonSubmitBtn";
 
 const TrainingCamps = ({ trainingCampData }) => {
   return (

@@ -1,5 +1,5 @@
 import ActiveCmpsBackBtn from "@/components/common/ActiveCmpsBackBtn";
-import FilterCamps from "@/shared/FilterCamps";
+import FilterCamps from "@/page/all-camps/components/FilterCamps";
 
 export default function FindCamps() {
   return (
