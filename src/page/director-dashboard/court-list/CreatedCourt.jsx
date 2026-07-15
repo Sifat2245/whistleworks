@@ -1,6 +1,6 @@
 import BackBtn from "@/components/common/BackBtn";
-import CourtHeader from "@/components/dashboard/director_dashboard/created_court/CourtHeader";
-import CourtLists from "@/components/dashboard/director_dashboard/created_court/CourtLists";
+import CourtHeader from "@/page/director-dashboard/court-list/components/CourtHeader";
+import CourtLists from "@/page/director-dashboard/court-list/components/CourtLists";
 import useCampSchedule from "@/hooks/useCampSchedule";
 import { useLoaderData } from "react-router-dom";
 

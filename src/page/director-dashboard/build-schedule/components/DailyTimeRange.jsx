@@ -1,21 +1,20 @@
 import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
-import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useMutation } from "@tanstack/react-query";
 import { useForm, useFieldArray } from "react-hook-form";
 import Swal from "sweetalert2";
 import { RiDeleteBinLine } from "react-icons/ri";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import { useRef } from "react";
+import { useCreateSchedule } from "@/hooks/api/director-hooks/useBuildSchedule";
 
 const libraries = ["places"];
 
 const DailyTimeRange = ({ getDateRange }) => {
-  const axiosSecure = useAxiosSecure();
-  const navigate = useNavigate();
   const { id } = useParams();
+  const createScheduleMutation = useCreateSchedule(id);
+
   const {
     start_date,
     end_date,
@@ -42,34 +41,6 @@ const DailyTimeRange = ({ getDateRange }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: "locations",
-  });
-
-  const createScheduleMutation = useMutation({
-    mutationKey: ["create-schedule"],
-    mutationFn: async (data) => {
-      const response = await axiosSecure.post(
-        `/v1/camp/${id}/schedule/create`,
-        data,
-      );
-      return response?.data;
-    },
-    onSuccess: (data) => {
-      Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: data?.message || "Schedule created successfully.",
-        confirmButtonColor: "#00AEEF",
-      });
-      navigate(`/director-dashboard/court-list/${id}`);
-    },
-    onError: (err) => {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: err?.response?.data?.message || "Please fill all fields properly",
-        confirmButtonColor: "#00AEEF",
-      });
-    },
   });
 
   const onSubmit = (data) => {
@@ -352,7 +323,7 @@ const DailyTimeRange = ({ getDateRange }) => {
           >
             {createScheduleMutation.isPending ? (
               <>
-                <LoaderV2 /> Generating Schedule...
+                <LoaderV2 color="white"/> Generating Schedule...
               </>
             ) : (
               "Generate Schedule"

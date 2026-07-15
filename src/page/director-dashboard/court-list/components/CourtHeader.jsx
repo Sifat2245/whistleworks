@@ -1,5 +1,5 @@
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
-import CommonSectionTitle from "../CommonSectionTitle";
+import CommonSectionTitle from "../../../../components/dashboard/director_dashboard/CommonSectionTitle";
 import { useState } from "react";
 import { CourtDetailsModal } from "./CourtDetailsModal";
 

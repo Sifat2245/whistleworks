@@ -1,13 +1,16 @@
-// ScheduleAddModal.jsx
 import { useState, useEffect, useMemo } from "react";
 import { Modal, Input, Tabs, Radio, Spin } from "antd";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { BiSearch } from "react-icons/bi";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import useAxiosSecure from "@/hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import { ImBlocked } from "react-icons/im";
 import Swal from "sweetalert2";
+import {
+  useAvailableReferees,
+  useAvailableCrews,
+  useAssignReferees,
+  useAssignCrew,
+} from "@/hooks/api/director-hooks/useGameAssingments";
 
 const { Search } = Input;
 const { TabPane } = Tabs;
@@ -26,7 +29,6 @@ const ScheduleAddModal = ({
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const axiosInstance = useAxiosSecure();
   console.log(selectedCourt, 'court');
 
   // Reset on open
@@ -39,32 +41,27 @@ const ScheduleAddModal = ({
     }
   }, [isModalOpen]);
 
-  // Fetch referees
-  const { data: refereeListData = [], isLoading: loadingReferees } = useQuery({
-    queryKey: ["referee-list", campId, selectedCourt?.slot_id],
-    queryFn: async () => {
-      const res = await axiosInstance.get(
-        `/v1/director/court-assign/slot/${selectedCourt?.slot_id}/available-referees-with-time-check`,
-      );
-      return res?.data?.data?.referees || [];
-    },
-    enabled:
-      !!campId &&
-      isModalOpen &&
-      !!selectedCourt?.slot_id &&
-      activeTab === "referees",
+  // ── Hooks ──────────────────────────────────────────────────────
+  const { data: refereeListData = [], isLoading: loadingReferees } =
+    useAvailableReferees(
+      campId,
+      selectedCourt?.slot_id,
+      isModalOpen && !!selectedCourt?.slot_id && activeTab === "referees",
+    );
+
+  const { data: crewListData = [], isLoading: loadingCrews } =
+    useAvailableCrews(
+      campId,
+      selectedCourt?.slot_id,
+      isModalOpen && !!selectedCourt?.slot_id,
+    );
+
+  const assignRefereeMutation = useAssignReferees({
+    onSuccess: onAssignSuccess,
   });
 
-  // Fetch crews
-  const { data: crewListData = [], isLoading: loadingCrews } = useQuery({
-    queryKey: ["crew-list", campId, selectedCourt?.slot_id],
-    queryFn: async () => {
-      const res = await axiosInstance.get(
-        `/v1/director/court-assign/slot/${selectedCourt?.slot_id}/available-crew-with-time-check`,
-      );
-      return res?.data?.data?.crews || [];
-    },
-    enabled: !!campId && isModalOpen,
+  const assignCrewMutation = useAssignCrew({
+    onSuccess: onAssignSuccess,
   });
 
   // Pre-select currently assigned referees
@@ -128,98 +125,6 @@ const ScheduleAddModal = ({
     });
   };
 
-  // Mutations
-  const assignRefereeMutation = useMutation({
-    mutationFn: async () => {
-      const formData = new FormData();
-      selectedReferees.forEach((ref) =>
-        formData.append("referee_ids[]", ref.id),
-      );
-      formData.append("override_restrictions", "1");
-      return await axiosInstance.post(
-        `/v1/director/court-assign/slot/${selectedCourt?.slot_id}/assign-individual`,
-        formData,
-      );
-    },
-    onSuccess: () => {
-      toast.success("Referees assigned successfully");
-      onAssignSuccess();
-    },
-    onError: (error) => {
-      toast.error(
-        error?.response?.data?.message || "Failed to assign referees",
-      );
-    },
-  });
-
-  const assignCrewMutation = useMutation({
-    mutationFn: async () => {
-      return await axiosInstance.post(
-        `/v1/director/court-assign/slot/${selectedCourt?.slot_id}/assign-crew`,
-        { crew_id: selectedCrew },
-      );
-    },
-    onSuccess: () => {
-      toast.success("Crew assigned successfully");
-      onAssignSuccess();
-    },
-    onError: (error) => {
-      const response = error?.response?.data;
-
-      // Handle crew time conflict with detailed info
-      if (
-        response?.message?.conflicting_slots &&
-        Array.isArray(response.message.conflicting_slots)
-      ) {
-        const conflicts = response.message.conflicting_slots;
-
-        const conflictItems = conflicts
-          .map((slot) => {
-            const date = new Date(slot.date);
-            const formattedDate = date.toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            });
-
-            return `
-            <div class="p-3 bg-red-50 border border-red-200 rounded-lg mb-3 text-left">
-              <div class="font-semibold text-red-800">${slot.court}</div>
-              <div class="text-sm text-gray-700 mt-1">${slot.time}</div>
-              <div class="text-xs text-gray-600 mt-1">${formattedDate}</div>
-            </div>
-          `;
-          })
-          .join("");
-
-        Swal.fire({
-          title: "Crew Already Assigned Elsewhere",
-          icon: "error",
-          html: `
-            <div class="text-left max-w-full">
-              <p class="mb-4 text-gray-700">This crew is already scheduled in the same time slot at:</p>
-              ${conflictItems}
-              <p class="mt-4 font-medium text-gray-800">
-                Remove the crew from the conflicting assignment(s) before assigning here.
-              </p>
-            </div>
-          `,
-          confirmButtonText: "Understood",
-          confirmButtonColor: "#dc2626",
-          width: 680,
-        });
-
-        return;
-      }
-
-      // Fallback
-      const msg =
-        response?.data || response?.message || "Failed to assign crew";
-      toast.error(msg);
-    },
-  });
-
   // Conflict detection
   const hasCrewAssigned =
     !!selectedCourt?.crew ||
@@ -256,7 +161,10 @@ const ScheduleAddModal = ({
 
   const handlePrimaryAction = async () => {
     if (activeTab === "crew") {
-      assignCrewMutation.mutate();
+      assignCrewMutation.mutate({
+        slotId: selectedCourt?.slot_id,
+        data: { crew_id: selectedCrew },
+      });
       return;
     }
 
@@ -279,7 +187,17 @@ const ScheduleAddModal = ({
       if (!result.isConfirmed) return;
     }
 
-    assignRefereeMutation.mutate();
+    // Build FormData for the mutation
+    const formData = new FormData();
+    selectedReferees.forEach((ref) =>
+      formData.append("referee_ids[]", ref.id),
+    );
+    formData.append("override_restrictions", "1");
+
+    assignRefereeMutation.mutate({
+      slotId: selectedCourt?.slot_id,
+      formData,
+    });
   };
 
   const currentlyAssigned = refereeListData.filter(

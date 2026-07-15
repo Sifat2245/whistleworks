@@ -1,20 +1,23 @@
-// CourtLists.jsx
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import ScheduleAddModal from "./ScheduleAddModal";
-import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import CourtSlotBox from "./CourtSlotBox";
 import ScheduleActionButtons from "./ScheduleActionButtons";
 import ScheduleSkeleton from "./ScheduleSkeleton";
-import toast from "react-hot-toast";
 import { HiLockClosed, HiLockOpen } from "react-icons/hi2";
 import Swal from "sweetalert2";
+import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { MdModeEditOutline } from "react-icons/md";
+import {
+  useAvailableDates,
+  useCourtInfo,
+  useBulkUpdateCourtNames,
+  useToggleBlockSlot,
+  useBulkToggleBlock,
+} from "@/hooks/api/director-hooks/useGameAssingments";
 
 const CourtLists = ({ campData }) => {
-  const axiosInstance = useAxiosSecure();
-  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeFilter, setActiveFilter] = useState("");
@@ -30,22 +33,62 @@ const CourtLists = ({ campData }) => {
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef(null);
 
-  // Fetch available dates and locations
-  const { data: initialData, isLoading: loadingInitial } = useQuery({
-    queryKey: ["available-dates", campData?.id],
-    queryFn: async () => {
-      const response = await axiosInstance.get(
-        `/v1/camp/${campData?.id}/schedule/game-slots`,
-      );
-      return response?.data?.data;
-    },
-    enabled: !!campData?.id,
-  });
+  // ── Hooks ──────────────────────────────────────────────────────
+  const { data: initialData, isLoading: loadingInitial } = useAvailableDates(
+    campData?.id,
+  );
 
   const availableDates = initialData?.available_dates || [];
   const availableLocations = initialData?.available_locations || [];
 
-  // Set defaults from URL or fallback to first items
+  const { data, isLoading } = useCourtInfo(campData?.id, selectedDate);
+
+  const courtHeaders = data?.court_headers || [];
+  const maxReferees = data?.schedule?.max_referees_per_slot;
+  const scheduleId = data?.schedule?.schedule_id;
+  const timeSlots = data?.time_slots || [];
+
+  // ── React Query client for cache invalidation ────────────────
+  const queryClient = useQueryClient();
+
+  // ── Helper callbacks (defined before mutation hooks that reference them) ──
+  const cancelEdit = () => {
+    setEditingSlotId(null);
+    setEditValue("");
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCourt(null);
+    setSelectedTimeSlot(null);
+  };
+
+  const handleAssignSuccess = () => {
+    queryClient.invalidateQueries({
+      queryKey: ["court-info", campData?.id, selectedDate],
+    });
+    handleCloseModal();
+  };
+
+  // ── Mutation hooks ──────────────────────────────────────────────
+  const bulkUpdateCourtNamesMutation = useBulkUpdateCourtNames(
+    campData?.id,
+    selectedDate,
+    { onSuccess: cancelEdit },
+  );
+
+  const toggleBlockMutation = useToggleBlockSlot(
+    campData?.id,
+    selectedDate,
+    { onSuccess: handleCloseModal },
+  );
+
+  const bulkToggleBlockMutation = useBulkToggleBlock(
+    campData?.id,
+    selectedDate,
+  );
+
+  // ── Set defaults from URL or fallback ──────────────────────────
   useEffect(() => {
     const urlDate = searchParams.get("date");
     const urlLocation = searchParams.get("location");
@@ -73,7 +116,6 @@ const CourtLists = ({ campData }) => {
     }
   }, [availableDates, availableLocations, searchParams]);
 
-  // Update URL when filters change
   const updateUrlParams = (date, locationId) => {
     setSearchParams({
       date,
@@ -96,23 +138,6 @@ const CourtLists = ({ campData }) => {
     updateUrlParams(selectedDate, locationId);
   };
 
-  // Fetch schedule for selected date
-  const { data, isLoading } = useQuery({
-    queryKey: ["court-info", campData?.id, selectedDate],
-    queryFn: async () => {
-      const response = await axiosInstance.get(
-        `/v1/camp/${campData?.id}/schedule/game-slots?date=${selectedDate}`,
-      );
-      return response?.data?.data;
-    },
-    enabled: !!campData?.id && !!selectedDate,
-  });
-
-  const courtHeaders = data?.court_headers || [];
-  const maxReferees = data?.schedule?.max_referees_per_slot;
-  const scheduleId = data?.schedule?.schedule_id;
-  const timeSlots = data?.time_slots || [];
-
   // Filter courts by selected location
   const filteredCourtHeaders = selectedLocationId
     ? courtHeaders.filter((h) => h.location_id === selectedLocationId)
@@ -124,36 +149,6 @@ const CourtLists = ({ campData }) => {
       : slot.courts;
   };
 
-  const cancelEdit = () => {
-    setEditingSlotId(null);
-    setEditValue("");
-  };
-
-  const bulkUpdateCourtNamesMutation = useMutation({
-    mutationFn: async ({ location_id, court_number, new_court_name }) => {
-      const formData = new FormData();
-      formData.append("court_number", court_number);
-      formData.append("new_court_name", new_court_name.trim());
-
-      const res = await axiosInstance.post(
-        `/v1/location/${location_id}/courts/bulk-update-names`,
-        formData,
-      );
-      return res?.data;
-    },
-    onSuccess: () => {
-      toast.success("Court name updated successfully");
-      queryClient.invalidateQueries({
-        queryKey: ["court-info", campData?.id, selectedDate],
-      });
-      cancelEdit();
-    },
-    onError: (error) => {
-      toast.error(
-        error?.response?.data?.message || "Failed to update court name",
-      );
-    },
-  });
   const startEditing = (courtIdentifier, currentName) => {
     setEditingSlotId(courtIdentifier);
     setEditValue(currentName || "");
@@ -173,21 +168,6 @@ const CourtLists = ({ campData }) => {
     });
   };
 
-  const toggleBlockMutation = useMutation({
-    mutationFn: async (slotId) => {
-      const res = await axiosInstance.patch(`/v1/slot/${slotId}/toggle-block`);
-      return res?.data;
-    },
-    onSuccess: () => {
-      toast.success("Updated");
-      queryClient.invalidateQueries({
-        queryKey: ["court-info", campData?.id, selectedDate],
-      });
-      handleCloseModal();
-    },
-    onError: () => toast.error("Failed to update block status"),
-  });
-
   const handleBoxClick = (court, timeSlot) => {
     if (court?.is_blocked) return;
     setSelectedCourt(court);
@@ -195,44 +175,12 @@ const CourtLists = ({ campData }) => {
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedCourt(null);
-    setSelectedTimeSlot(null);
-  };
 
-  const handleAssignSuccess = () => {
-    queryClient.invalidateQueries({
-      queryKey: ["court-info", campData?.id, selectedDate],
-    });
-    handleCloseModal();
-  };
 
   const handleBlockCourt = () => {
     if (!selectedCourt?.slot_id) return;
     toggleBlockMutation.mutate(selectedCourt?.slot_id);
   };
-
-  const bulkToggleBlockMutation = useMutation({
-    mutationFn: async ({ date, start_time, action }) => {
-      const res = await axiosInstance.post(
-        `/v1/schedule/${scheduleId}/bulk-toggle-block`,
-        { date, start_time, action },
-      );
-      return res?.data;
-    },
-    onSuccess: () => {
-      toast.success("Time slot updated successfully");
-      queryClient.invalidateQueries({
-        queryKey: ["court-info", campData?.id, selectedDate],
-      });
-    },
-    onError: (error) => {
-      toast.error(
-        error?.response?.data?.message || "Failed to update time slot",
-      );
-    },
-  });
 
   const handleBulkBlock = async (time24h, date) => {
     if (!scheduleId) return;
@@ -256,7 +204,7 @@ const CourtLists = ({ campData }) => {
     });
 
     if (result.isConfirmed) {
-      bulkToggleBlockMutation.mutate({ date, start_time: time24h, action });
+      bulkToggleBlockMutation.mutate({ scheduleId, date, start_time: time24h, action });
     }
   };
 
