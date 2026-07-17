@@ -40,10 +40,11 @@ import CrewDetailsPage from "@/page/DirectorDashboard/CrewDetailsPage";
 import MakeAnnouncement from "@/page/DirectorDashboard/MakeAnnouncement";
 import AllCamps from "@/page/all-camps/AllCamps";
 import CampDetailsPageForNoAuth from "@/page/all-camps/camp-details/CampDetailsPageForNoAuth";
-import CampSchedules from "@/page/DirectorDashboard/CampSchedules";
+import CampSchedules from "@/page/director-dashboard/camp-schedules/CampSchedules";
 import PrivacyPolicy from "@/page/privacy-policy/PrivacyPolicy";
 import TermsConditions from "@/page/terms-conditions/TermsConditions";
 import FAQ from "@/page/faq/FAQ";
+import StripeConnectionSuccess from "@/page/director-dashboard/strip-connection-success";
 
 const router = createBrowserRouter([
   {
@@ -156,10 +157,10 @@ const router = createBrowserRouter([
         path: "profile",
         element: <Profile />,
       },
-      // {
-      //   path: "profile/:id",
-      //   element: <EditProfile />
-      // }
+      {
+        path: "stripe-connection-success",
+        element: <StripeConnectionSuccess />,
+      },
     ],
   },
 

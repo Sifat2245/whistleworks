@@ -1,7 +1,7 @@
 import BackBtn from "@/components/common/BackBtn";
 import GameRow from "@/components/dashboard/evaluatorDashboard/schedule/GameRow";
-import ScheduleRefereeModal from "@/components/common/ScheduleRefereeModal";
-import CrewDetailsModal from "@/components/common/CrewDetailsModal";
+import ScheduleRefereeModal from "@/page/director-dashboard/camp-schedules/components/ScheduleRefereeModal";
+import CrewDetailsModal from "@/page/director-dashboard/camp-schedules/components/CrewDetailsModal";
 import useInfiniteScroll from "@/hooks/infinity-scroll-hook";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
@@ -68,7 +68,7 @@ const CampSchedules = () => {
 
   const formatTime = (time) => {
     if (!time) return "";
-    
+
     // Extract hours and minutes (handles "09:00", "09:00:00", etc.)
     const [hourStr, minuteStr] = time.split(":");
     let hour = parseInt(hourStr, 10);
@@ -244,7 +244,8 @@ const CampSchedules = () => {
             Games Overview
           </h1>
           <p className="text-base text-[#666666] mt-2">
-            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""} scheduled
+            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""}{" "}
+            scheduled
           </p>
         </div>
 
@@ -275,7 +276,12 @@ const CampSchedules = () => {
               className="divide-y divide-gray-100 max-h-[65vh] overflow-y-auto"
             >
               {visibleGames.map((game) => (
-                <GameRow key={game.id} game={game} onRefereeClick={handleRefereeClick} onCrewClick={handleCrewClick} />
+                <GameRow
+                  key={game.id}
+                  game={game}
+                  onRefereeClick={handleRefereeClick}
+                  onCrewClick={handleCrewClick}
+                />
               ))}
 
               <div ref={loaderRef} className="py-6 text-center">

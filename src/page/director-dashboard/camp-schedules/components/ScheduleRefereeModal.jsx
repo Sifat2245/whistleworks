@@ -6,9 +6,9 @@ import { useGetRefereeDetails } from "@/hooks/get-referee-details";
 import useSubmitEvaluation from "@/hooks/submit-evaluation-hook";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
-import CommonInputWrapper from "./CommonInputWrapper";
-import CommonSubmitBtn from "./CommonSubmitBtn";
-import LoaderV2 from "./LoaderV2";
+import CommonInputWrapper from "../../../../components/common/CommonInputWrapper";
+import CommonSubmitBtn from "../../../../components/common/CommonSubmitBtn";
+import LoaderV2 from "../../../../components/common/LoaderV2";
 import { BsPersonCheck } from "react-icons/bs";
 
 const scoreOptions = Array.from({ length: 10 }, (_, i) => ({

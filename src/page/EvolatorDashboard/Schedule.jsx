@@ -1,6 +1,6 @@
 import GameRow from "@/components/dashboard/evaluatorDashboard/schedule/GameRow";
-import ScheduleRefereeModal from "@/components/common/ScheduleRefereeModal";
-import CrewDetailsModal from "@/components/common/CrewDetailsModal";
+import ScheduleRefereeModal from "@/page/director-dashboard/camp-schedules/components/ScheduleRefereeModal";
+import CrewDetailsModal from "@/page/director-dashboard/camp-schedules/components/CrewDetailsModal";
 import { Input } from "antd";
 import { CiFilter, CiSearch } from "react-icons/ci";
 import useAxiosSecure from "@/hooks/useAxiosSecure";

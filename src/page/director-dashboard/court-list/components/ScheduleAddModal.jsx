@@ -29,7 +29,7 @@ const ScheduleAddModal = ({
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  console.log(selectedCourt, 'court');
+  console.log(selectedCourt, "court");
 
   // Reset on open
   useEffect(() => {
@@ -189,9 +189,7 @@ const ScheduleAddModal = ({
 
     // Build FormData for the mutation
     const formData = new FormData();
-    selectedReferees.forEach((ref) =>
-      formData.append("referee_ids[]", ref.id),
-    );
+    selectedReferees.forEach((ref) => formData.append("referee_ids[]", ref.id));
     formData.append("override_restrictions", "1");
 
     assignRefereeMutation.mutate({
@@ -390,8 +388,12 @@ const ScheduleAddModal = ({
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500">Contact: {ref.phone}</p>
-                          <p className="text-xs font-semibold text-gray-500">Total Games Assigned: {ref.total_assignments}</p>
+                          <p className="text-sm text-gray-500">
+                            Contact: {ref.phone}
+                          </p>
+                          <p className="text-xs font-semibold text-gray-500">
+                            Total Games Assigned: {ref.total_assignments}
+                          </p>
                           {ref.status_message && (
                             <p
                               className={`text-xs mt-1 ${isHardConflict ? "text-red-600" : "text-orange-600"}`}

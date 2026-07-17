@@ -22,7 +22,7 @@ export const useGetMyCamp = (page = 1) => {
   };
 };
 
-// ── Sports types (rarely changes) ───────────────────────────────
+// Sports types (rarely changes) 
 export const useGetSportsTypes = () => {
   const { getSportsTypes } = useCampService();
 
