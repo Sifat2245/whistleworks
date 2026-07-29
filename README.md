@@ -88,186 +88,100 @@ whistle-works/
 │   ├── dashboard-logo.svg           # Dashboard logo
 │   ├── rankingData.json             # Ranking data (demo)
 │   ├── site.webmanifest             # PWA manifest
-│   └── _redirects                   # SPA redirect rules
+│   └── _redirects                   # Netlify SPA redirect rules
 │
 ├── src/
 │   ├── main.jsx                     # App entry point
-│   ├── index.css                    # Global styles & Tailwind config
-│   ├── App.jsx                      # Root app component (implied)
+│   ├── App.jsx                      # Root app component
+│   ├── index.css                    # Global styles & Tailwind CSS v4 config
 │   │
-│   ├── assets/                      # Images, SVGs, icons
+│   ├── assets/                      # Shared media assets (images, logos, etc.)
 │   │
-│   ├── context/
-│   │   └── index.js                 # React contexts (AuthContext, CmsContext)
+│   ├── components/                  # Shared UI components
+│   │   ├── common/                  # Atomic & reusable UI primitives (Logo, BackBtn, Loader, etc.)
+│   │   └── shared/                  # Layout/navigation components (Header, Footer, DashboardHeader, UserPopover, etc.)
 │   │
-│   ├── providers/
-│   │   └── AuthProvider.jsx         # Authentication context provider
+│   ├── context/                     # React Context definitions (AuthContext, etc.)
+│   │
+│   ├── providers/                   # Context providers (AuthProvider.jsx, etc.)
+│   │
+│   ├── services/                    # API Service layers (handles raw HTTP requests)
+│   │   ├── auth.service.js          # Authentication services
+│   │   ├── cms.service.js           # Public CMS pages (Home, About) services
+│   │   ├── stripeConnection.service.js # Stripe onboarding & status services
+│   │   ├── director-services/       # Director-specific services (camp, roster, crew, schedules, etc.)
+│   │   ├── referee-services/        # Referee-specific services (registrations, my-games, performance, check-ins)
+│   │   └── evaluator-services/      # Evaluator-specific services (schedules, registrations, evaluations)
 │   │
 │   ├── hooks/                       # Custom React hooks
-│   │   ├── useAuth.jsx              # Auth state consumer hook
-│   │   ├── useAxiosPublic.jsx       # Public axios instance
-│   │   ├── useAxiosSecure.jsx       # Authenticated axios instance
-│   │   ├── axiosInstace.jsx         # Axios instance for route loaders
-│   │   ├── getAllCamps.js           # Fetch camps with filters
-│   │   ├── get-camp-details.jsx     # Fetch single camp details
-│   │   ├── get-my-camp-list.js      # Fetch director's camps
-│   │   ├── get-registered-referees.js # Fetch registered referees
-│   │   ├── get-roaster.js           # Fetch camp roster
-│   │   ├── get-sports-type.js       # Fetch sports types
-│   │   ├── useCampSchedule.js       # Fetch camp schedule
-│   │   ├── submit-evaluation-hook.js# Submit referee evaluations
-│   │   ├── infinity-scroll-hook.js  # Infinite scroll logic
-│   │   └── ...
+│   │   ├── axiosInstace.jsx         # Default Axios instance for route loaders
+│   │   ├── useAuth.jsx              # Legacy/helper auth hooks
+│   │   ├── useAxiosPublic.jsx       # Public Axios instance hook
+│   │   ├── useAxiosSecure.jsx       # Secure Axios instance hook with 401 interceptor
+│   │   ├── useCampSchedule.js       # Schedule fetching hook
+│   │   ├── infinity-scroll-hook.js  # Reusable infinite scroll hook
+│   │   │
+│   │   └── api/                     # TanStack Query (React Query) hooks mapped to API services
+│   │       ├── useAuth.js           # Auth query/mutation hooks
+│   │       ├── useCms.js            # CMS query hooks
+│   │       ├── useStripConnection.js # Stripe integration query/mutation hooks
+│   │       ├── useEvaluation.js     # Referee evaluations hooks
+│   │       ├── useNoAuthCamps.js    # Public camps hooks
+│   │       ├── useRankings.js       # Rankings & settings hooks
+│   │       ├── useRegisteredReferees.js
+│   │       ├── useRefereeDetails.js
+│   │       ├── director-hooks/      # Director-specific API hooks (useCamps, useCrews, useBuildSchedule, etc.)
+│   │       ├── referee-hooks/       # Referee-specific API hooks (useRefereePerformance, useCampRegistration, etc.)
+│   │       └── evaluator-hooks/     # Evaluator-specific API hooks (useEvaluatorCamps, useEvaluatorSchedule, etc.)
 │   │
 │   ├── lib/
-│   │   └── utils.js                 # Utility functions (cn())
+│   │   └── utils.js                 # Shared helper utilities (e.g., tailwind merge cn() helper)
 │   │
-│   ├── utils/                       # Pure utility functions
-│   │   ├── formatDate.js            # Date formatting
+│   ├── utils/                       # Pure utility/helper functions
+│   │   ├── formatDate.js            # Date formatter
 │   │   ├── maskEmail.js             # Email masking
 │   │   └── validatePassword.js      # Password validation
 │   │
 │   ├── router/
-│   │   └── router.jsx               # All route definitions
+│   │   └── router.jsx               # React Router config and route definitions
 │   │
 │   ├── routes/
-│   │   └── RoleBasedPrivateRoute.jsx # Role-based access guard
+│   │   └── RoleBasedPrivateRoute.jsx # Route authentication & role check guard
 │   │
-│   ├── layout/                      # Layout wrappers
-│   │   ├── RootLayout.jsx           # Public pages layout (Header + Footer)
-│   │   ├── AuthLayout.jsx           # Authentication pages layout
+│   ├── layout/                      # High-level layout wrappers
+│   │   ├── RootLayout.jsx           # Public site layout (Header + Footer)
+│   │   ├── AuthLayout.jsx           # Authentication layouts
 │   │   ├── DirectorLayout.jsx       # Director dashboard layout
 │   │   ├── EvolatorLayout.jsx       # Evaluator dashboard layout
 │   │   └── RefereeLayout.jsx        # Referee dashboard layout
 │   │
-│   ├── shared/                      # Shared components
-│   │   ├── Header.jsx               # Public site header
-│   │   ├── Footer.jsx               # Public site footer
-│   │   ├── DashboardHeader.jsx      # Dashboard header (all roles)
-│   │   ├── UserPopover.jsx          # User menu dropdown
-│   │   ├── NotificationBell.jsx     # Notification dropdown
-│   │   └── FilterCamps.jsx          # Camp filtering & search UI
-│   │
-│   ├── components/
-│   │   ├── common/                  # Reusable UI primitives
-│   │   │   ├── Logo.jsx
-│   │   │   ├── BackBtn.jsx
-│   │   │   ├── Loader.jsx / LoaderV2.jsx
-│   │   │   ├── ScreenLoading.jsx
-│   │   │   ├── CommonTitle.jsx
-│   │   │   ├── CommonText.jsx
-│   │   │   ├── CommonInputWrapper.jsx / CommonInputWrapperV2.jsx
-│   │   │   ├── CommonSubmitBtn.jsx
-│   │   │   ├── CommonContactInfo.jsx
-│   │   │   ├── PaginationV2.jsx
-│   │   │   ├── StarRating.jsx
-│   │   │   ├── Icon.jsx
-│   │   │   ├── ErrorText.jsx
-│   │   │   ├── Profile.jsx
-│   │   │   ├── EditProfile.jsx / EditProfileModal.jsx
-│   │   │   ├── ActiveCmpsBackBtn.jsx
-│   │   │   └── ...
-│   │   │
-│   │   ├── auth/                    # Auth-related components
-│   │   │   ├── OtpWrapper.jsx
-│   │   │   └── ResendCode.jsx
-│   │   │
-│   │   ├── home/                    # Home page sections
-│   │   │   ├── Hero.jsx
-│   │   │   ├── Features.jsx
-│   │   │   ├── TrainingCamps.jsx
-│   │   │   ├── Partners.jsx
-│   │   │   ├── Reviews.jsx
-│   │   │   └── ReadyToTrasform.jsx
-│   │   │
-│   │   ├── reusable/
-│   │   │   └── CampCard.jsx         # Reusable camp display card
-│   │   │
-│   │   └── dashboard/               # Dashboard-specific components
-│   │       ├── NoticePopup.jsx      # Phone update reminder popup
-│   │       │
-│   │       ├── director_dashboard/  # Director role components
-│   │       │   ├── DirectorHome.jsx
-│   │       │   ├── MyCampus.jsx / MyCampusCart.jsx
-│   │       │   ├── MyCampCartSkeleton.jsx
-│   │       │   ├── CommonSectionTitle.jsx
-│   │       │   ├── Crew/ (CrewCard, CreateCrewModal, AddMenberModal)
-│   │       │   ├── CrewDetails/ (MemberCard)
-│   │       │   ├── build_schedule/ (DailyTimeRange)
-│   │       │   ├── created_court/ (CourtHeader, CourtLists, CourtSlotBox, etc.)
-│   │       │   ├── Evaluate/ (EvaluationForm, EvaluationFormV2, EvaluationGuideline, OverallScore)
-│   │       │   ├── Rankings/ (Rankings, SettingsModal, RefereeDetailsModal)
-│   │       │   └── Roster/ (RosterTable, EvaluatorCard, EvaluatorDetailsModal)
-│   │       │
-│   │       ├── evaluatorDashboard/  # Evaluator role components
-│   │       │   ├── ActiveCamps/ (EvolatorCampTabs)
-│   │       │   ├── rankingReport/ (RankingReportCard, RankingReportTable)
-│   │       │   └── schedule/ (GameRow)
-│   │       │
-│   │       └── refereeDashboard/    # Referee role components
-│   │           ├── DashboardButton.jsx
-│   │           ├── MyGameCard.jsx / MyGames.jsx
-│   │           ├── CampDetails.jsx / CampDetailsTabs.jsx
-│   │           ├── roster/ (EvaluatorCard, Crew, RosterTabs, Evaluator)
-│   │           └── Performance/ (OverallPerformance, PerformanceBreakdown, RecentFeedback, TrainingGoals)
-│   │
 │   └── page/                        # Page-level components
-│       ├── Home.jsx                 # Landing page
-│       ├── AboutUs.jsx              # About page (CMS-driven)
-│       ├── AllCamps.jsx             # All camps listing
-│       ├── CampDetailsPageForNoAuth.jsx  # Camp details (public)
-│       ├── PrivacyPolicy.jsx
-│       ├── TermsConditions.jsx
-│       │
-│       ├── auth/                    # Auth pages
-│       │   ├── SignIn.jsx
-│       │   ├── SignUp.jsx
-│       │   ├── VerifyOtp.jsx
-│       │   ├── ForgetPassword.jsx
-│       │   ├── ResetPasswordOtp.jsx
-│       │   ├── ResetPassword.jsx
-│       │   └── SocialLogin.jsx
-│       │
-│       ├── DirectorDashboard/       # Director pages
-│       │   ├── Dashboard.jsx
-│       │   ├── CreateNewCamp.jsx
-│       │   ├── CampOverview.jsx
-│       │   ├── EditCampPage.jsx
-│       │   ├── BuildSchedule.jsx
-│       │   ├── CreatedCourt.jsx
-│       │   ├── CampSchedules.jsx
-│       │   ├── Ranking.jsx
-│       │   ├── Roster.jsx
-│       │   ├── Evaluate.jsx
-│       │   ├── ActiveEvaluate.jsx
-│       │   ├── ActiveCrews.jsx
-│       │   ├── CrewDetailsPage.jsx
-│       │   ├── MakeAnnouncement.jsx
-│       │   └── PendingEvaluator2.jsx
-│       │
-│       ├── EvolatorDashboard/       # Evaluator pages
-│       │   ├── EvolatorDashboard.jsx
-│       │   ├── MyCamp.jsx
-│       │   ├── CampDetailsPage.jsx (reused)
-│       │   ├── EvolatorFindCamp.jsx
-│       │   ├── PreviousCamps.jsx (reused)
-│       │   ├── EvaluateV2.jsx
-│       │   ├── Schedule.jsx
-│       │   ├── RankingReport.jsx
-│       │   ├── EvaluatorRefereeList.jsx
-│       │   ├── Crews.jsx
-│       │   └── ...
-│       │
-│       └── RefereeDashboard/        # Referee pages
-│           ├── RefereeDashboard.jsx
-│           ├── ActiveCamps.jsx
-│           ├── CampDetailsPage.jsx
-│           ├── PreviousCamps.jsx
-│           ├── FindCamps.jsx
-│           ├── Roster.jsx
-│           ├── Performance.jsx
-│           ├── PaymentSuccess.jsx
-│           └── PaymentCancel.jsx
+│       ├── home/                    # Landing page
+│       ├── about-us/                # About page
+│       ├── all-camps/               # Public camps list
+│       ├── faq/                     # FAQ page
+│       ├── privacy-policy/          # Privacy Policy
+│       ├── terms-conditions/        # Terms & Conditions
+│       ├── auth/                    # Auth pages (SignIn, SignUp, VerifyOtp, ResetPassword, etc.)
+│       └── dashboard/               # Role-based dashboard page trees
+│           ├── NoticePopup.jsx      # Dashboard notice banner
+│           ├── profile/             # Profile page
+│           ├── campDetailsPage/     # Tabbed view for camp details, roster, and reports
+│           │   ├── camp-details/    # Camp info & registration modal (with Stripe and coupon discount)
+│           │   ├── roster/          # Camp roster view
+│           │   └── ranking-report/  # Ranking reports view
+│           ├── director-dashboard/  # Camp Director dashboard subpages with local components
+│           │   ├── dashboard/       # Main dashboard home (with Stripe connect card)
+│           │   ├── create-new-camp/ # Create camp page (displays camp fee and software fee)
+│           │   ├── edit-camp/       # Edit camp page
+│           │   ├── build-schedule/  # Camp schedule configuration
+│           │   ├── court-list/      # Court and slot management
+│           │   ├── evaluate/        # Referee evaluation pages
+│           │   ├── ranking/         # Director ranking view
+│           │   ├── crews/           # Crew management
+│           │   └── strip-connection-success/ # Stripe onboarding callback target
+│           ├── EvolatorDashboard/   # Evaluator dashboard subpages
+│           └── RefereeDashboard/    # Referee dashboard subpages
 │
 ├── package.json
 ├── vite.config.js
@@ -407,6 +321,7 @@ The application has three distinct roles, each with its own dashboard and featur
 | `/director-dashboard/crew-details/:crewId` | CrewDetailsPage   | Crew details                |
 | `/director-dashboard/make-announcement/:id`| MakeAnnouncement  | Send announcements          |
 | `/director-dashboard/profile`              | Profile           | User profile                |
+| `/director-dashboard/stripe-connection-success`| StripeConnectionSuccess| Stripe onboarding success callback |
 
 ### Evaluator Dashboard (`/evaluator-dashboard`)
 
@@ -512,11 +427,14 @@ The application has three distinct roles, each with its own dashboard and featur
 - **URL Sync**: Filter state persisted in URL query params
 - **Camp Cards**: Rich card display with logo, location, dates, price, sport type
 
-### 💳 Payment Integration
-- Camp registration with payment requirement
-- Stripe checkout integration (via backend)
-- Payment success/cancel pages
-- Software fee display
+### 💳 Payment & Stripe Connect Integration
+- **Stripe Account Onboarding**: Camp Directors can securely link their Stripe accounts via the Connect Onboarding flow to receive registration payments directly.
+- **Express Dashboard Access**: Fully onboarded Directors can access their Stripe Express dashboard from Whistle Works for payout/account management.
+- **Split Payment Flow**:
+  - **Camp Fee**: The base camp registration price (configured by the Director) goes directly to the Camp Director's connected Stripe account.
+  - **Technology / Software Fee**: The sport-specific software/technology fee (set by admin) goes directly to the Admin's Stripe account.
+- **Discount Coupons**: Referees can apply valid coupon codes during checkout (validated via `/v2/referee/camp/:id/validate-coupon`). The checkout payload includes coupon code context to apply discounts to the final Stripe Checkout session.
+- **Payment Success & Cancel Pages**: Routes for successful (`/payment-success`) and cancelled (`/payment-cancel`) registration checkout flows.
 
 ### 👤 User Profile Management
 - View and edit profile information

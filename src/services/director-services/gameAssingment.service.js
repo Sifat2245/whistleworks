@@ -59,5 +59,17 @@ export const useGameAssignmentService = () => {
         `/v1/director/court-assign/slot/${slotId}/assign-crew`,
         data,
       ),
+
+    /** Remove an assignment (individual or crew) */
+    removeAssignment: (assignmentId) =>
+      axiosSecure.delete(
+        `/v1/director/court-assign/assignment/${assignmentId}/remove`,
+      ),
+
+    /** Auto-assign referees for a camp */
+    autoAssignReferees: (campId) =>
+      axiosSecure.post(
+        `/v1/director/court-assign/camp/${campId}/auto-assign`,
+      ),
   };
 };

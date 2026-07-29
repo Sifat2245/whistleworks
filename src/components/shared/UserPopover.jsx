@@ -150,7 +150,7 @@ const UserPopover = () => {
                     <span className="shrink-0 size-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                       <item.icon className="size-4" />
                     </span>
-                    <span className="flex-1 text-left">{item.label}</span>
+                    <span className="flex-1 text-black text-left">{item.label}</span>
                     <FiChevronRight className="size-3.5 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" />
                   </Link>
                 </motion.div>

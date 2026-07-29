@@ -1,5 +1,5 @@
-import OtpWrapper from "@/components/auth/OtpWrapper";
-import ResendCode from "@/components/auth/ResendCode";
+import OtpWrapper from "@/page/auth/components/OtpWrapper";
+import ResendCode from "@/page/auth/components/ResendCode";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
 import { maskEmail } from "@/utils/maskEmail";

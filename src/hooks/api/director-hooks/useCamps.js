@@ -38,6 +38,7 @@ export const useGetSportsTypes = () => {
       data?.map((item) => ({
         label: item.sports_name,
         value: item.id,
+        sports_fee: item.sports_fee,
       })) || [],
   });
 };

@@ -70,3 +70,23 @@ export const useResetPassword = (options) => {
     ...options,
   });
 };
+
+// Update Avatar (profile image)
+export const useUpdateAvatar = (options) => {
+  const { updateAvatar } = useAuthService();
+  return useMutation({
+    mutationKey: ["update-avatar"],
+    mutationFn: updateAvatar,
+    ...options,
+  });
+};
+
+// Update Profile (settings: is_phone_show, is_address_show, etc.)
+export const useUpdateProfile = (options) => {
+  const { updateProfile } = useAuthService();
+  return useMutation({
+    mutationKey: ["update-profile"],
+    mutationFn: updateProfile,
+    ...options,
+  });
+};

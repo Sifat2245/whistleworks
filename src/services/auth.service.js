@@ -1,7 +1,9 @@
 import useAxiosPublic from "@/hooks/useAxiosPublic";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
 
 export const useAuthService = () => {
   const axiosInstance = useAxiosPublic();
+  const axiosSecure = useAxiosSecure();
 
   return {
     signIn: (data) => axiosInstance.post("/login", data),
@@ -21,6 +23,19 @@ export const useAuthService = () => {
       }),
     resetPassword: (data) =>
       axiosInstance.post("/reset-password", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
+
+    // Profile / avatar (auth required)
+    updateAvatar: (file) => {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      return axiosSecure.post("/update-avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    updateProfile: (payload) =>
+      axiosSecure.post("/update-profile", payload, {
         headers: { "Content-Type": "multipart/form-data" },
       }),
   };

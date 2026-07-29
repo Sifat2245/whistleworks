@@ -10,5 +10,19 @@ export const useBuildScheduleService = () => {
     /** Create schedule for a camp */
     createSchedule: (campId, data) =>
       axiosSecure.post(`/v1/camp/${campId}/schedule/create`, data),
+
+    /** Publish schedule */
+    publishSchedule: (campId) =>
+      axiosSecure.post(`/v1/camp/${campId}/schedule/publish`),
+
+    /** Clear all assignments for a schedule */
+    clearSchedule: (scheduleId) =>
+      axiosSecure.delete(
+        `/v1/director/court-assign/schedules/${scheduleId}/clear-assignments`,
+      ),
+
+    /** Delete entire schedule */
+    deleteSchedule: (campId) =>
+      axiosSecure.delete(`/v1/camp/${campId}/schedule`),
   };
 };
