@@ -26,7 +26,7 @@ const MakeAnnouncement = () => {
 
   const recipientType = watch("recipientType");
 
-  // ── Send announcement mutation ────────────────────────────
+  // Send announcement mutation
   const sendAnnouncementMutation = useSendAnnouncement({
     onSuccess: (data) => {
       Swal.fire({
@@ -101,7 +101,7 @@ const MakeAnnouncement = () => {
   };
 
   return (
-    <div className="min-h-screen  py-8">
+    <div className="min-h-screen pb-8">
       <div className="max-w-7xl mx-auto px-4">
         <BackBtn />
 

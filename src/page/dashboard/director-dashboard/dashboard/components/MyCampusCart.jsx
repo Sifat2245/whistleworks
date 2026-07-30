@@ -4,7 +4,7 @@ import { BsArrowLeftRight } from "react-icons/bs";
 import { CiCalendar } from "react-icons/ci";
 import { HiOutlineUser } from "react-icons/hi2";
 import { MdSchedule } from "react-icons/md";
-import { PiCourtBasketball, PiSunglassesLight } from "react-icons/pi";
+import { PiCourtBasketball, PiSunglassesLight, PiMegaphone } from "react-icons/pi";
 import { Link } from "react-router-dom";
 
 const actions = [
@@ -43,6 +43,12 @@ const actions = [
     label: "Roster",
     icon: <HiOutlineUser className="text-lg shrink-0" />,
     path: "/director-dashboard/roster",
+  },
+  {
+    id: "announcement",
+    label: "Make Announcement",
+    icon: <PiMegaphone className="text-lg shrink-0" />,
+    path: "/director-dashboard/make-announcement",
   },
 ];
 
@@ -169,7 +175,7 @@ const MyCampusCart = ({ league }) => {
         </div>
 
         {/* ── Action Buttons ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-2.5 mt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-2.5 mt-6">
           {filteredActions?.map((action) => (
             <Link
               to={`${action.path}/${camp_id}`}
