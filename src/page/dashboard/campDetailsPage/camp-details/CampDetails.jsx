@@ -1,4 +1,4 @@
-import { Image } from "antd";
+import { Image, Spin } from "antd";
 import Icon from "@/components/common/Icon";
 import location from "@/assets/svg/location.svg";
 import calender from "/referee/calender-icon.svg";
@@ -11,6 +11,10 @@ import dummyImage from "@/assets/dummyCardImg.png";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import RegistrationModal from "./components/RegistrationModal";
+import {
+  useCancelRegistration,
+  useMyRegistrations,
+} from "@/hooks/api/evaluator-hooks/useEvaluatorCamps";
 
 export default function CampDetails({ campData, onRegistrationUpdate }) {
   const [loading, setLoading] = useState(false);
@@ -21,6 +25,16 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
 
   const isEvaluator = userData?.role === "evaluator";
   const isReferee = userData?.role === "referee";
+
+  const cancelRegistration = useCancelRegistration();
+
+  // Fetch all registrations to find the registration ID for this camp
+  const { registrations } = useMyRegistrations(1, 100);
+
+  const currentRegistration = isEvaluator
+    ? registrations.find((reg) => reg.camp?.id === campData?.id)
+    : null;
+  const evaluatorRegistrationId = currentRegistration?.id;
 
   const {
     id: campId,
@@ -142,6 +156,32 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
         }
       },
       allowOutsideClick: () => !Swal.isLoading(),
+    });
+  };
+
+  // ── Cancel registration handler ────────────────────────────
+  const handleCancelRegistration = () => {
+    Swal.fire({
+      title: "Cancel Registration?",
+      html: `<p class="text-gray-600">Are you sure you want to cancel your registration for <strong>${camp_name}</strong>?</p>`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, cancel it!",
+      cancelButtonText: "Keep Registration",
+      reverseButtons: true,
+      customClass: {
+        confirmButton:
+          "bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg px-6 py-2.5",
+        cancelButton:
+          "bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg px-6 py-2.5",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      if (result.isConfirmed && evaluatorRegistrationId) {
+        cancelRegistration.mutate(evaluatorRegistrationId);
+      }
     });
   };
 
@@ -363,6 +403,42 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
           className="bg-primary text-white py-4 px-8 rounded-md w-full text-lg font-medium mt-6 hover:opacity-90 transition disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {loading ? "Processing..." : buttonText}
+        </button>
+      )}
+
+      {/* Cancel Registration Button — Evaluator with pending status */}
+      {isEvaluator && evaluatorStatus === "pending" && evaluatorRegistrationId && (
+        <button
+          onClick={handleCancelRegistration}
+          disabled={cancelRegistration.isPending}
+          className="w-full py-4 px-8 rounded-md border border-red-300 text-red-600 font-medium text-lg
+            hover:bg-red-50 hover:border-red-400 transition-all duration-200
+            disabled:opacity-50 disabled:cursor-not-allowed
+            flex items-center justify-center gap-2"
+        >
+          {cancelRegistration.isPending ? (
+            <>
+              <Spin size="small" />
+              Cancelling...
+            </>
+          ) : (
+            <>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              Cancel Registration
+            </>
+          )}
         </button>
       )}
 
