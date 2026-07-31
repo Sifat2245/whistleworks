@@ -10,7 +10,7 @@ import {
   FiExternalLink,
 } from "react-icons/fi";
 import { SiStripe } from "react-icons/si";
-import { useStripeConnectionStatus, useConnectStripe } from "@/hooks/api/useStripConnection";
+import { useStripeConnectionStatus, useConnectStripe, useStripeDashboard } from "@/hooks/api/useStripConnection";
 import userImage from "@/assets/dashboard/userImage.png";
 
 const roleColors = {
@@ -48,8 +48,11 @@ const UserPopover = () => {
 
   const { data: stripeStatus, isLoading: stripeLoading } = useStripeConnectionStatus();
   const connectStripeMutation = useConnectStripe();
+  const dashboardMutation = useStripeDashboard();
 
-  const isStripeConnected = stripeStatus?.can_receive_payouts && stripeStatus?.is_connected;
+  const isStripeConnected = stripeStatus?.is_connected;
+  const payoutsActive = stripeStatus?.can_receive_payouts;
+  const isPayoutPending = isStripeConnected && !payoutsActive;
 
   const profilePath =
     {
@@ -178,9 +181,32 @@ const UserPopover = () => {
                   <span className="text-xs text-gray-400">Checking status...</span>
                 </div>
               ) : isStripeConnected ? (
-                <div className="flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-emerald-400" />
-                  <span className="text-xs font-medium text-emerald-600">Stripe connected</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`size-2 rounded-full ${payoutsActive ? "bg-emerald-400" : "bg-amber-400"}`} />
+                    <span className={`text-xs font-medium ${payoutsActive ? "text-emerald-600" : "text-amber-600"}`}>
+                      Stripe connected
+                    </span>
+                  </div>
+                  {isPayoutPending && (
+                    <p className="text-[10px] text-amber-600 ml-4 leading-tight">
+                      Payouts are being enabled — you&apos;ll receive a notification once they&apos;re active.
+                    </p>
+                  )}
+                  {payoutsActive && (
+                    <button
+                      onClick={() => dashboardMutation.mutate()}
+                      disabled={dashboardMutation.isPending}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-[11px] font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg transition-all"
+                    >
+                      {dashboardMutation.isPending ? (
+                        <div className="size-3 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                      ) : (
+                        <FiExternalLink className="size-3" />
+                      )}
+                      Stripe Dashboard
+                    </button>
+                  )}
                 </div>
               ) : (
                 <button

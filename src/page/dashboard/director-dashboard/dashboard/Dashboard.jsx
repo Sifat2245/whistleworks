@@ -43,46 +43,109 @@ const StripeStatCard = () => {
   const connectMutation = useConnectStripe();
   const dashboardMutation = useStripeDashboard();
 
-  const isConnected = stripeStatus?.can_receive_payouts && stripeStatus?.is_connected;
+  const isStripeConnected = stripeStatus?.is_connected;
+  const payoutsActive = stripeStatus?.can_receive_payouts;
+  const isPayoutPending = isStripeConnected && !payoutsActive;
 
   if (isLoading) return <StripeStatCardSkeleton />;
+
+  // Determine the card state
+  const cardState = !isStripeConnected
+    ? "disconnected"
+    : isPayoutPending
+    ? "pending_payouts"
+    : "connected";
+
+  const borderColor =
+    cardState === "connected"
+      ? "border-emerald-100"
+      : cardState === "pending_payouts"
+      ? "border-blue-100"
+      : "border-amber-100";
+
+  const badgeStyle =
+    cardState === "connected"
+      ? "bg-emerald-50 text-emerald-600"
+      : cardState === "pending_payouts"
+      ? "bg-blue-50 text-blue-600"
+      : "bg-amber-50 text-amber-600";
+
+  const dotColor =
+    cardState === "connected"
+      ? "bg-emerald-500"
+      : cardState === "pending_payouts"
+      ? "bg-blue-500"
+      : "bg-amber-500";
+
+  const badgeLabel =
+    cardState === "connected"
+      ? "Active"
+      : cardState === "pending_payouts"
+      ? "Connected"
+      : "Setup needed";
+
+  const iconBg =
+    cardState === "connected"
+      ? "bg-emerald-50"
+      : cardState === "pending_payouts"
+      ? "bg-blue-50"
+      : "bg-amber-50";
+
+  const stripeIconColor =
+    cardState === "connected"
+      ? "text-emerald-600"
+      : cardState === "pending_payouts"
+      ? "text-blue-600"
+      : "text-amber-600";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`bg-white rounded-xl border shadow-sm p-4 sm:p-5 flex flex-col hover:shadow-md transition-all duration-200 ${
-        isConnected ? "border-emerald-100" : "border-amber-100"
-      }`}
+      className={`bg-white rounded-xl border shadow-sm p-4 sm:p-5 flex flex-col hover:shadow-md transition-all duration-200 ${borderColor}`}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
-          <div className={`size-8 rounded-lg flex items-center justify-center ${
-            isConnected ? "bg-emerald-50" : "bg-amber-50"
-          }`}>
-            <SiStripe className={`size-4 ${isConnected ? "text-emerald-600" : "text-amber-600"}`} />
+          <div className={`size-8 rounded-lg flex items-center justify-center ${iconBg}`}>
+            <SiStripe className={`size-4 ${stripeIconColor}`} />
           </div>
           <span className="text-sm font-semibold text-slate-800">Payouts</span>
         </div>
-        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-          isConnected ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
-        }`}>
-          <span className={`size-1.5 rounded-full ${isConnected ? "bg-emerald-500" : "bg-amber-500"}`} />
-          {isConnected ? "Connected" : "Setup needed"}
+        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${badgeStyle}`}>
+          <span className={`size-1.5 rounded-full ${dotColor}`} />
+          {badgeLabel}
         </span>
       </div>
 
       {/* Body */}
-      <p className="text-xs text-slate-500 leading-relaxed mb-3">
-        {isConnected
-          ? "Camp fees are paid directly to your Stripe account."
-          : "Connect Stripe to receive camp fees directly."}
-      </p>
+      <div className="mb-3 space-y-1.5">
+        {cardState === "connected" && (
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Camp fees are paid directly to your Stripe account. Payouts are active.
+          </p>
+        )}
+        {cardState === "pending_payouts" && (
+          <>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Your Stripe account is connected. Payouts are being enabled — this typically takes 1–2 business days.
+            </p>
+            <p className="text-[11px] text-blue-600 flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-blue-400 animate-pulse" />
+              Waiting for Stripe to verify your account
+            </p>
+          </>
+        )}
+        {cardState === "disconnected" && (
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Connect Stripe to receive camp fees directly.
+          </p>
+        )}
+      </div>
 
       {/* Action */}
-      {isConnected ? (
+      {cardState === "connected" ? (
         <button
           onClick={() => dashboardMutation.mutate()}
           disabled={dashboardMutation.isPending}
@@ -94,6 +157,19 @@ const StripeStatCard = () => {
             <FiExternalLink className="size-3" />
           )}
           Dashboard
+        </button>
+      ) : cardState === "pending_payouts" ? (
+        <button
+          onClick={() => dashboardMutation.mutate()}
+          disabled={dashboardMutation.isPending}
+          className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all disabled:opacity-50"
+        >
+          {dashboardMutation.isPending ? (
+            <div className="size-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+          ) : (
+            <FiExternalLink className="size-3" />
+          )}
+          View Stripe
         </button>
       ) : (
         <button
@@ -110,7 +186,7 @@ const StripeStatCard = () => {
         </button>
       )}
 
-      {stripeStatus?.stripe_account && isConnected && (
+      {stripeStatus?.stripe_account && isStripeConnected && (
         <p className="mt-2 text-[10px] text-slate-400 truncate">
           {stripeStatus.stripe_account.slice(0, 14)}...
         </p>

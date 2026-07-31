@@ -165,7 +165,9 @@ const StripeConnectionSuccess = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [confettiKey, setConfettiKey] = useState(0);
 
-  const isConnected = status?.can_receive_payouts && status?.is_connected;
+  const isStripeConnected = status?.is_connected;
+  const payoutsActive = status?.can_receive_payouts;
+  const isPayoutPending = isStripeConnected && !payoutsActive;
 
   // Progress through steps while checking
   useEffect(() => {
@@ -180,9 +182,10 @@ const StripeConnectionSuccess = () => {
     return () => clearInterval(interval);
   }, [checking]);
 
-  // Retry status polling
+  // Retry status polling — stop once we have a definitive state
   useEffect(() => {
-    if (!checking && isConnected) return;
+    const hasResult = status && (status?.is_connected || status?.can_receive_payouts === false);
+    if (!checking || hasResult) return;
 
     let attempts = 0;
     const interval = setInterval(() => {
@@ -195,30 +198,38 @@ const StripeConnectionSuccess = () => {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [refetch, checking, isConnected]);
+  }, [refetch, checking, status]);
 
   // When data loads, stop checking after a short delay
   useEffect(() => {
     if (!isLoading && status) {
       const timer = setTimeout(() => {
         setChecking(false);
-        if (status?.can_receive_payouts && status?.is_connected) {
+        if (payoutsActive && isStripeConnected) {
           setShowConfetti(true);
           setConfettiKey((k) => k + 1);
         }
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [isLoading, status]);
+  }, [isLoading, status, payoutsActive, isStripeConnected]);
 
   // Determine page state
-  const pageState = checking || isLoading ? "checking" : isConnected ? "connected" : status ? "pending" : "error";
+  const pageState = checking || isLoading
+    ? "checking"
+    : isStripeConnected && payoutsActive
+    ? "connected"
+    : isStripeConnected && isPayoutPending
+    ? "pending_payouts"
+    : status
+    ? "pending"
+    : "error";
 
   return (
     <div className="relative min-h-[85vh] flex items-center justify-center px-4 py-12 overflow-hidden">
       {/* Confetti on success */}
       <AnimatePresence>
-        {showConfetti && isConnected && <ConfettiRain key={confettiKey} />}
+        {showConfetti && pageState === "connected" && <ConfettiRain key={confettiKey} />}
       </AnimatePresence>
 
       <motion.div
@@ -282,6 +293,8 @@ const StripeConnectionSuccess = () => {
                       ? "bg-gradient-to-br from-indigo-50 to-blue-50"
                       : pageState === "connected"
                       ? "bg-gradient-to-br from-emerald-50 to-green-50"
+                      : pageState === "pending_payouts"
+                      ? "bg-gradient-to-br from-blue-50 to-indigo-50"
                       : "bg-gradient-to-br from-amber-50 to-orange-50"
                   }`}
                 >
@@ -299,6 +312,19 @@ const StripeConnectionSuccess = () => {
                       }}
                     >
                       <IoCheckmarkCircle className="size-10 text-emerald-500" />
+                    </motion.div>
+                  ) : pageState === "pending_payouts" ? (
+                    <motion.div
+                      initial={{ scale: 0, rotate: -45 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 15,
+                        delay: 0.3,
+                      }}
+                    >
+                      <IoCheckmarkCircle className="size-10 text-blue-500" />
                     </motion.div>
                   ) : (
                     <IoCloseCircle className="size-10 text-amber-500" />
@@ -319,6 +345,8 @@ const StripeConnectionSuccess = () => {
                   ? "Connecting to Stripe"
                   : pageState === "connected"
                   ? "Stripe Connected Successfully!"
+                  : pageState === "pending_payouts"
+                  ? "Stripe Account Connected"
                   : pageState === "pending"
                   ? "Setup Not Complete"
                   : "Connection Error"}
@@ -329,6 +357,8 @@ const StripeConnectionSuccess = () => {
                   ? "We're securely linking your Stripe account. This should only take a moment..."
                   : pageState === "connected"
                   ? "Your Stripe account is fully connected and ready to receive payouts. You're all set to manage payments seamlessly."
+                  : pageState === "pending_payouts"
+                  ? "Your Stripe account is linked successfully. Payouts are being enabled — Stripe is reviewing your account, which typically takes 1–2 business days."
                   : pageState === "pending"
                   ? "Your Stripe account hasn't completed the setup process yet. Please finish the onboarding to enable payouts."
                   : "We couldn't verify your Stripe connection status. This might be a temporary issue."}
@@ -347,7 +377,7 @@ const StripeConnectionSuccess = () => {
               </motion.div>
             )}
 
-            {/* ── Connected: Account Details ── */}
+            {/* ── Connected: Account Details (full payouts active) ── */}
             {pageState === "connected" && status && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
@@ -393,6 +423,57 @@ const StripeConnectionSuccess = () => {
                       label="Connection Status"
                       value={status.is_connected ? "Active" : "Inactive"}
                       positive={status.is_connected}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── Pending Payouts: Connected but payouts not yet enabled ── */}
+            {pageState === "pending_payouts" && status && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="mb-8"
+              >
+                {/* Info banner */}
+                <div className="bg-blue-50/80 border border-blue-200/60 rounded-xl p-4 mb-5 flex items-start gap-3">
+                  <IoFlashOutline className="size-5 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-blue-800">
+                      Stripe is connected — payouts are being enabled
+                    </p>
+                    <p className="text-xs text-blue-600 mt-0.5">
+                      Stripe is reviewing your account details. This usually takes 1–2 business days. You&apos;ll be able to receive payouts once the review is complete.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Account info card */}
+                <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+                    Account Details
+                  </h4>
+                  <div className="divide-y divide-slate-100">
+                    <StatBadge
+                      label="Stripe Account"
+                      value={
+                        status.stripe_account
+                          ? `${status.stripe_account.slice(0, 6)}...${status.stripe_account.slice(-4)}`
+                          : "Connected"
+                      }
+                      positive
+                    />
+                    <StatBadge
+                      label="Payout Eligibility"
+                      value="Being enabled"
+                      positive={false}
+                    />
+                    <StatBadge
+                      label="Connection Status"
+                      value="Active"
+                      positive
                     />
                   </div>
                 </div>
@@ -464,7 +545,7 @@ const StripeConnectionSuccess = () => {
               transition={{ delay: 0.45 }}
               className="space-y-3"
             >
-              {pageState === "connected" ? (
+              {pageState === "connected" || pageState === "pending_payouts" ? (
                 <>
                   <Link
                     to="/director-dashboard"
@@ -519,7 +600,7 @@ const StripeConnectionSuccess = () => {
             </motion.div>
 
             {/* ── Footer note ── */}
-            {pageState === "connected" && status?.stripe_account && (
+            {(pageState === "connected" || pageState === "pending_payouts") && status?.stripe_account && (
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
