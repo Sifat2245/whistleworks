@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import OtpWrapper from "@/components/auth/OtpWrapper";
 import ResendCode from "@/components/auth/ResendCode";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
 import { useAuth } from "@/hooks/useAuth";
-import useAxiosPublic from "@/hooks/useAxiosPublic";
 import { maskEmail } from "@/utils/maskEmail";
+import { useVerifyEmail, useResendOtp } from "@/hooks/api/useAuth";
 
 const VerifyOtp = () => {
-  const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const { handleLogin, userRefetch } = useAuth();
 
@@ -22,13 +20,9 @@ const VerifyOtp = () => {
   const [countdown, setCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
 
-  const verifyMutation = useMutation({
-    mutationKey: ["verify-email"],
-    mutationFn: async (payload) => {
-      const response = await axiosPublic.post("/verify-email", payload);
-      return response.data;
-    },
-    onSuccess: (data) => {
+  const verifyMutation = useVerifyEmail({
+    onSuccess: (res) => {
+      const data = res?.data;
       toast.success(data?.message || "OTP verification successful");
 
       const token = data?.token;
@@ -53,13 +47,9 @@ const VerifyOtp = () => {
     },
   });
 
-  const resendMutation = useMutation({
-    mutationKey: ["resend-otp"],
-    mutationFn: async () => {
-      const response = await axiosPublic.post("/resend-otp", { email });
-      return response.data;
-    },
-    onSuccess: (data) => {
+  const resendMutation = useResendOtp({
+    onSuccess: (res) => {
+      const data = res?.data;
       toast.success(data?.message || "New OTP sent. Check your email.");
       setCountdown(30);
       setCanResend(false);

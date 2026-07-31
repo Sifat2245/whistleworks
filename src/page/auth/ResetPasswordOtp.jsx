@@ -2,15 +2,13 @@ import OtpWrapper from "@/components/auth/OtpWrapper";
 import ResendCode from "@/components/auth/ResendCode";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
-import useAxiosPublic from "@/hooks/useAxiosPublic";
 import { maskEmail } from "@/utils/maskEmail";
-import { useMutation } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useVerifyResetOtp } from "@/hooks/api/useAuth";
 
 const ResetPasswordOtp = () => {
-  const axiosPublic = useAxiosPublic();
   const get_email = sessionStorage.getItem("verify_email");
   const get_otp = sessionStorage.getItem("testing_purpose_otp");
   const [otp, setOtp] = useState("");
@@ -23,16 +21,7 @@ const ResetPasswordOtp = () => {
   const inputsRef = useRef([]);
 
   // Note: handle otp submit mutaition
-  const handleOtpSubmitMutation = useMutation({
-    mutationKey: ["confirmSignUpOtp"],
-    mutationFn: async (data) => {
-      const response = await axiosPublic.post(`/otp-token`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return response;
-    },
+  const handleOtpSubmitMutation = useVerifyResetOtp({
     onSuccess: (res) => {
       const token = res?.data?.token;
       const message = res?.data?.message;

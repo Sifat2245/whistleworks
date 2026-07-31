@@ -3,11 +3,10 @@ import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonText from "@/components/common/CommonText";
 import CommonTitle from "@/components/common/CommonTitle";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
-import { useMutation } from "@tanstack/react-query";
-import useAxiosPublic from "@/hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import LoaderV2 from "@/components/common/LoaderV2";
+import { useSignUp } from "@/hooks/api/useAuth";
 
 // Google Maps Autocomplete
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
@@ -20,7 +19,6 @@ import "react-phone-number-input/style.css";
 const libraries = ["places"];
 
 const SignUp = () => {
-  const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,17 +59,9 @@ const SignUp = () => {
   };
 
   // Sign Up Mutation
-  const signUpMutation = useMutation({
-    mutationKey: ["sign-up"],
-    mutationFn: async (formData) => {
-      const response = await axiosPublic.post(`/register`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return response?.data;
-    },
-    onSuccess: (data) => {
+  const signUpMutation = useSignUp({
+    onSuccess: (res) => {
+      const data = res?.data;
       toast.success(data?.message || "Sign up successful");
 
       sessionStorage.setItem("verify_email", data?.data?.email);

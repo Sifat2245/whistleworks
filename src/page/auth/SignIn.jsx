@@ -3,16 +3,14 @@ import CommonText from "@/components/common/CommonText";
 import CommonTitle from "@/components/common/CommonTitle";
 import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
-import { useMutation } from "@tanstack/react-query";
-import useAxiosPublic from "@/hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import LoaderV2 from "@/components/common/LoaderV2";
 import { useAuth } from "@/hooks/useAuth";
+import { useSignIn } from "@/hooks/api/useAuth";
 
 const SignIn = () => {
   const { handleLogin, userRefetch } = useAuth();
-  const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -63,20 +61,14 @@ const SignIn = () => {
   };
 
   // Note: sign in mutation
-  const signInMutation = useMutation({
-    mutationKey: ["sign-in"],
-    mutationFn: async (formData) => {
-      // ← renamed for clarity
-      const response = await axiosPublic.post(`/login`, formData);
-      return response?.data;
-    },
+  const signInMutation = useSignIn({
     onSuccess: (res) => {
-      toast.success(res?.message || "Sign in successful");
-      handleLogin(res?.data?.token);
+      toast.success(res?.data?.message || "Sign in successful");
+      handleLogin(res?.data?.data?.token);
       userRefetch();
       const campId = getCampIdFromFromPath();
       setTimeout(() => {
-        redirectAfterLogin(res?.data?.user?.role, campId);
+        redirectAfterLogin(res?.data?.data?.user?.role, campId);
       }, 1000);
     },
     onError: (err, variables) => {
