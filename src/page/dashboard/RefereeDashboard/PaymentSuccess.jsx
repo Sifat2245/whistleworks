@@ -280,14 +280,7 @@ const PaymentSuccess = () => {
                         ${Number(priceBreakdown.camp_price || 0).toFixed(2)}
                       </span>
                     </div>
-                    {Number(priceBreakdown.sports_fee) > 0 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">Technology Fee</span>
-                        <span className="text-sm font-medium text-gray-700">
-                          ${Number(priceBreakdown.sports_fee).toFixed(2)}
-                        </span>
-                      </div>
-                    )}
+                    
                     {Number(priceBreakdown.discount) > 0 && (
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-500 flex items-center gap-1.5">

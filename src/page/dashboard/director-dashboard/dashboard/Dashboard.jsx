@@ -60,21 +60,21 @@ const StripeStatCard = () => {
     cardState === "connected"
       ? "border-emerald-100"
       : cardState === "pending_payouts"
-      ? "border-blue-100"
+      ? "border-orange-100"
       : "border-amber-100";
 
   const badgeStyle =
     cardState === "connected"
       ? "bg-emerald-50 text-emerald-600"
       : cardState === "pending_payouts"
-      ? "bg-blue-50 text-blue-600"
+      ? "bg-orange-50 text-orange-600"
       : "bg-amber-50 text-amber-600";
 
   const dotColor =
     cardState === "connected"
       ? "bg-emerald-500"
       : cardState === "pending_payouts"
-      ? "bg-blue-500"
+      ? "bg-orange-500"
       : "bg-amber-500";
 
   const badgeLabel =
@@ -88,14 +88,14 @@ const StripeStatCard = () => {
     cardState === "connected"
       ? "bg-emerald-50"
       : cardState === "pending_payouts"
-      ? "bg-blue-50"
+      ? "bg-orange-50"
       : "bg-amber-50";
 
   const stripeIconColor =
     cardState === "connected"
       ? "text-emerald-600"
       : cardState === "pending_payouts"
-      ? "text-blue-600"
+      ? "text-orange-600"
       : "text-amber-600";
 
   return (
@@ -131,8 +131,8 @@ const StripeStatCard = () => {
             <p className="text-xs text-slate-500 leading-relaxed">
               Your Stripe account is connected. Payouts are being enabled — this typically takes 1–2 business days.
             </p>
-            <p className="text-[11px] text-blue-600 flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-blue-400 animate-pulse" />
+            <p className="text-[11px] text-orange-600 flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-orange-400 animate-pulse" />
               Waiting for Stripe to verify your account
             </p>
           </>
@@ -162,10 +162,10 @@ const StripeStatCard = () => {
         <button
           onClick={() => dashboardMutation.mutate()}
           disabled={dashboardMutation.isPending}
-          className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-2 text-xs font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-all disabled:opacity-50"
         >
           {dashboardMutation.isPending ? (
-            <div className="size-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+            <div className="size-3 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin" />
           ) : (
             <FiExternalLink className="size-3" />
           )}
