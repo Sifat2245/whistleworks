@@ -2,15 +2,23 @@ import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import CommonSectionTitle from "@/components/common/CommonSectionTitle";
 import RosterTable from "@/page/dashboard/director-dashboard/roster/components/RosterTable";
+import RosterSkeleton from "@/page/dashboard/director-dashboard/roster/components/RosterSkeleton";
 import ActiveEvaluate from "../evaluators/ActiveEvaluate";
 import ActiveCrews from "../crews/ActiveCrews";
 import { useCampRosterDetails } from "@/hooks/api/director-hooks/useRosterForDirector";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useMemo } from "react";
-import { FiSearch } from "react-icons/fi";
-import { ImCross } from "react-icons/im";
-import { RxDropdownMenu } from "react-icons/rx";
-import { Spin } from "antd";
+import {
+  LuUsers,
+  LuClipboardCheck,
+  LuLayers,
+  LuSearch,
+  LuX,
+  LuMegaphone,
+  LuTriangleAlert,
+  LuRefreshCw,
+} from "react-icons/lu";
+import { cn } from "@/lib/utils";
 
 const Roster = () => {
   const { id: campId } = useParams();
@@ -30,13 +38,6 @@ const Roster = () => {
   const isEvaluatorsActive = pathname.includes("active-evaluate");
   const isCrewsActive = pathname.includes("active-crews");
   const isRefereesActive = !isEvaluatorsActive && !isCrewsActive;
-
-  const btnClasses = (isActive) =>
-    `px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 whitespace-nowrap
-     ${isActive 
-       ? "bg-[#00AEEF] text-white shadow-md" 
-       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-     }`;
 
   const handleTabClick = (path) => {
     navigate(path);
@@ -66,27 +67,72 @@ const Roster = () => {
 
   // Dynamic counter label based on active tab
   const counterLabel = isEvaluatorsActive
-    ? `${campData?.evaluators?.length || 0} Evaluator${campData?.evaluators?.length !== 1 ? "s" : ""}`
+    ? `${campData?.evaluators?.length || 0} Evaluator${
+        campData?.evaluators?.length !== 1 ? "s" : ""
+      }`
     : isCrewsActive
-    ? "Crews"
-    : `${displayedCount} of ${totalReferees} Referee${displayedCount !== 1 ? "s" : ""} Shown`;
+    ? "Crew Groups"
+    : `${displayedCount} of ${totalReferees} Referee${
+        displayedCount !== 1 ? "s" : ""
+      } Shown`;
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Spin size="large" />
+      <div className="w-full">
+        <RosterSkeleton />
       </div>
     );
   }
 
   if (isError || !campData) {
     return (
-      <div className="text-center py-20 text-red-600">
-        <p className="text-xl font-medium">Failed to load camp details.</p>
-        <p>Please try again later.</p>
+      <div className="w-full container mx-auto px-4 py-6">
+        <BackBtn />
+        <div className="mt-6 mx-auto max-w-md bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+          <LuTriangleAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-red-800 mb-3">
+            Failed to Load Camp Roster
+          </h2>
+          <p className="text-red-600 mb-4">
+            Please try again later.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition cursor-pointer"
+          >
+            <LuRefreshCw className="w-4 h-4" /> Retry
+          </button>
+        </div>
       </div>
     );
   }
+
+  const tabs = [
+    {
+      key: "referees",
+      label: "Referees",
+      count: totalReferees,
+      icon: <LuUsers />,
+      path: `/director-dashboard/roster/${campId}`,
+      active: isRefereesActive,
+    },
+    {
+      key: "evaluators",
+      label: "Evaluators",
+      count: campData.evaluators?.length || 0,
+      icon: <LuClipboardCheck />,
+      path: `/director-dashboard/active-evaluate/${campId}`,
+      active: isEvaluatorsActive,
+    },
+    {
+      key: "crews",
+      label: "Crews",
+      count: null,
+      icon: <LuLayers />,
+      path: `/director-dashboard/active-crews/${campId}`,
+      active: isCrewsActive,
+    },
+  ];
 
   return (
     <div className="w-full container mx-auto px-4 py-6">
@@ -96,49 +142,66 @@ const Roster = () => {
           <BackBtn />
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+            className="lg:hidden p-2 rounded-lg hover:bg-[#FAFAFA] transition cursor-pointer"
             aria-label="Toggle menu"
           >
             {showMobileMenu ? (
-              <ImCross className="w-6 h-6 text-gray-700" />
+              <LuX className="w-6 h-6 text-[#333]" />
             ) : (
-              <RxDropdownMenu className="w-8 h-8 text-gray-700" />
+              <span className="block w-8 h-8 bg-[#FAFAFA] border border-border rounded-lg text-[#333] text-sm font-semibold flex items-center justify-center">
+                ☰
+              </span>
             )}
           </button>
         </div>
 
-        <div className={`w-full lg:w-auto ${showMobileMenu ? "block" : "hidden lg:block"}`}>
-          <div className="flex flex-col sm:flex-row gap-3 bg-gray-50 p-3 rounded-xl">
-            <button
-              onClick={() => handleTabClick(`/director-dashboard/roster/${campId}`)}
-              className={btnClasses(isRefereesActive)}
-            >
-              Referees ({totalReferees})
-            </button>
-            <button
-              onClick={() => handleTabClick(`/director-dashboard/active-evaluate/${campId}`)}
-              className={btnClasses(isEvaluatorsActive)}
-            >
-              Evaluators ({campData.evaluators?.length || 0})
-            </button>
-            <button
-              onClick={() => handleTabClick(`/director-dashboard/active-crews/${campId}`)}
-              className={btnClasses(isCrewsActive)}
-            >
-              Crews
-            </button>
+        <div
+          className={`w-full lg:w-auto ${
+            showMobileMenu ? "block" : "hidden lg:block"
+          }`}
+        >
+          <div className="inline-flex flex-col sm:flex-row gap-2 bg-[#FAFAFA] p-1.5 rounded-[10px] border border-border w-full sm:w-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => handleTabClick(tab.path)}
+                className={cn(
+                  "flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 whitespace-nowrap cursor-pointer",
+                  tab.active
+                    ? "bg-primary text-white shadow-md"
+                    : "text-[#666] hover:bg-white hover:text-primary hover:shadow-sm",
+                )}
+              >
+                <span className="text-base">{tab.icon}</span>
+                {tab.label}
+                {tab.count !== null && (
+                  <span
+                    className={cn(
+                      "min-w-6 h-6 px-1.5 rounded-full text-xs font-semibold flex items-center justify-center",
+                      tab.active
+                        ? "bg-white/20 text-white"
+                        : "bg-primary/10 text-primary",
+                    )}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
 
         <div className="w-full lg:w-auto">
           <CommonSubmitBtn
-          link
-          path={`/director-dashboard/make-announcement/${campId}`}
+            link
+            path={`/director-dashboard/make-announcement/${campId}`}
             type="button"
             variant="primary"
             className="w-full lg:w-auto py-3 px-8 text-base font-medium"
           >
-            Make Announcement
+            <span className="inline-flex items-center gap-2">
+              <LuMegaphone className="text-base" /> Make Announcement
+            </span>
           </CommonSubmitBtn>
         </div>
       </div>
@@ -152,16 +215,16 @@ const Roster = () => {
         />
 
         <div className="flex items-center gap-4">
-          <button className="bg-[#00AEEF]/10 text-[#00AEEF] px-6 py-3 rounded-lg font-semibold text-base whitespace-nowrap">
+          <span className="inline-flex items-center bg-primary/10 text-primary px-5 py-2.5 rounded-[10px] font-semibold text-sm whitespace-nowrap">
             {counterLabel}
-          </button>
+          </span>
         </div>
       </div>
 
       {/* Search Bar - works for both Referees and Evaluators tabs */}
       {!isCrewsActive && (
         <div className="relative mb-10">
-          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xl" />
+          <LuSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#999] text-xl" />
           <input
             type="text"
             value={searchQuery}
@@ -171,14 +234,15 @@ const Roster = () => {
                 ? "Search evaluators by name, email, or ID..."
                 : "Search referees by name, email, phone, or ID..."
             }
-            className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-[#00AEEF] focus:ring-4 focus:ring-[#00AEEF]/10 text-base placeholder-gray-500 transition"
+            className="w-full pl-12 pr-12 py-4 bg-white border border-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 text-base placeholder-[#999] transition"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition cursor-pointer"
+              aria-label="Clear search"
             >
-              <ImCross className="w-5 h-5" />
+              <LuX className="w-5 h-5" />
             </button>
           )}
         </div>
@@ -188,10 +252,7 @@ const Roster = () => {
       <div className="mt-8">
         {isEvaluatorsActive && <ActiveEvaluate searchQuery={searchQuery} />}
         {isRefereesActive && (
-          <RosterTable
-            referees={filteredReferees}
-            campId={campId}
-          />
+          <RosterTable referees={filteredReferees} campId={campId} />
         )}
         {isCrewsActive && <ActiveCrews campId={campId} />}
       </div>

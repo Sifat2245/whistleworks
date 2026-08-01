@@ -1,20 +1,40 @@
 import { Image, Spin } from "antd";
-import Icon from "@/components/common/Icon";
-import location from "@/assets/svg/location.svg";
-import calender from "/referee/calender-icon.svg";
-import singleUser from "/referee/single-user-icon.svg";
-import facility from "@/assets/svg/facility.svg";
 import { useState } from "react";
+import dayjs from "dayjs";
+import useCountdown from "@/hooks/useCountdown";
 import { useAuth } from "@/hooks/useAuth";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import dummyImage from "@/assets/dummyCardImg.png";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
+import SectionCard from "@/components/common/SectionCard";
+import {
+  formatDate,
+  formatPrice,
+  getDurationDays,
+} from "@/utils/campFormat";
 import RegistrationModal from "./components/RegistrationModal";
 import {
   useCancelRegistration,
   useMyRegistrations,
 } from "@/hooks/api/evaluator-hooks/useEvaluatorCamps";
+import {
+  LuCalendarDays,
+  LuMapPin,
+  LuDollarSign,
+  LuClock,
+  LuTrophy,
+  LuFileText,
+  LuHouse,
+  LuMail,
+  LuPhone,
+  LuUserRound,
+  LuLayoutGrid,
+  LuCheck,
+  LuX,
+  LuTimer,
+} from "react-icons/lu";
+import { MdOutlineSportsTennis } from "react-icons/md";
 
 export default function CampDetails({ campData, onRegistrationUpdate }) {
   const [loading, setLoading] = useState(false);
@@ -60,14 +80,12 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
     address: directorAddress = "N/A",
   } = director;
 
-  // const formatDate = (dateString) => {
-  //   if (!dateString) return "N/A";
-  //   return new Date(dateString).toLocaleDateString("en-US", {
-  //     month: "short",
-  //     day: "numeric",
-  //     year: "numeric",
-  //   });
-  // };
+  const durationDays = getDurationDays(start_date, end_date);
+
+  // Live countdown until the camp starts (only for upcoming camps)
+  const isUpcoming =
+    start_date && dayjs(start_date).valueOf() > Date.now();
+  const countdown = useCountdown(isUpcoming ? start_date : null);
 
   const handleAction = async () => {
     let endpoint = "";
@@ -216,193 +234,306 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
     if (!currentStatus) return null;
 
     if (isEvaluator) {
-      if (currentStatus === "pending") return { text: "Pending Approval", color: "bg-yellow-500" };
-      if (currentStatus === "approved") return { text: "Approved", color: "bg-green-600" };
-      if (currentStatus === "rejected") return { text: "Rejected", color: "bg-red-600" };
+      if (currentStatus === "pending")
+        return { text: "Pending Approval", className: "bg-amber-50 text-amber-700 border border-amber-200" };
+      if (currentStatus === "approved")
+        return { text: "Approved", className: "bg-green-50 text-green-700 border border-green-200" };
+      if (currentStatus === "rejected")
+        return { text: "Rejected", className: "bg-red-50 text-red-600 border border-red-200" };
     } else {
-      if (currentStatus === "checked_in") return { text: "Checked In", color: "bg-green-600" };
-      if (currentStatus === "registered") return { text: "Registered", color: "bg-[#00AEEF]" };
+      if (currentStatus === "checked_in")
+        return { text: "Checked In", className: "bg-green-50 text-green-700 border border-green-200" };
+      if (currentStatus === "registered")
+        return { text: "Registered", className: "bg-sky-50 text-sky-700 border border-sky-200" };
     }
     return null;
   })();
 
+  /* ── At-a-glance stats ───────────────────────────────────── */
+  const stats = [
+    {
+      label: "Camp Dates",
+      value: `${formatDate(start_date)} – ${formatDate(end_date)}`,
+      icon: <LuCalendarDays />,
+      tint: "bg-primary/10 text-primary",
+    },
+    {
+      label: "Duration",
+      value: durationDays ? `${durationDays} ${durationDays === 1 ? "day" : "days"}` : "—",
+      icon: <LuClock />,
+      tint: "bg-violet-50 text-violet-600",
+    },
+    {
+      label: "Sport",
+      value: sports_type_name,
+      icon: <MdOutlineSportsTennis />,
+      tint: "bg-amber-50 text-amber-600",
+    },
+    {
+      label: "Camp Fee",
+      value: formatPrice(price),
+      icon: <LuDollarSign />,
+      tint: "bg-emerald-50 text-emerald-600",
+    },
+  ];
+
   return (
-    <div className="space-y-3 mt-10">
-      {/* Overview */}
-      <div className="border border-border p-5 rounded-[10px]">
-        <div className="flex justify-between items-center mb-5">
-          <h3 className="text-xl font-medium">Overview</h3>
+    <div className="space-y-4 mt-10">
+      {/* ── Overview header card ─────────────────────────────── */}
+      <div className="bg-white border border-border rounded-[10px] overflow-hidden">
+        <div className="p-5 sm:p-7 border-b border-border">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <Image
+                src={camp_logo || dummyImage}
+                alt={camp_name}
+                width={60}
+                height={60}
+                preview={false}
+                className="rounded-full object-cover border-2 border-primary/15 shrink-0"
+                fallback={dummyImage}
+              />
+              <div>
+                <h2 className="text-xl sm:text-2xl font-semibold text-[#333] leading-tight">
+                  {camp_name}
+                </h2>
+                <p className="text-sm text-[#666] mt-1 flex items-center gap-1.5 flex-wrap">
+                  <MdOutlineSportsTennis className="text-primary shrink-0" />
+                  <span className="capitalize">{sports_type_name}</span>
+                  <span className="text-[#ccc]">•</span>
+                  <LuMapPin className="text-primary shrink-0" />
+                  <span className="capitalize">{campLocation}</span>
+                </p>
+              </div>
+            </div>
 
-          {statusBadge && (
-            <span
-              className={`inline-block px-6 py-3 rounded-full text-white font-medium text-sm ${statusBadge.color}`}
-            >
-              {statusBadge.text}
-            </span>
+            {statusBadge && (
+              <span
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${statusBadge.className}`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                {statusBadge.text}
+              </span>
+            )}
+          </div>
+
+          {/* At-a-glance stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="bg-white border border-border rounded-[10px] px-4 py-3.5 flex items-center gap-3 hover:shadow-sm transition-shadow"
+              >
+                <span
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 ${stat.tint}`}
+                >
+                  {stat.icon}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[#333] leading-snug break-words">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-[#666]">{stat.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Live countdown — time left until the camp starts */}
+          {countdown && (
+            <div className="mt-4 bg-primary/[0.04] border border-primary/15 rounded-[10px] px-4 sm:px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+              <div className="flex items-center gap-2.5 shrink-0">
+                <span className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center">
+                  <LuTimer className="text-xl" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-[#333] leading-tight">
+                    Camp starts in
+                  </p>
+                  <p className="text-xs text-[#666]">{formatDate(start_date)}</p>
+                </div>
+              </div>
+
+              <div className="flex-1 grid grid-cols-4 gap-2">
+                {[
+                  { v: countdown.days, l: "Days" },
+                  { v: countdown.hours, l: "Hours" },
+                  { v: countdown.minutes, l: "Min" },
+                  { v: countdown.seconds, l: "Sec" },
+                ].map(({ v, l }) => (
+                  <div
+                    key={l}
+                    className="bg-white border border-primary/15 rounded-lg py-2 text-center"
+                  >
+                    <p className="text-lg font-bold text-primary tabular-nums leading-tight">
+                      {String(v).padStart(2, "0")}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-[#666] font-semibold mt-0.5">
+                      {l}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
+      </div>
 
-        <div className="flex items-center gap-1.5 mb-4">
-          <Image
-            src={camp_logo || dummyImage}
-            alt={camp_name}
-            width={36}
-            height={36}
-            preview={false}
-            className="rounded-full object-cover"
-            fallback={dummyImage}
+      {/* ── Camp Description ─────────────────────────────────── */}
+      <SectionCard
+        icon={<LuFileText />}
+        title="Camp Description"
+        description="Everything you need to know about this camp"
+      >
+        <div className="p-5 sm:p-7">
+          <div
+            className="camp-rich-content"
+            dangerouslySetInnerHTML={{
+              __html: camp_details || "<p>No description available.</p>",
+            }}
           />
-          <p className="text-[14px] font-normal">{camp_name}</p>
         </div>
+      </SectionCard>
 
-        <div className="flex gap-2 mb-3">
-          <Icon src={location} className="size-5" />
-          <div>
-            <p className="text-[#666666]">Location</p>
-            <p className="text-lg">{campLocation}</p>
-          </div>
-        </div>
-
-        <div className="flex gap-2 mb-3">
-          <Icon src={calender} className="size-5 text-primary" />
-          <div>
-            <p className="text-[#666666]">Dates</p>
-            <p className="text-lg">
-              {start_date} - {end_date}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2 mb-3">
-          <Icon src={singleUser} className="size-5 text-primary" />
-          <div>
-            <p className="text-[#666666]">Sport</p>
-            <p className="text-lg capitalize">{sports_type_name}</p>
-          </div>
-        </div>
-
-        {price !== "N/A" && (
-          <div className="flex gap-2 mb-3">
-            <Icon src={singleUser} className="size-5 text-primary" />
-            <div>
-              <p className="text-[#666666]">Camp Fee</p>
-              <p className="text-lg">${parseFloat(price).toFixed(2)}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Camp Description */}
-      <div className="border border-border p-5 rounded-[10px]">
-        <h3 className="text-xl font-medium mb-5">Camp Description</h3>
-        <div
-          className="text-gray-600 prose prose-sm sm:prose lg:prose-base max-w-none"
-          dangerouslySetInnerHTML={{ __html: camp_details || "<p>No description available.</p>" }}
-        />
-      </div>
-
-      {/* Venue Information */}
-      <div className="border border-border p-5 rounded-[10px]">
-        <h3 className="text-xl font-medium mb-5">Venue Information</h3>
-        <div className="flex gap-2 mb-3">
-          <Icon src={facility} className="size-5 text-primary" />
-          <div>
-            <p className="text-[#666666]">Facility</p>
-            <p className="text-lg">{campLocation}</p>
-          </div>
-        </div>
-        <div className="bg-[#F5F5F5] px-3 py-2.5 rounded-md">
-          <p className="text-[14px] text-[#666666]">Address</p>
-          <p className="text-lg">{campLocation}</p>
-        </div>
-      </div>
-
-      {/* Director Information - Properly Added */}
-      <div className="border border-border p-5 rounded-[10px]">
-        <h3 className="text-xl font-medium mb-5">Director Information</h3>
-
-        {/* Director Avatar + Name */}
-        <div className="flex items-center gap-4 mb-6">
-          <Image
-            src={directorAvatar || dummyImage}
-            alt={directorName}
-            width={60}
-            height={60}
-            preview={false}
-            className="rounded-full object-cover border-2 border-gray-200"
-            fallback={dummyImage}
-          />
-          <div>
-            <p className="text-lg font-semibold">{directorName}</p>
-            <p className="text-sm text-[#666666]">Camp Director</p>
-          </div>
-        </div>
-
-        {/* Director Details */}
-        <div className="space-y-4">
-          {directorEmail !== "N/A" && (
-            <div className="flex gap-3">
-              <Icon src={singleUser} className="size-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-[#666666] text-sm">Email</p>
-                <p className="text-base">{directorEmail}</p>
+      {/* ── Venue + Director (side by side on desktop) ───────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Venue Information */}
+        <SectionCard
+          icon={<LuLayoutGrid />}
+          title="Venue Information"
+          description="Where the camp takes place"
+        >
+          <div className="p-5 sm:p-7 space-y-4">
+            <div className="flex items-start gap-3">
+              <span className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <LuMapPin />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-[#666] mb-0.5">Facility</p>
+                <p className="text-[15px] text-[#333] capitalize">
+                  {campLocation}
+                </p>
               </div>
             </div>
-          )}
-
-          {directorPhone !== "N/A" && (
-            <div className="flex gap-3">
-              <Icon src={singleUser} className="size-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-[#666666] text-sm">Phone</p>
-                <p className="text-base">{directorPhone}</p>
+            <div className="flex items-start gap-3">
+              <span className="w-9 h-9 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center shrink-0">
+                <LuCalendarDays />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-[#666] mb-0.5">Camp Dates</p>
+                <p className="text-[15px] text-[#333]">
+                  {formatDate(start_date)} – {formatDate(end_date)}
+                </p>
+                {durationDays && (
+                  <p className="text-xs text-[#999] mt-0.5">
+                    {durationDays} {durationDays === 1 ? "day" : "days"} total
+                  </p>
+                )}
               </div>
             </div>
-          )}
+          </div>
+        </SectionCard>
 
-          {directorAddress !== "N/A" && (
-            <div className="flex gap-3">
-              <Icon src={location} className="size-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-[#666666] text-sm">Address</p>
-                <p className="text-base">{directorAddress}</p>
+        {/* Director Information */}
+        <SectionCard
+          icon={<LuUserRound />}
+          title="Camp Director"
+          description="Your point of contact for this camp"
+        >
+          <div className="p-5 sm:p-7">
+            <div className="flex items-center gap-4 mb-6">
+              <Image
+                src={directorAvatar || dummyImage}
+                alt={directorName}
+                width={56}
+                height={56}
+                preview={false}
+                className="rounded-full object-cover border-2 border-primary/15 shrink-0"
+                fallback={dummyImage}
+              />
+              <div className="min-w-0">
+                <p className="text-lg font-semibold text-[#333] truncate">
+                  {directorName}
+                </p>
+                <p className="text-xs text-[#666]">Camp Director</p>
               </div>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Camp Dates */}
-      <div className="border border-border p-5 rounded-[10px]">
-        <h3 className="text-xl font-medium mb-5">Camp Dates</h3>
-        <div className="space-y-3">
-          <div className="flex gap-2 bg-[#F5F5F5] px-3 py-2.5 rounded-md">
-            <Icon src={calender} className="size-5 text-primary" />
-            <div>
-              <p className="text-lg font-normal">Duration</p>
-              <p className="text-[14px] text-[#666666]">
-                {start_date} to {end_date}
-              </p>
+            <div className="space-y-3">
+              {directorEmail !== "N/A" && (
+                <a
+                  href={`mailto:${directorEmail}`}
+                  className="flex items-center gap-3 group hover:bg-[#FAFAFA] rounded-lg px-2 py-2 -mx-2 transition-colors"
+                >
+                  <span className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                    <LuMail />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs text-[#666]">Email</p>
+                    <p className="text-sm text-[#333] truncate">
+                      {directorEmail}
+                    </p>
+                  </div>
+                </a>
+              )}
+
+              {directorPhone !== "N/A" && (
+                <a
+                  href={`tel:${directorPhone}`}
+                  className="flex items-center gap-3 group hover:bg-[#FAFAFA] rounded-lg px-2 py-2 -mx-2 transition-colors"
+                >
+                  <span className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                    <LuPhone />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs text-[#666]">Phone</p>
+                    <p className="text-sm text-[#333] truncate">
+                      {directorPhone}
+                    </p>
+                  </div>
+                </a>
+              )}
+
+              {directorAddress !== "N/A" && (
+                <div className="flex items-center gap-3 px-2 py-2 -mx-2">
+                  <span className="w-9 h-9 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center shrink-0">
+                    <LuHouse />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs text-[#666]">Address</p>
+                    <p className="text-sm text-[#333] break-words">
+                      {directorAddress}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex gap-2 bg-[#F5F5F5] px-3 py-2.5 rounded-md">
-            <Icon src={singleUser} className="size-5 text-primary" />
-            <div>
-              <p className="text-lg font-normal">Sport</p>
-              <p className="text-[14px] text-[#666666] capitalize">{sports_type_name}</p>
-            </div>
-          </div>
-        </div>
+        </SectionCard>
       </div>
 
-      {/* Action Button */}
+      {/* ── Action buttons ───────────────────────────────────── */}
       {showButton && (
         <button
           onClick={handleAction}
           disabled={loading}
-          className="bg-primary text-white py-4 px-8 rounded-md w-full text-lg font-medium mt-6 hover:opacity-90 transition disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full bg-primary hover:bg-[#0099d4] text-white font-semibold py-4 px-8 rounded-[10px] flex items-center justify-center gap-2 mt-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {loading ? "Processing..." : buttonText}
+          {loading ? (
+            <>
+              <Spin size="small" className="[&_.ant-spin-dot-item]:bg-white" />
+              Processing...
+            </>
+          ) : (
+            <>
+              {isEvaluator ? (
+                <LuTrophy className="w-5 h-5" />
+              ) : (
+                <LuCheck className="w-5 h-5" />
+              )}
+              {buttonText}
+            </>
+          )}
         </button>
       )}
 
@@ -411,8 +542,8 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
         <button
           onClick={handleCancelRegistration}
           disabled={cancelRegistration.isPending}
-          className="w-full py-4 px-8 rounded-md border border-red-300 text-red-600 font-medium text-lg
-            hover:bg-red-50 hover:border-red-400 transition-all duration-200
+          className="w-full py-4 px-8 rounded-[10px] border border-red-200 text-red-600 font-medium
+            hover:bg-red-50 hover:border-red-300 transition-all duration-200
             disabled:opacity-50 disabled:cursor-not-allowed
             flex items-center justify-center gap-2"
         >
@@ -423,19 +554,7 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
             </>
           ) : (
             <>
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <LuX className="w-5 h-5" />
               Cancel Registration
             </>
           )}

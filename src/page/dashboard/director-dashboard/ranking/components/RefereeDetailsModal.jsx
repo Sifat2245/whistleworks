@@ -10,6 +10,15 @@ import {
 import { useMemo, useRef, useCallback } from "react";
 import { useRefereeEvaluationHistory } from "@/hooks/api/useRankings";
 
+const SCORE_ITEMS = [
+  { key: "call_accuracy", label: "Call Accuracy" },
+  { key: "communication_skills", label: "Communication" },
+  { key: "consistency_of_calls", label: "Consistency" },
+  { key: "court_position_mechanics", label: "Mechanics" },
+  { key: "fitness_mobility", label: "Fitness/Mobility" },
+  { key: "game_awareness", label: "Game Awareness" },
+];
+
 const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
   const refereeId = referee?.referee_id;
 
@@ -195,8 +204,8 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-linear-to-r from-blue-50 to-cyan-50">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="flex justify-between items-center px-5 py-4 border-b border-border bg-primary/5">
+              <h2 className="text-lg font-semibold text-[#333]">
                 Referee Performance Details
               </h2>
               <button
@@ -207,37 +216,73 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
               </button>
             </div>
 
-            {/* Summary Section */}
-            <div className="p-4 bg-gray-50">
-              <div className="flex flex-col items-center text-center">
-                <div className="relative mb-3">
+            {/* Summary Section — compact horizontal on mobile, centered on desktop */}
+            <div className="p-3 sm:p-4 bg-[#FAFAFA]">
+              {/* Mobile compact layout */}
+              <div className="md:hidden flex items-center gap-3">
+                <div className="relative shrink-0">
                   <Avatar
-                    size={80}
+                    size={44}
                     src={referee?.avatar}
                     alt={`${referee?.name}'s avatar`}
-                    className="border-2 border-gray-200 shadow-md"
+                    className="bg-primary/10 text-primary border-2 border-primary/20"
                   >
                     {!referee?.avatar && referee?.name
                       ? referee.name.charAt(0).toUpperCase()
                       : "R"}
                   </Avatar>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-[#333] truncate">
+                    {referee.name}
+                  </h3>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <BsTrophy className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span className="text-sm font-bold text-[#333]">
+                      Rank #{referee.rank}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="inline-block px-3 py-1.5 bg-primary/10 text-primary font-bold rounded-full text-sm whitespace-nowrap">
+                    {referee.overall_percentage.toFixed(1)}%
+                  </span>
+                  <p className="text-[11px] text-[#666] mt-1">
+                    {referee.count} eval{referee.count > 1 ? "s" : ""}
+                  </p>
+                </div>
+              </div>
+
+              {/* Desktop centered layout */}
+              <div className="hidden md:flex flex-col items-center text-center">
+                <div className="relative mb-3">
+                  <Avatar
+                    size={80}
+                    src={referee?.avatar}
+                    alt={`${referee?.name}'s avatar`}
+                    className="bg-primary/10 text-primary border-2 border-primary/20 shadow-md"
+                  >
+                    {!referee?.avatar && referee?.name
+                      ? referee.name.charAt(0).toUpperCase()
+                      : "R"}
+                  </Avatar>
+                </div>
+                <h3 className="text-lg font-semibold text-[#333]">
                   {referee.name}
                 </h3>
                 <div className="flex items-center gap-3 mt-3">
-                  <BsTrophy className="w-6 h-6 text-yellow-500" />
-                  <span className="text-xl font-bold text-gray-800">
+                  <BsTrophy className="w-6 h-6 text-amber-400" />
+                  <span className="text-xl font-bold text-[#333]">
                     Rank #{referee.rank}
                   </span>
                 </div>
-                <p className="text-lg text-gray-600 mt-3">
+                <p className="text-base text-[#666] mt-3">
                   Overall Score:{" "}
-                  <span className="font-bold text-lg text-cyan-600">
+                  <span className="font-bold text-base text-primary">
                     {referee.overall_percentage.toFixed(3)}
                   </span>
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[#666]">
                   Based on {referee.count} evaluation
                   {referee.count > 1 ? "s" : ""}
                 </p>
@@ -245,65 +290,147 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
             </div>
 
             {/* Evaluations Table */}
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="p-4 sm:p-6">
+              <h3 className="text-lg font-semibold text-[#333] mb-4">
                 Evaluation History ({evaluations?.length})
               </h3>
 
               {isLoading ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-[#666]">
                   Loading evaluations...
                 </div>
               ) : evaluations?.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-[#666]">
                   No evaluations found.
                 </div>
               ) : (
-                <div className="max-h-[40vh] overflow-y-auto border border-gray-200 rounded-xl">
-                  <table className="w-full min-w-[1400px]">
-                    <thead className="bg-gray-100 border-b border-gray-300 sticky top-0">
-                      {table.getHeaderGroups().map((headerGroup) => (
-                        <tr key={headerGroup.id}>
-                          {headerGroup.headers.map((header) => (
-                            <th
-                              key={header.id}
-                              className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider"
-                            >
-                              {flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                            </th>
-                          ))}
-                        </tr>
-                      ))}
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {table.getRowModel().rows.map((row, index) => (
-                        <tr
-                          key={row.id}
-                          ref={
-                            index === evaluations.length - 5
-                              ? lastEvaluationRef
-                              : null
-                          }
-                          className="hover:bg-blue-50 transition-colors"
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} className="px-4 py-4 text-sm">
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext(),
-                              )}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <>
+                  {/* Desktop table (md+) */}
+                  <div className="hidden md:block max-h-[40vh] overflow-y-auto border border-border rounded-[10px]">
+                    <table className="w-full min-w-[1400px]">
+                      <thead className="bg-[#FAFAFA] border-b border-border sticky top-0">
+                        {table.getHeaderGroups().map((headerGroup) => (
+                          <tr key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <th
+                                key={header.id}
+                                className="px-5 py-3 text-left text-xs font-semibold text-[#666] uppercase tracking-wider whitespace-nowrap"
+                              >
+                                {flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
+                              </th>
+                            ))}
+                          </tr>
+                        ))}
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {table.getRowModel().rows.map((row, index) => (
+                          <tr
+                            key={row.id}
+                            ref={
+                              index === evaluations.length - 5
+                                ? lastEvaluationRef
+                                : null
+                            }
+                            className="hover:bg-primary/[0.03] transition-colors"
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <td key={cell.id} className="px-4 py-4 text-sm">
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext(),
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
+                  {/* Mobile cards (below md) */}
+                  <div className="md:hidden max-h-[40vh] overflow-y-auto flex flex-col gap-3 pr-0.5">
+                    {evaluations.map((evalItem, index) => (
+                      <div
+                        key={evalItem.id || index}
+                        ref={
+                          index === evaluations.length - 5
+                            ? lastEvaluationRef
+                            : null
+                        }
+                        className="bg-white border border-border rounded-[10px] p-4"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[#333]">
+                              {evalItem.submitted_at}
+                            </p>
+                            <p className="text-xs text-[#666] mt-0.5 truncate">
+                              by {evalItem.evaluator?.name || "Evaluator"}
+                            </p>
+                          </div>
+                          <span className="shrink-0 inline-block px-3 py-1 bg-primary/10 text-primary font-bold rounded-full text-sm">
+                            {Number(evalItem.average_score).toFixed(3)}
+                          </span>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          {SCORE_ITEMS.map((s) => (
+                            <div
+                              key={s.key}
+                              className="flex items-center justify-between gap-2 rounded-lg bg-[#FAFAFA] border border-border px-3 py-2"
+                            >
+                              <span className="text-xs text-[#666] truncate">
+                                {s.label}
+                              </span>
+                              <span className="text-sm font-semibold text-[#333]">
+                                {evalItem.scores?.[s.key] ?? "–"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {evalItem.recommended_level && (
+                          <div className="mt-3 flex items-center gap-2">
+                            <span className="text-xs text-[#666]">
+                              Recommended:
+                            </span>
+                            <span className="px-2.5 py-1 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold">
+                              {evalItem.recommended_level}
+                            </span>
+                          </div>
+                        )}
+
+                        {evalItem.private_comments && (
+                          <div className="mt-3">
+                            <p className="text-xs font-semibold text-[#333] mb-1">
+                              Notes for Director
+                            </p>
+                            <p className="text-xs text-[#666] line-clamp-2">
+                              {evalItem.private_comments}
+                            </p>
+                          </div>
+                        )}
+
+                        {evalItem.referee_feedback && (
+                          <div className="mt-2">
+                            <p className="text-xs font-semibold text-[#333] mb-1">
+                              Referee Feedback
+                            </p>
+                            <p className="text-xs text-[#666] line-clamp-3">
+                              {evalItem.referee_feedback}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Infinite scroll footer */}
                   {isFetchingNextPage && (
-                    <div className="py-4 text-center text-gray-500 text-sm">
+                    <div className="py-4 text-center text-[#666] text-sm">
                       Loading more evaluations...
                     </div>
                   )}
@@ -313,15 +440,15 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                       End of evaluation history
                     </div>
                   )}
-                </div>
+                </>
               )}
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-gray-200">
+            <div className="p-6 border-t border-border">
               <button
                 onClick={onClose}
-                className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition"
+                className="w-full py-3 bg-white hover:bg-[#FAFAFA] border border-border text-[#333] font-medium rounded-lg transition"
               >
                 Close
               </button>

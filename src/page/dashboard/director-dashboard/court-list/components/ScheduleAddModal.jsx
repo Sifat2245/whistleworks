@@ -4,6 +4,7 @@ import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { BiSearch } from "react-icons/bi";
 import toast from "react-hot-toast";
 import { ImBlocked } from "react-icons/im";
+import { LuLayoutGrid, LuLoaderCircle } from "react-icons/lu";
 import Swal from "sweetalert2";
 import {
   useAvailableReferees,
@@ -24,12 +25,12 @@ const ScheduleAddModal = ({
   onAssignSuccess,
   campId,
   maxReferees,
+  isBlocking = false,
 }) => {
   const [activeTab, setActiveTab] = useState("referees");
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  console.log(selectedCourt, "court");
 
   // Reset on open
   useEffect(() => {
@@ -205,19 +206,24 @@ const ScheduleAddModal = ({
   return (
     <Modal
       title={
-        <div>
-          <div className="text-lg font-semibold">
-            Assign to Court {selectedCourt?.court_number}
-          </div>
-          <div className="text-sm text-gray-500 mt-1">
-            {selectedTimeSlot?.time} • {selectedCourt?.address}
+        <div className="flex items-center gap-3">
+          <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <LuLayoutGrid size={20} />
+          </span>
+          <div>
+            <div className="text-lg font-semibold leading-tight">
+              Assign to Court {selectedCourt?.court_number}
+            </div>
+            <div className="text-sm text-gray-500 mt-0.5">
+              {selectedTimeSlot?.time} • {selectedCourt?.address}
+            </div>
           </div>
         </div>
       }
       open={isModalOpen}
       onCancel={handleCloseModal}
       footer={null}
-      width={960}
+      width="min(960px, 94vw)"
       centered
       destroyOnClose
     >
@@ -573,6 +579,38 @@ const ScheduleAddModal = ({
                                 </div>
                               )}
                             </div>
+
+                            {/* Crew members with names & jersey numbers */}
+                            {(crew.members || []).length > 0 && (
+                              <div className="mt-4 rounded-xl bg-white border border-border divide-y divide-border overflow-hidden max-h-48 overflow-y-auto">
+                                {crew.members.map((member) => (
+                                  <div
+                                    key={member.id}
+                                    className="flex items-center gap-2.5 px-3 py-2"
+                                  >
+                                    <img
+                                      src={member.avatar || "/default-avatar.png"}
+                                      alt={member.name || "crew member"}
+                                      className="w-7 h-7 rounded-full object-cover border border-gray-200 bg-white shrink-0"
+                                      onError={(e) =>
+                                        (e.target.src = "/default-avatar.png")
+                                      }
+                                    />
+                                    <span className="text-sm font-medium text-[#333] truncate flex-1">
+                                      {member.name || "Unnamed Referee"}
+                                    </span>
+                                    {(member.jersey_number ||
+                                      member.jourcy_number) && (
+                                      <span className="shrink-0 text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                                        #
+                                        {member.jersey_number ||
+                                          member.jourcy_number}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -586,13 +624,22 @@ const ScheduleAddModal = ({
       </Tabs>
 
       {/* ========== FOOTER ========== */}
-      <div className="flex space-y-2 sm:space-y-0 flex-col-reverse sm:flex-row justify-between items-center mt-8 pt-6 border-t border-gray-200">
-        <div className="flex flex-col sm:flex-row gap-3 w-full">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mt-8 pt-6 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <CommonSubmitBtn variant="secondary" onClick={handleCloseModal}>
             Cancel
           </CommonSubmitBtn>
-          <CommonSubmitBtn variant="danger" onClick={handleBlockCourt}>
-            <ImBlocked className="mr-2" /> Block Court
+          <CommonSubmitBtn
+            variant="danger"
+            onClick={() => !isBlocking && handleBlockCourt()}
+            className="inline-flex items-center justify-center gap-2"
+          >
+            {isBlocking ? (
+              <LuLoaderCircle className="w-4 h-4 animate-spin" />
+            ) : (
+              <ImBlocked />
+            )}
+            {isBlocking ? "Blocking..." : "Block Court"}
           </CommonSubmitBtn>
         </div>
 
@@ -601,7 +648,7 @@ const ScheduleAddModal = ({
           disabled={primaryButtonDisabled}
           loading={primaryButtonLoading}
           variant="primary"
-          className={`min-w-[200px] mb-3 sm:mb-0 w-full sm:w-auto ${
+          className={`min-w-[200px] w-full sm:w-auto ${
             activeTab === "referees" &&
             selectedReferees.some((r) => getConflictType(r) === "soft")
               ? "ring-2 ring-orange-400"

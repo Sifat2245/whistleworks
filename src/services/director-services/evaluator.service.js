@@ -17,6 +17,12 @@ export const useEvaluatorService = () => {
         { params: { page } },
       ),
 
+    getAllRejectedEvaluators: (campId, page = 1) =>
+      axiosSecure.get(
+        `/roster/evaluator-registrations/camp/${campId}/rejected`,
+        { params: { page } },
+      ),
+
     // Mutations
     approveEvaluator: (registrationId) =>
       axiosSecure.post(

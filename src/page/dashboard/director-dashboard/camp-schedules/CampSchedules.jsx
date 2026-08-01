@@ -1,12 +1,22 @@
 import BackBtn from "@/components/common/BackBtn";
+import CommonSectionTitle from "@/components/common/CommonSectionTitle";
 import GameRow from "@/page/dashboard/EvolatorDashboard/schedule/components/GameRow";
 import ScheduleRefereeModal from "@/page/dashboard/director-dashboard/camp-schedules/components/ScheduleRefereeModal";
 import CrewDetailsModal from "@/page/dashboard/director-dashboard/camp-schedules/components/CrewDetailsModal";
+import CampSchedulesSkeleton from "@/page/dashboard/director-dashboard/camp-schedules/components/CampSchedulesSkeleton";
 import useInfiniteScroll from "@/hooks/infinity-scroll-hook";
 import { useCampRosterDetails } from "@/hooks/api/evaluator-hooks/useEvaluatorSchedule";
 import { Input, Spin } from "antd";
 import { useEffect, useMemo, useState } from "react";
-import { CiSearch } from "react-icons/ci";
+import {
+  LuTrophy,
+  LuLayoutGrid,
+  LuUsers,
+  LuCalendarRange,
+  LuSearch,
+  LuInbox,
+  LuTriangleAlert,
+} from "react-icons/lu";
 import { useParams } from "react-router-dom";
 
 const CampSchedules = () => {
@@ -156,38 +166,65 @@ const CampSchedules = () => {
   const totalGames = games.length;
   const displayedGames = filteredGames.length;
 
+  // Overview stats
+  const stats = useMemo(() => {
+    const uniqueCourts = new Set(games.map((g) => g.court).filter(Boolean));
+    const refereeCount = games.reduce(
+      (sum, g) =>
+        sum + g.referees.filter((r) => r.type === "individual").length,
+      0,
+    );
+    const crewCount = games.reduce(
+      (sum, g) => sum + g.referees.filter((r) => r.type === "crew").length,
+      0,
+    );
+
+    return [
+      {
+        label: "Games Scheduled",
+        value: games.length,
+        icon: <LuTrophy />,
+      },
+      {
+        label: "Courts",
+        value: uniqueCourts.size,
+        icon: <LuLayoutGrid />,
+      },
+      {
+        label: "Referees Assigned",
+        value: refereeCount,
+        icon: <LuUsers />,
+      },
+      {
+        label: "Crews Assigned",
+        value: crewCount,
+        icon: <LuCalendarRange />,
+      },
+    ];
+  }, [games]);
+
   // Loading / Error / Empty states
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Spin size="large" tip="Loading schedule..." />
-      </div>
-    );
+    return <CampSchedulesSkeleton />;
   }
 
   if (isError) {
     console.error("Schedule fetch error:", error);
     return (
-      <div className="container mx-auto px-4 py-10 text-center">
-        <div className="max-w-md mx-auto bg-red-50 border border-red-200 rounded-xl p-8">
+      <div className="w-full pb-12">
+        <BackBtn />
+        <div className="mt-6 mx-auto max-w-md bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+          <LuTriangleAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-red-800 mb-3">
             Failed to Load Schedule
           </h2>
           <p className="text-red-600 mb-4">
             {error?.message || "Unknown error occurred"}
           </p>
-          <details className="text-left text-sm text-gray-600 bg-white p-3 rounded mt-4">
-            <summary className="cursor-pointer font-medium">Debug Info</summary>
-            <pre className="mt-2 text-xs overflow-auto">
-              Camp ID: {camp_id}
-              {"\n"}
-              Error: {JSON.stringify(error, null, 2)}
-            </pre>
-          </details>
           <button
             onClick={() => window.location.reload()}
-            className="mt-6 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            className="mt-2 px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition cursor-pointer"
           >
             Retry
           </button>
@@ -198,12 +235,14 @@ const CampSchedules = () => {
 
   if (games.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-10 text-center">
-        <div className="max-w-md mx-auto">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+      <div className="w-full pb-12">
+        <BackBtn />
+        <div className="mt-6 mx-auto max-w-md text-center py-10">
+          <LuInbox className="w-14 h-14 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-[#333] mb-3">
             No Games Scheduled
           </h2>
-          <p className="text-gray-600">
+          <p className="text-[#666]">
             There are currently no games scheduled for this camp.
           </p>
         </div>
@@ -214,36 +253,51 @@ const CampSchedules = () => {
   // Main UI
 
   return (
-    <section className="container mx-auto px-4 py-6">
+    <div className="w-full pb-12">
       <BackBtn />
 
-      <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-8 gap-6">
-        <div className="text-center md:text-left">
-          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">
-            Games Overview
-          </h1>
-          <p className="text-base text-[#666666] mt-2">
-            {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""}{" "}
-            scheduled
-          </p>
-        </div>
+      <CommonSectionTitle
+        text="Games Overview"
+        subText={`${displayedGames} of ${totalGames} game${
+          totalGames !== 1 ? "s" : ""
+        } scheduled — click a referee or crew to view details`}
+      />
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <Input
-            placeholder="Search by court, referee, date..."
-            prefix={<CiSearch className="text-xl text-[#666666]" />}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full md:w-96 h-12 rounded-xl border-gray-300 focus:border-[#00AEEF]"
-            allowClear
-          />
-        </div>
+      {/* Overview stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6">
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="bg-white border border-border rounded-[10px] px-4 py-3.5 flex items-center gap-3"
+          >
+            <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
+              {stat.icon}
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs text-[#666]">{stat.label}</p>
+              <p className="text-lg font-medium text-[#333]">{stat.value}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      {/* Search */}
+      <div className="mt-6 flex items-center justify-between gap-4">
+        <Input
+          placeholder="Search by court, referee, date..."
+          prefix={<LuSearch className="text-lg text-[#666]" />}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full md:w-96 h-12 rounded-[10px] border-border focus:border-primary"
+          allowClear
+        />
+      </div>
+
+      {/* Schedule table */}
+      <div className="mt-4 bg-white border border-border rounded-[10px] overflow-hidden">
+        <div className="overflow-x-auto hide-scrollbar">
           <div className="min-w-[640px] md:min-w-full">
-            <div className="grid grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-5 py-4 md:px-6 md:py-5 border-b border-gray-200 bg-gray-50 text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider">
+            <div className="grid grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-5 md:px-6 py-4 border-b border-border bg-[#FAFAFA] text-xs md:text-sm font-semibold text-[#666] uppercase tracking-wider">
               <div>Date & Time</div>
               <div className="text-center">Location</div>
               <div className="text-center">Court</div>
@@ -252,7 +306,7 @@ const CampSchedules = () => {
 
             <div
               ref={scrollContainerRef}
-              className="divide-y divide-gray-100 max-h-[65vh] overflow-y-auto"
+              className="divide-y divide-border max-h-[65vh] overflow-y-auto"
             >
               {visibleGames.map((game) => (
                 <GameRow
@@ -299,7 +353,7 @@ const CampSchedules = () => {
         campId={camp_id}
         userRole="director"
       />
-    </section>
+    </div>
   );
 };
 

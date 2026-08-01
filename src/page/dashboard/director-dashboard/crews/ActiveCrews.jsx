@@ -1,10 +1,12 @@
 import BackBtn from "@/components/common/BackBtn";
+import CommonSectionTitle from "@/components/common/CommonSectionTitle";
 import CreateCrewModal from "@/page/dashboard/director-dashboard/crews/components/CreateCrewModal";
 import CrewCard from "@/page/dashboard/director-dashboard/crews/components/CrewCard";
 import CrewCardSkeleton from "@/page/dashboard/director-dashboard/crews/components/CrewCardSkeleton";
 import { useCampCrews } from "@/hooks/api/director-hooks/useCrews";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { LuLayers, LuUsers, LuPlus, LuInbox } from "react-icons/lu";
 
 const ActiveCrews = () => {
   const { id } = useParams();
@@ -18,58 +20,57 @@ const ActiveCrews = () => {
   const [openModal, setOpenModal] = useState(false);
 
   return (
-    <div className="w-full min-h-screen p-4 md:p-6">
-      <div className="mb-8">
+    <div className="w-full pb-12">
+      <div className="mb-6">
         <BackBtn />
 
         {/* Header */}
-        <div className="w-full mt-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-              Crew Groups
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Manage and view all active crew groups
-            </p>
-          </div>
+        <div className="w-full mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <CommonSectionTitle
+            text="Crew Groups"
+            subText="Manage and view all active crew groups"
+          />
 
           <button
             onClick={() => setOpenModal(true)}
-            className="px-4 py-3 rounded-md bg-primary text-white font-bold hover:opacity-90"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-[10px] bg-primary text-white font-medium hover:bg-primary/90 transition cursor-pointer shrink-0"
           >
-            Create a Referee Crew
+            <LuPlus className="text-lg" /> Create a Referee Crew
           </button>
         </div>
 
         {/* Stats */}
-        <div className="mt-6 flex flex-wrap gap-4">
-          <div className="bg-white rounded-xl shadow-sm p-4 min-w-[200px]">
-            <p className="text-gray-500 text-sm">Total Groups</p>
-            <p className="text-2xl font-bold text-gray-800 mt-1">
-              {crewGroups.length}
-            </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6 max-w-4xl">
+          <div className="bg-white border border-border rounded-[10px] px-4 py-3.5 flex items-center gap-3">
+            <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
+              <LuLayers />
+            </span>
+            <div>
+              <p className="text-lg font-medium text-[#333]">
+                {crewGroups.length}
+              </p>
+              <p className="text-xs text-[#666]">Total Groups</p>
+            </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-4 min-w-[200px]">
-            <p className="text-gray-500 text-sm">Total Crew Members</p>
-            <p className="text-2xl font-bold text-primary mt-1">
-              {totalMembers}
-            </p>
+          <div className="bg-white border border-border rounded-[10px] px-4 py-3.5 flex items-center gap-3">
+            <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
+              <LuUsers />
+            </span>
+            <div>
+              <p className="text-lg font-medium text-[#333]">{totalMembers}</p>
+              <p className="text-xs text-[#666]">Total Crew Members</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Empty */}
-      {crewGroups.length === 0 && (
-        <p className="text-gray-500 text-lg">No crew groups found.</p>
-      )}
-
       {isLoading ? (
         <div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-8">
+          <h2 className="text-lg font-semibold text-[#333] mb-6">
             Active Crew List
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
             {[...Array(8)].map((_, i) => (
               <CrewCardSkeleton key={i} />
             ))}
@@ -77,19 +78,31 @@ const ActiveCrews = () => {
         </div>
       ) : crewGroups.length > 0 ? (
         <div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-8">
+          <h2 className="text-lg font-semibold text-[#333] mb-6">
             Active Crew List
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
             {crewGroups.map((group) => (
               <CrewCard key={group.id} group={group} />
             ))}
           </div>
         </div>
       ) : (
-        <p className="text-gray-500 text-lg text-center py-12">
-          No crew groups found.
-        </p>
+        <div className="bg-white border border-border rounded-[10px] py-16 text-center">
+          <LuInbox className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <h3 className="text-lg font-semibold text-[#333]">
+            No Crew Groups Found
+          </h3>
+          <p className="text-sm text-[#666] mt-1">
+            Create your first referee crew to get started.
+          </p>
+          <button
+            onClick={() => setOpenModal(true)}
+            className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-primary text-white font-medium hover:bg-primary/90 transition cursor-pointer"
+          >
+            <LuPlus className="text-lg" /> Create a Referee Crew
+          </button>
+        </div>
       )}
 
       {/* Modal */}

@@ -7,6 +7,7 @@ export const evaluatorKeys = {
   all: ["evaluators"],
   pending: (campId, page) => ["pending-evaluators", campId, page],
   approved: (campId, page) => ["approved-evaluators", campId, page],
+  rejected: (campId, page) => ["rejected-evaluators", campId, page],
 };
 
 // ── Pending evaluators (cached, paginated) ────────────────────
@@ -91,6 +92,46 @@ export const useApprovedEvaluators = (campId, page = 1, searchQuery = "") => {
 
   return {
     approvedEvaluators,
+    pagination: data?.pagination || {
+      total: 0,
+      per_page: 12,
+      current_page: 1,
+      last_page: 1,
+    },
+    isLoading,
+    isFetching,
+    isError,
+  };
+};
+
+// ── Rejected evaluators (cached, paginated) ──────────────────
+export const useRejectedEvaluators = (campId, page = 1) => {
+  const { getAllRejectedEvaluators } = useEvaluatorService();
+
+  const { data, isLoading, isFetching, isError } = useQuery({
+    queryKey: evaluatorKeys.rejected(campId, page),
+    queryFn: async () => {
+      const response = await getAllRejectedEvaluators(campId, page);
+      return response?.data?.data || { registrations: [], pagination: {} };
+    },
+    enabled: !!campId,
+    staleTime: 3 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
+  });
+
+  return {
+    rejectedEvaluators: (data?.registrations || []).map((reg) => ({
+      id: reg.id,
+      image: reg.evaluator?.avatar,
+      name: reg.evaluator?.name?.trim() || "Unnamed Evaluator",
+      evaluatorMail: reg.evaluator?.email,
+      evaluatorNumber: reg.evaluator?.phone,
+      isPhoneShow: reg.evaluator?.is_phone_show,
+      registeredAt: reg.registered_at,
+      rejectedAt: reg.rejected_at,
+      rejectionReason: reg.rejection_reason,
+    })),
     pagination: data?.pagination || {
       total: 0,
       per_page: 12,
