@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
       - name: Install Dependencies
         run: npm ci
@@ -30,58 +30,73 @@ jobs:
 
       - name: Create Staging .env File
         run: |
-          echo "${{ secrets.TEST_ENV_FILE }}" > .env
+          cat > .env << 'EOF'
+          ${{ secrets.TEST_ENV_FILE }}
+          EOF
 
       - name: Build Project
         run: npm run build
 
-      - name: Deploy via SSH (Atomic Symlink)
+      - name: Configure SSH
         env:
           SSH_KEY: ${{ secrets.TEST_SSH_KEY }}
           SSH_HOST: ${{ secrets.TEST_SSH_HOST }}
-          SSH_USER: ${{ secrets.TEST_SSH_USER }}
         run: |
-          # 1. Setup SSH agent and add key
           mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+
+          printf "%s" "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
-          # 2. Package build directory
+          # Verify the private key is valid
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+
+      - name: Deploy via SSH
+        env:
+          SSH_HOST: ${{ secrets.TEST_SSH_HOST }}
+          SSH_USER: ${{ secrets.TEST_SSH_USER }}
+        run: |
           RELEASE_NAME="release-${{ github.sha }}-${{ github.run_id }}"
           TAR_FILE="${RELEASE_NAME}.tar.gz"
+
           tar -czf "$TAR_FILE" -C dist .
 
-          # 3. Create releases directory on remote server if it doesn't exist
-          ssh -o PubkeyAcceptedKeyTypes=+ssh-rsa "$SSH_USER@$SSH_HOST" "mkdir -p ~/htdocs/releases"
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -o IdentitiesOnly=yes \
+            "$SSH_USER@$SSH_HOST" \
+            "mkdir -p ~/htdocs/releases"
 
-          # 4. Upload tarball to releases folder (with legacy RSA fallback support)
-          scp -o PubkeyAcceptedKeyTypes=+ssh-rsa "$TAR_FILE" "$SSH_USER@$SSH_HOST:~/htdocs/releases/"
+          scp \
+            -i ~/.ssh/id_ed25519 \
+            -o IdentitiesOnly=yes \
+            "$TAR_FILE" \
+            "$SSH_USER@$SSH_HOST:~/htdocs/releases/"
 
-          # 5. Extract and atomically update symlink (with legacy RSA fallback support)
-          ssh -o PubkeyAcceptedKeyTypes=+ssh-rsa "$SSH_USER@$SSH_HOST" "export RELEASE_NAME='$RELEASE_NAME' TAR_FILE='$TAR_FILE' DOMAIN_NAME='${{ env.DOMAIN_NAME }}'; bash -s" << 'EOF'
-            set -e
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -o IdentitiesOnly=yes \
+            "$SSH_USER@$SSH_HOST" \
+            "export RELEASE_NAME='$RELEASE_NAME' TAR_FILE='$TAR_FILE' DOMAIN_NAME='${{ env.DOMAIN_NAME }}'; bash -s" << 'EOF'
+          set -e
 
-            HTDOCS="$HOME/htdocs"
-            RELEASES="$HTDOCS/releases"
-            TARGET_DIR="$RELEASES/$RELEASE_NAME"
-            FULL_TAR_PATH="$RELEASES/$TAR_FILE"
-            SYMLINK="$HTDOCS/$DOMAIN_NAME"
+          HTDOCS="$HOME/htdocs"
+          RELEASES="$HTDOCS/releases"
+          TARGET_DIR="$RELEASES/$RELEASE_NAME"
+          FULL_TAR_PATH="$RELEASES/$TAR_FILE"
+          SYMLINK="$HTDOCS/$DOMAIN_NAME"
 
-            # Create target folder
-            mkdir -p "$TARGET_DIR"
+          mkdir -p "$TARGET_DIR"
 
-            # Extract files
-            tar -xzf "$FULL_TAR_PATH" -C "$TARGET_DIR"
+          tar -xzf "$FULL_TAR_PATH" -C "$TARGET_DIR"
 
-            # Remove tarball
-            rm -f "$FULL_TAR_PATH"
+          rm -f "$FULL_TAR_PATH"
 
-            # Atomic Symlink Swap
-            ln -sfn "$TARGET_DIR" "${SYMLINK}_tmp"
-            mv -Tf "${SYMLINK}_tmp" "$SYMLINK"
+          ln -sfn "$TARGET_DIR" "${SYMLINK}_tmp"
+          mv -Tf "${SYMLINK}_tmp" "$SYMLINK"
 
-            # Keep only the last 5 releases to conserve disk space
-            cd "$RELEASES"
-            ls -1t | grep '^release-' | tail -n +6 | xargs -I {} rm -rf {}
+          cd "$RELEASES"
+
+          ls -1dt release-* 2>/dev/null | tail -n +6 | xargs -r rm -rf
           EOF
