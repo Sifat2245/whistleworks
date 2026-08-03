@@ -205,7 +205,7 @@ const CourtSlotBox = ({
       ) : (
         // === Empty Slot ===
         <div className="flex flex-col items-center gap-3 py-4">
-          <button className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all">
+          <button className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all cursor-pointer">
             <TiPlus className="text-3xl" />
           </button>
           <p className="text-xs text-gray-400">Tap to assign referees</p>

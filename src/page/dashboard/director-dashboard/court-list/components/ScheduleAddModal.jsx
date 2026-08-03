@@ -646,7 +646,7 @@ const ScheduleAddModal = ({
         <CommonSubmitBtn
           onClick={handlePrimaryAction}
           disabled={primaryButtonDisabled}
-          loading={primaryButtonLoading}
+          isLoading={primaryButtonLoading}
           variant="primary"
           className={`min-w-[200px] w-full sm:w-auto ${
             activeTab === "referees" &&
