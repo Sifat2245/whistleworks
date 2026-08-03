@@ -9,12 +9,7 @@ import {
   IoClose,
 } from "react-icons/io5";
 import { FiExternalLink } from "react-icons/fi";
-import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "react-router-dom";
-import {
-  useStripeConnectionStatus,
-  useConnectStripe,
-} from "@/hooks/api/useStripConnection";
+import { useConnectStripe } from "@/hooks/api/useStripConnection";
 
 // ── Content ─────────────────────────────────────────────────────
 const BENEFITS = [
@@ -46,52 +41,13 @@ const STEPS = [
   "You're all set — camp fees get paid directly into your account.",
 ];
 
-const NoticePopup = () => {
-  const { userData } = useAuth();
-  const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const { data: stripeStatus, isLoading: stripeLoading } =
-    useStripeConnectionStatus();
+const NoticePopup = ({ isOpen = false, onClose }) => {
   const connectStripeMutation = useConnectStripe();
 
   // Tracks that the user actually clicked connect so we only auto-close
   // the popup once that attempt settles (avoids closing a reopened popup
   // because of a stale mutation state).
   const [connectInitiated, setConnectInitiated] = useState(false);
-
-  const isDirector = userData?.role?.toLowerCase() === "director";
-  const isStripeConnected = !!stripeStatus?.is_connected;
-
-  useEffect(() => {
-    // Director-only popup
-    if (!isDirector) {
-      setIsOpen(false);
-      return;
-    }
-
-    const pathname = location.pathname;
-
-    // Never show on the profile page or the stripe status/redirect page
-    if (
-      pathname.includes("/profile") ||
-      pathname.includes("stripe-connection-success")
-    ) {
-      setIsOpen(false);
-      return;
-    }
-
-    const isDirectorDashboard = pathname === "/director-dashboard";
-    const showPopup =
-      isDirectorDashboard && !stripeLoading && !isStripeConnected;
-
-    if (showPopup) {
-      const timer = setTimeout(() => setIsOpen(true), 1500);
-      return () => clearTimeout(timer);
-    }
-
-    setIsOpen(false);
-  }, [location.pathname, isDirector, stripeLoading, isStripeConnected]);
 
   const handleConnect = () => {
     setConnectInitiated(true);
@@ -102,16 +58,14 @@ const NoticePopup = () => {
   // keeping it open while pending so the user sees the connecting state.
   useEffect(() => {
     if (connectInitiated && !connectStripeMutation.isPending) {
-      setIsOpen(false);
+      onClose?.();
       setConnectInitiated(false);
     }
-  }, [connectInitiated, connectStripeMutation.isPending]);
+  }, [connectInitiated, connectStripeMutation.isPending, onClose]);
 
   const handleRemindLater = () => {
-    setIsOpen(false);
+    onClose?.();
   };
-
-  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -134,8 +88,6 @@ const NoticePopup = () => {
             exit={{ opacity: 0, scale: 0.95 }}
           >
             <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden">
-              {/* Top accent bar */}
-
               <div className="p-6">
                 {/* Close */}
                 <button
