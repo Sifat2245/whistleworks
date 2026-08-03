@@ -23,12 +23,15 @@ const Ranking = () => {
           subText="Performance rankings based on evaluation scores"
         />
         <CommonSubmitBtn
-          variant="primary"
+          variant="secondary"
           type="button"
           onClick={() => setIsSettingsOpen(true)}
-          className="rounded-full p-3"
+          className="rounded-[10px] px-4 sm:px-5 shrink-0"
         >
-          <IoSettingsOutline className="h-6 w-6" />
+          <span className="inline-flex items-center gap-2">
+            <IoSettingsOutline className="h-5 w-5" />
+            <span className="hidden sm:inline">Ranking Settings</span>
+          </span>
         </CommonSubmitBtn>
       </div>
 

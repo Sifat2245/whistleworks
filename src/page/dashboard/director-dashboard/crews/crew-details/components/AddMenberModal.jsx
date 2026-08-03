@@ -5,6 +5,13 @@ import {
   useAvailableRefereesForCrew,
   useAddMembersToCrew,
 } from "@/hooks/api/director-hooks/useCrews";
+import { cn } from "@/lib/utils";
+import {
+  LuCheck,
+  LuInbox,
+  LuTriangleAlert,
+  LuSearch,
+} from "react-icons/lu";
 
 const AddMemberModal = ({ open, onClose, crewId, campId }) => {
   const [selectedMembers, setSelectedMembers] = useState([]);
@@ -29,9 +36,10 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
     ref?.name?.toLowerCase?.().includes(searchTerm.toLowerCase())
   );
 
-  // Infinite scroll setup (same as before) ...
+  // Infinite scroll setup
   useEffect(() => {
-    if (!listRef.current || !hasNextPage || isFetchingNextPage || loading) return;
+    if (!listRef.current || !hasNextPage || isFetchingNextPage || loading)
+      return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -91,7 +99,11 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
 
   return (
     <Modal
-      title={<span className="text-xl font-semibold">Add Members to Crew</span>}
+      title={
+        <span className="text-lg font-semibold text-[#333]">
+          Add Members to Crew
+        </span>
+      }
       open={open}
       onCancel={onClose}
       footer={null}
@@ -100,22 +112,24 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
       destroyOnClose
     >
       <div className="mt-4 space-y-6">
-        <div className="flex justify-between items-center mb-4">
-          <p className="font-medium text-gray-700">
-            Select Referees to Add (Max 6 at a time)
+        <div className="flex justify-between items-center">
+          <p className="font-medium text-[#333]">
+            Select Referees to Add{" "}
+            <span className="text-red-500">(Max 6 at a time)</span>
           </p>
-          <p className="text-sm font-semibold text-[#00AEEF]">
+          <p className="text-sm font-semibold text-primary">
             Selected: {selectedMembers.length}/6
           </p>
         </div>
 
         <Input
-          placeholder="Search by name..."
+          placeholder="Search referees by name..."
           allowClear
           size="large"
+          prefix={<LuSearch className="text-[#999]" />}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="mb-4"
+          className="rounded-[10px] border-border"
         />
 
         <div
@@ -127,42 +141,68 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
               <Spin size="large" tip="Loading available referees..." />
             </div>
           ) : isError ? (
-            <div className="text-center py-12 text-red-500">
-              Failed to load available referees
+            <div className="text-center py-12">
+              <LuTriangleAlert className="w-10 h-10 text-red-500 mx-auto mb-3" />
+              <p className="text-red-500">Failed to load available referees</p>
             </div>
           ) : filteredReferees.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              {searchTerm ? "No matching referees" : "No available referees"}
+            <div className="text-center py-12">
+              <LuInbox className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">
+                {searchTerm ? "No matching referees" : "No available referees"}
+              </p>
             </div>
           ) : (
             <>
               {filteredReferees.map((ref) => {
-                const isSelected = selectedMembers.some((r) => r.id === ref.id);
+                const isSelected = selectedMembers.some(
+                  (r) => r.id === ref.id
+                );
                 const disabled = !isSelected && selectedMembers.length >= 6;
 
                 return (
                   <div
                     key={ref.id}
                     onClick={() => !disabled && toggleSelection(ref)}
-                    className={`
-                      border rounded-xl p-4 flex items-center justify-between transition-all cursor-pointer
-                      ${isSelected ? "border-[#00AEEF] bg-blue-50 shadow-md" : ""}
-                      ${disabled ? "bg-gray-50 opacity-60 cursor-not-allowed" : "hover:border-[#00AEEF] hover:shadow-md border-gray-200"}
-                    `}
+                    className={cn(
+                      "border rounded-[10px] p-4 flex items-center justify-between transition-all cursor-pointer",
+                      isSelected
+                        ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
+                        : disabled
+                        ? "bg-gray-50 opacity-60 cursor-not-allowed"
+                        : "border-border bg-white hover:border-primary/50 hover:shadow-md"
+                    )}
                   >
-                    <div className="flex items-center gap-4">
-                      <Avatar src={ref.avatar} size={48} className="border-2 border-gray-200" />
-                      <div>
-                        <p className="font-medium text-gray-800">{ref.name}</p>
-                        <p className="text-sm text-gray-500">{ref.email}</p>
+                    <div className="flex items-center gap-4 min-w-0">
+                      <Avatar
+                        src={ref.avatar}
+                        size={48}
+                        className="border-2 border-primary/20 bg-primary/10 text-primary shrink-0"
+                      >
+                        {ref.name?.charAt(0)?.toUpperCase()}
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="font-medium text-[#333] truncate">
+                          {ref.name}{" "}
+                          {ref.jersey_number ? `#${ref.jersey_number}` : ""}
+                        </p>
+                        <p className="text-sm text-[#666] truncate">
+                          {ref.email}
+                        </p>
                       </div>
                     </div>
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      readOnly
-                      className="w-5 h-5 text-[#00AEEF] rounded pointer-events-none"
-                    />
+                    <span
+                      className={cn(
+                        "w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors",
+                        isSelected
+                          ? "bg-primary border-primary"
+                          : "border-[#BBB] bg-white"
+                      )}
+                    >
+                      {isSelected && (
+                        <LuCheck className="w-3.5 h-3.5 text-white" />
+                      )}
+                    </span>
                   </div>
                 );
               })}
@@ -185,7 +225,10 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
             size="large"
             onClick={handleAddMembers}
             loading={addMembersMutation.isPending}
-            disabled={selectedMembers.length === 0 || addMembersMutation.isPending}
+            disabled={
+              selectedMembers.length === 0 || addMembersMutation.isPending
+            }
+            style={{ backgroundColor: "#00AEEF", borderColor: "#00AEEF" }}
           >
             {addMembersMutation.isPending ? "Adding..." : "Add Selected Members"}
           </Button>

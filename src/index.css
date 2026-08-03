@@ -91,3 +91,246 @@ body {
 .ant-popover.notification-popover {
   z-index: 1000;
 }
+
+/* ── Rich text editor content ─────────────────────────────── */
+.rich-editor .ProseMirror {
+  color: #333;
+  line-height: 1.7;
+}
+
+.rich-editor .ProseMirror:focus {
+  outline: none;
+}
+
+/* Placeholder */
+.rich-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9ca3af;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Headings */
+.rich-editor .ProseMirror h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0.75em 0 0.4em;
+  line-height: 1.3;
+  color: #333;
+}
+.rich-editor .ProseMirror h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0.75em 0 0.4em;
+  line-height: 1.35;
+  color: #333;
+}
+.rich-editor .ProseMirror h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.75em 0 0.35em;
+  line-height: 1.4;
+  color: #333;
+}
+.rich-editor .ProseMirror p {
+  margin: 0.5em 0;
+}
+.rich-editor .ProseMirror p:first-child {
+  margin-top: 0;
+}
+.rich-editor .ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists — disc/decimal + ml-6 come from the HTMLAttributes baked into the HTML */
+.rich-editor .ProseMirror ul li,
+.rich-editor .ProseMirror ol li {
+  margin: 0.2em 0;
+}
+
+/* Blockquote */
+.rich-editor .ProseMirror blockquote {
+  border-left: 4px solid var(--color-primary);
+  background: rgba(0, 174, 239, 0.05);
+  padding: 0.5em 1em;
+  margin: 0.75em 0;
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: #555;
+}
+
+/* Inline code & code block */
+.rich-editor .ProseMirror code {
+  background: #f1f5f9;
+  color: #d6336c;
+  padding: 0.15em 0.4em;
+  border-radius: 0.35rem;
+  font-size: 0.9em;
+}
+.rich-editor .ProseMirror pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 1em 1.25em;
+  border-radius: 0.5rem;
+  margin: 0.75em 0;
+  overflow-x: auto;
+  font-size: 0.9em;
+}
+.rich-editor .ProseMirror pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+/* Horizontal rule */
+.rich-editor .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 1.5em 0;
+}
+
+/* Links */
+.rich-editor .ProseMirror a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Selected node outline */
+.rich-editor .ProseMirror .ProseMirror-selectednode {
+  outline: 2px solid var(--color-primary);
+  border-radius: 0.35rem;
+}
+
+/* ── Public camp details — rich description ───────────────── */
+.camp-rich-content {
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  word-break: break-word;
+}
+
+.camp-rich-content h1,
+.camp-rich-content h2,
+.camp-rich-content h3 {
+  color: #111827;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.25em 0 0.5em;
+}
+.camp-rich-content h1:first-child,
+.camp-rich-content h2:first-child,
+.camp-rich-content h3:first-child {
+  margin-top: 0;
+}
+.camp-rich-content h1 {
+  font-size: 1.4rem;
+}
+.camp-rich-content h2 {
+  font-size: 1.2rem;
+}
+.camp-rich-content h3 {
+  font-size: 1.05rem;
+}
+
+.camp-rich-content p {
+  margin: 0.6em 0;
+}
+.camp-rich-content p:first-child {
+  margin-top: 0;
+}
+.camp-rich-content p:last-child {
+  margin-bottom: 0;
+}
+
+.camp-rich-content ul,
+.camp-rich-content ol {
+  margin: 0.75em 0;
+  padding-left: 1.4em;
+}
+.camp-rich-content ul {
+  list-style: disc;
+}
+.camp-rich-content ol {
+  list-style: decimal;
+}
+.camp-rich-content li {
+  margin: 0.3em 0;
+}
+
+.camp-rich-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.camp-rich-content a:hover {
+  color: #0099d4;
+}
+
+.camp-rich-content blockquote {
+  border-left: 4px solid var(--color-primary);
+  background: rgba(0, 174, 239, 0.05);
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 0.75em 1.25em;
+  margin: 1em 0;
+  color: #4b5563;
+}
+
+.camp-rich-content code {
+  background: #f1f5f9;
+  color: #d6336c;
+  border-radius: 0.35rem;
+  padding: 0.15em 0.4em;
+  font-size: 0.9em;
+}
+.camp-rich-content pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1em 1.25em;
+  margin: 0.9em 0;
+  overflow-x: auto;
+  font-size: 0.9em;
+}
+.camp-rich-content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.camp-rich-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 1em auto;
+}
+
+.camp-rich-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 1.5em 0;
+}
+
+.camp-rich-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.9em;
+}
+.camp-rich-content th,
+.camp-rich-content td {
+  border: 1px solid var(--color-border);
+  padding: 0.55em 0.8em;
+  text-align: left;
+}
+.camp-rich-content th {
+  background: #f9fafb;
+  color: #111827;
+  font-weight: 600;
+}
+
+@media (min-width: 640px) {
+  .camp-rich-content {
+    font-size: 1rem;
+  }
+}

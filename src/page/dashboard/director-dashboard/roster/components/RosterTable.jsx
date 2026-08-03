@@ -5,15 +5,23 @@ import {
   getSortedRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import {
-  MdCheckCircle,
-  MdDelete,
-  MdArrowUpward,
-  MdArrowDownward,
-} from "react-icons/md";
-import { IoCheckboxOutline } from "react-icons/io5";
+import { MdCheckCircle, MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 import { BiPhone } from "react-icons/bi";
+import {
+  LuUsers,
+  LuUserCheck,
+  LuClock,
+  LuTrophy,
+  LuArrowUp,
+  LuArrowDown,
+  LuArrowUpDown,
+  LuInbox,
+  LuCheck,
+  LuPencil,
+  LuSave,
+} from "react-icons/lu";
+import { cn } from "@/lib/utils";
 import RefereeDetailsModal from "./RefereeDetailsModal";
 import {
   useCheckInReferee,
@@ -51,6 +59,10 @@ const RosterTable = ({ referees = [], campId }) => {
   const checkedInCount = referees.filter(
     (ref) => ref.status === "checked_in",
   ).length;
+  const gamesAssigned = referees.reduce(
+    (sum, ref) => sum + (ref.assigned_games_count || 0),
+    0,
+  );
 
   const openModal = (referee) => {
     setSelectedReferee(referee);
@@ -119,6 +131,8 @@ const RosterTable = ({ referees = [], campId }) => {
 
   const handleUpdateJersey = async (refereeId, jerseyNumber) => {
     const trimmed = jerseyNumber.trim();
+    const refereeName =
+      referees.find((r) => r.id === refereeId)?.name || "Referee";
 
     try {
       await updateJerseyMutation.mutateAsync({
@@ -126,14 +140,26 @@ const RosterTable = ({ referees = [], campId }) => {
         jourcyNumber: trimmed,
       });
       Swal.fire({
-        title: "Updated!",
-        text: "Jersey number saved",
+        title: "Jersey Number Saved",
+        text: `${refereeName}'s jersey number is now set to ${trimmed || "—"}.`,
         icon: "success",
-        timer: 1200,
+        confirmButtonColor: "#00AEEF",
+        timer: 1500,
         showConfirmButton: false,
       });
-    } catch {
-      // Error toast is handled inside the hook
+    } catch (error) {
+      const raw = error?.response?.data;
+      const message =
+        (typeof raw?.message === "string" && raw.message) ||
+        (typeof raw?.data === "string" && raw.data) ||
+        "Something went wrong while saving the jersey number.";
+
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Update Jersey",
+        text: message,
+        confirmButtonColor: "#ef4444",
+      });
     } finally {
       setEditingJerseyId(null);
       setJerseyInput("");
@@ -159,6 +185,80 @@ const RosterTable = ({ referees = [], campId }) => {
     return `(${areaCode}) ${part1}-${part2}`;
   };
 
+  const statusBadge = (status) => {
+    const isCheckedIn = status === "checked_in";
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap",
+          isCheckedIn
+            ? "bg-green-50 text-green-700 border border-green-200"
+            : "bg-blue-50 text-blue-700 border border-blue-200",
+        )}
+      >
+        {isCheckedIn ? <LuUserCheck className="w-3.5 h-3.5" /> : <LuClock className="w-3.5 h-3.5" />}
+        {isCheckedIn ? "Checked In" : "Registered"}
+      </span>
+    );
+  };
+
+  const jerseyEditor = (referee) => {
+    const jersey = referee.jourcy_number?.toString() || "";
+    const isEditing = editingJerseyId === referee.id;
+
+    if (isEditing) {
+      return (
+        <div className="flex items-center justify-center gap-1.5">
+          <input
+            type="text"
+            autoFocus
+            value={jerseyInput}
+            onChange={(e) => setJerseyInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleUpdateJersey(referee.id, jerseyInput);
+              } else if (e.key === "Escape") {
+                setEditingJerseyId(null);
+                setJerseyInput("");
+              }
+            }}
+            onBlur={() => {
+              setEditingJerseyId(null);
+              setJerseyInput("");
+            }}
+            className="w-20 px-2 py-1.5 text-center border-2 border-primary rounded-lg focus:outline-none focus:ring-4 focus:ring-primary/20 font-mono text-sm transition-all"
+            placeholder="23"
+          />
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleUpdateJersey(referee.id, jerseyInput)}
+            className="p-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-white transition cursor-pointer"
+            title="Save"
+          >
+            <LuSave className="w-4 h-4" />
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        onClick={() => {
+          setEditingJerseyId(referee.id);
+          setJerseyInput(jersey);
+        }}
+        className="text-center cursor-pointer group"
+        title="Click to edit"
+      >
+        <span className="font-mono text-sm text-[#333] group-hover:text-primary transition-colors">
+          {jersey || "-"}
+        </span>
+        <LuPencil className="w-3 h-3 text-gray-300 group-hover:text-primary inline-block ml-1.5" />
+      </div>
+    );
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -170,19 +270,17 @@ const RosterTable = ({ referees = [], campId }) => {
             <img
               src={row.original.avatar || "/default-avatar.png"}
               alt={row.original.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 shrink-0"
+              className="w-10 h-10 rounded-full object-cover border-2 border-primary/20 shrink-0"
               onError={(e) => (e.target.src = "/default-avatar.png")}
             />
             <div>
               <button
                 onClick={() => openModal(row.original)}
-                className="font-semibold text-gray-900 hover:underline cursor-pointer focus:outline-none"
+                className="font-medium text-[#333] hover:text-primary hover:underline cursor-pointer focus:outline-none transition-colors"
               >
                 {row.original.name || "Unnamed Referee"}
               </button>
-              <div className="text-sm text-gray-500">
-                {row.original.address}
-              </div>
+              <div className="text-xs text-[#666]">{row.original.address}</div>
             </div>
           </div>
         ),
@@ -192,13 +290,11 @@ const RosterTable = ({ referees = [], campId }) => {
         header: "Contact",
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-gray-700">
-              <BiPhone className="text-gray-400 text-lg" />
-              <span className="text-sm font-medium tracking-wide">
-                {formatPhone(row.original.phone)}
-              </span>
-            </div>
+          <div className="flex items-center gap-2 text-[#444]">
+            <BiPhone className="text-[#999] text-lg" />
+            <span className="text-sm font-medium tracking-wide">
+              {formatPhone(row.original.phone)}
+            </span>
           </div>
         ),
       },
@@ -207,56 +303,7 @@ const RosterTable = ({ referees = [], campId }) => {
         header: "Jersey ID",
         enableSorting: true,
         sortingFn: "alphanumeric",
-        cell: ({ row }) => {
-          const referee = row.original;
-          const jersey = referee.jourcy_number?.toString() || "";
-          const isEditing = editingJerseyId === referee.id;
-
-          if (isEditing) {
-            return (
-              <div className="flex justify-center">
-                <input
-                  type="text"
-                  autoFocus
-                  value={jerseyInput}
-                  onChange={(e) => setJerseyInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleUpdateJersey(referee.id, jerseyInput);
-                    } else if (e.key === "Escape") {
-                      setEditingJerseyId(null);
-                      setJerseyInput("");
-                    }
-                  }}
-                  onBlur={() => {
-                    setEditingJerseyId(null);
-                    setJerseyInput("");
-                  }}
-                  className="w-24 px-3 py-1.5 text-center border-2 border-blue-500 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-200 font-mono text-sm transition-all"
-                  placeholder="23"
-                />
-              </div>
-            );
-          }
-
-          return (
-            <div
-              onClick={() => {
-                setEditingJerseyId(referee.id);
-                setJerseyInput(jersey);
-              }}
-              className="text-center cursor-pointer group"
-            >
-              <span className="font-mono text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
-                {jersey || "-"}
-              </span>
-              <p className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                Click to edit
-              </p>
-            </div>
-          );
-        },
+        cell: ({ row }) => jerseyEditor(row.original),
       },
       {
         accessorKey: "assigned_games_count",
@@ -264,8 +311,11 @@ const RosterTable = ({ referees = [], campId }) => {
         enableSorting: true,
         sortingFn: "alphanumeric",
         cell: ({ row }) => (
-          <div className="text-center font-medium text-gray-900">
-            {row.original.assigned_games_count ?? "N/A"}
+          <div className="text-center">
+            <span className="inline-flex items-center gap-1.5 min-w-7 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+              <LuTrophy className="w-3.5 h-3.5" />
+              {row.original.assigned_games_count ?? 0}
+            </span>
           </div>
         ),
       },
@@ -273,23 +323,9 @@ const RosterTable = ({ referees = [], campId }) => {
         accessorKey: "status",
         header: "Status",
         enableSorting: true,
-        cell: ({ getValue }) => {
-          const status = getValue();
-          const isCheckedIn = status === "checked_in";
-
-          return (
-            <div
-              className={`flex justify-center items-center py-2 px-4 rounded-full text-sm font-medium w-fit mx-auto ${
-                isCheckedIn
-                  ? "bg-[#DCFCE7] text-[#008236]"
-                  : "bg-[#DBEAFE] text-[#1E40AF]"
-              }`}
-            >
-              <IoCheckboxOutline className="mr-2" />
-              {isCheckedIn ? "Checked In" : "Registered"}
-            </div>
-          );
-        },
+        cell: ({ getValue }) => (
+          <div className="flex justify-center">{statusBadge(getValue())}</div>
+        ),
       },
       {
         id: "actions",
@@ -300,19 +336,19 @@ const RosterTable = ({ referees = [], campId }) => {
           const isLoading = checkingInId === row.original.id;
 
           return (
-            <div className="flex flex-col items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-2">
               {!isCheckedIn && (
                 <button
                   onClick={() => handleCheckIn(row.original.id)}
                   disabled={isLoading}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition cursor-pointer ${
                     isLoading
                       ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                      : "bg-green-100 hover:bg-green-200 text-green-700"
+                      : "bg-green-50 hover:bg-green-100 text-green-700 border border-green-200"
                   }`}
                   title="Check In"
                 >
-                  <MdCheckCircle className="text-lg" />
+                  <MdCheckCircle className="text-base" />
                   <span className="hidden sm:inline">
                     {isLoading ? "Checking..." : "Check In"}
                   </span>
@@ -322,14 +358,14 @@ const RosterTable = ({ referees = [], campId }) => {
               <button
                 onClick={() => handleRemove(row.original.id)}
                 disabled={removingId === row.original.id}
-                className={`flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition cursor-pointer ${
                   removingId === row.original.id
                     ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                    : "bg-red-100 hover:bg-red-200 text-red-700"
+                    : "bg-red-50 hover:bg-red-100 text-red-600 border border-red-200"
                 }`}
                 title="Remove from Roster"
               >
-                <MdDelete className="text-lg" />
+                <MdDelete className="text-base" />
                 <span className="hidden sm:inline">
                   {removingId === row.original.id ? "Removing..." : "Remove"}
                 </span>
@@ -339,12 +375,8 @@ const RosterTable = ({ referees = [], campId }) => {
         },
       },
     ],
-    [
-      checkingInId,
-      removingId,
-      editingJerseyId,
-      jerseyInput,
-    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [checkingInId, removingId, editingJerseyId, jerseyInput],
   );
 
   const table = useReactTable({
@@ -359,44 +391,63 @@ const RosterTable = ({ referees = [], campId }) => {
   });
 
   const stats = [
-    { value: totalReferees, label: "Total Referees", color: "text-[#00AEEF]" },
-    { value: checkedInCount, label: "Checked In", color: "text-green-600" },
+    {
+      value: totalReferees,
+      label: "Total Referees",
+      icon: <LuUsers />,
+    },
+    {
+      value: checkedInCount,
+      label: "Checked In",
+      icon: <LuUserCheck />,
+    },
+    {
+      value: totalReferees - checkedInCount,
+      label: "Not Checked In",
+      icon: <LuClock />,
+    },
+    {
+      value: gamesAssigned,
+      label: "Games Assigned",
+      icon: <LuTrophy />,
+    },
   ];
 
   return (
     <div className="w-full">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
-        {stats.map((stat, index) => (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        {stats.map((stat) => (
           <div
-            key={index}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            key={stat.label}
+            className="bg-white border border-border rounded-[10px] px-4 py-3.5 flex items-center gap-3 hover:shadow-sm transition-shadow"
           >
-            <div className={`text-4xl font-bold ${stat.color} mb-2`}>
-              {stat.value}
-            </div>
-            <div className="text-base text-gray-600 font-medium">
-              {stat.label}
+            <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
+              {stat.icon}
+            </span>
+            <div className="min-w-0">
+              <p className="text-lg font-medium text-[#333]">{stat.value}</p>
+              <p className="text-xs text-[#666]">{stat.label}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="max-h-[600px] overflow-y-auto">
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white border border-border rounded-[10px] overflow-hidden">
+        <div className="max-h-[600px] overflow-y-auto hide-scrollbar">
           <table className="w-full min-w-[900px]">
-            <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
+            <thead className="sticky top-0 bg-[#FAFAFA] border-b border-border z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                      className="px-5 py-3.5 text-left text-xs font-semibold text-[#666] uppercase tracking-wider"
                     >
                       {header.column.getCanSort() ? (
                         <button
-                          className="flex items-center gap-1 hover:text-gray-900 focus:outline-none transition"
+                          className="flex items-center gap-1 hover:text-primary focus:outline-none transition cursor-pointer"
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {flexRender(
@@ -405,12 +456,12 @@ const RosterTable = ({ referees = [], campId }) => {
                           )}
                           {header.column.getIsSorted() ? (
                             header.column.getIsSorted() === "asc" ? (
-                              <MdArrowUpward className="text-blue-600" />
+                              <LuArrowUp className="w-4 h-4 text-primary" />
                             ) : (
-                              <MdArrowDownward className="text-blue-600" />
+                              <LuArrowDown className="w-4 h-4 text-primary" />
                             )
                           ) : (
-                            <span className="opacity-30">↕</span>
+                            <LuArrowUpDown className="w-4 h-4 opacity-25" />
                           )}
                         </button>
                       ) : (
@@ -424,21 +475,27 @@ const RosterTable = ({ referees = [], campId }) => {
                 </tr>
               ))}
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-16 text-gray-500">
-                    No referees found.
+                  <td colSpan={6} className="text-center py-16 px-6">
+                    <LuInbox className="w-14 h-14 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-[#333] mb-2">
+                      No Referees Found
+                    </h3>
+                    <p className="text-sm text-[#666]">
+                      Try adjusting your search or check back later.
+                    </p>
                   </td>
                 </tr>
               ) : (
                 table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-primary/[0.03] transition-colors"
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-6 py-5">
+                      <td key={cell.id} className="px-5 py-4">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -451,6 +508,91 @@ const RosterTable = ({ referees = [], campId }) => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden flex flex-col gap-3">
+        {referees.length === 0 ? (
+          <div className="bg-white border border-border rounded-[10px] py-16 text-center">
+            <LuInbox className="w-14 h-14 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-[#333] mb-2">
+              No Referees Found
+            </h3>
+            <p className="text-sm text-[#666]">
+              Try adjusting your search or check back later.
+            </p>
+          </div>
+        ) : (
+          referees.map((referee) => (
+            <div
+              key={referee.id}
+              className="bg-white border border-border rounded-[10px] p-4"
+            >
+              {/* Header */}
+              <div className="flex items-center gap-3">
+                <img
+                  src={referee.avatar || "/default-avatar.png"}
+                  alt={referee.name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-primary/20 shrink-0"
+                  onError={(e) => (e.target.src = "/default-avatar.png")}
+                />
+                <div className="flex-1 min-w-0">
+                  <button
+                    onClick={() => openModal(referee)}
+                    className="font-medium text-[#333] hover:text-primary truncate block w-full text-left transition-colors"
+                  >
+                    {referee.name || "Unnamed Referee"}
+                  </button>
+                  <p className="text-xs text-[#666] truncate">
+                    {referee.address}
+                  </p>
+                </div>
+                {statusBadge(referee.status)}
+              </div>
+
+              {/* Details */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="flex items-center gap-2 rounded-lg bg-[#FAFAFA] border border-border px-3 py-2">
+                  <BiPhone className="text-primary shrink-0" />
+                  <span className="text-xs text-[#555] truncate">
+                    {formatPhone(referee.phone)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 rounded-lg bg-[#FAFAFA] border border-border px-3 py-2">
+                  <LuTrophy className="text-primary shrink-0" />
+                  <span className="text-xs text-[#555]">
+                    {referee.assigned_games_count ?? 0} games
+                  </span>
+                </div>
+                <div className="rounded-lg bg-[#FAFAFA] border border-border px-3 py-2">
+                  {jerseyEditor(referee)}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="mt-3 flex gap-2">
+                {referee.status !== "checked_in" && (
+                  <button
+                    onClick={() => handleCheckIn(referee.id)}
+                    disabled={checkingInId === referee.id}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 disabled:opacity-60"
+                  >
+                    <LuCheck className="w-4 h-4" />
+                    {checkingInId === referee.id ? "Checking..." : "Check In"}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleRemove(referee.id)}
+                  disabled={removingId === referee.id}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 disabled:opacity-60"
+                >
+                  <MdDelete className="w-4 h-4" />
+                  {removingId === referee.id ? "Removing..." : "Remove"}
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Referee Details Modal */}

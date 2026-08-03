@@ -137,17 +137,14 @@ export const useUpdateJerseyNumber = (campId) => {
       return { previous };
     },
     onSuccess: () => {
-      toast.success("Jersey number updated successfully.");
+      // Success feedback is shown by the component (SweetAlert)
       queryClient.invalidateQueries({ queryKey: CAMP_QUERY_KEY });
     },
-    onError: (error, _variables, context) => {
-      // Rollback optimistic update
+    onError: (_error, _variables, context) => {
+      // Rollback optimistic update; error feedback is shown by the component (SweetAlert)
       if (context?.previous) {
         queryClient.setQueryData(CAMP_QUERY_KEY, context.previous);
       }
-      toast.error(
-        error?.response?.data?.data || "Failed to update jersey number.",
-      );
     },
   });
 };

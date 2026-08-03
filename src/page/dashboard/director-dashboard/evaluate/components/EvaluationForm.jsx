@@ -1,6 +1,6 @@
 import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
-import LoaderV2 from "@/components/common/LoaderV2";
+import SectionCard from "@/components/common/SectionCard";
 import { Avatar } from "antd";
 import { useForm } from "react-hook-form";
 import { useRegisteredReferees } from "@/hooks/api/useRegisteredReferees";
@@ -8,6 +8,21 @@ import {
   useSubmitEvaluation,
   buildEvaluationFormData,
 } from "@/hooks/api/useEvaluation";
+import { cn } from "@/lib/utils";
+import {
+  LuClipboardList,
+  LuUserCheck,
+  LuTarget,
+  LuMessageSquareText,
+  LuScale,
+  LuFootprints,
+  LuActivity,
+  LuEye,
+  LuHeart,
+  LuMessageSquare,
+  LuSend,
+  LuRefreshCw,
+} from "react-icons/lu";
 
 const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `${i + 1}`,
@@ -21,6 +36,45 @@ const levelOptions = [
   { label: "JUCO", value: "JUCO" },
   { label: "HS", value: "HS" },
   { label: "JH/ELEM", value: "JH/ELEM" },
+];
+
+const criteria = [
+  {
+    key: "call_accuracy",
+    label: "Call/No Call Accuracy",
+    hint: "Correct decisions on plays",
+    icon: <LuTarget />,
+  },
+  {
+    key: "communication_skills",
+    label: "Communication Skills",
+    hint: "Clarity with players & coaches",
+    icon: <LuMessageSquareText />,
+  },
+  {
+    key: "consistency_of_calls",
+    label: "Consistency of Calls",
+    hint: "Uniformity throughout the game",
+    icon: <LuScale />,
+  },
+  {
+    key: "court_position_mechanics",
+    label: "Court Position / Mechanics",
+    hint: "Positioning & movement",
+    icon: <LuFootprints />,
+  },
+  {
+    key: "fitness_mobility",
+    label: "Fitness / Mobility",
+    hint: "Endurance & agility",
+    icon: <LuActivity />,
+  },
+  {
+    key: "game_awareness",
+    label: "Game Awareness",
+    hint: "Reading the flow of play",
+    icon: <LuEye />,
+  },
 ];
 
 const EvaluationForm = ({ camp_id }) => {
@@ -40,7 +94,8 @@ const EvaluationForm = ({ camp_id }) => {
     label: (
       <div className="w-full flex items-center gap-2">
         <Avatar src={ref?.avatar} size={32} />
-        <span>{ref?.name}</span> {ref?.jersey_number ? `#${ref?.jersey_number}` : ""}
+        <span>{ref?.name}</span>{" "}
+        {ref?.jersey_number ? `#${ref?.jersey_number}` : ""}
       </div>
     ),
   }));
@@ -49,9 +104,16 @@ const EvaluationForm = ({ camp_id }) => {
     control,
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     reset: resetForm,
   } = useForm();
+
+  const watchedScores = watch(criteria.map((c) => c.key));
+  const ratedCount = watchedScores.filter(
+    (val) => val !== undefined && val !== null && val !== "",
+  ).length;
+  const progress = Math.round((ratedCount / criteria.length) * 100);
 
   // Reset form fields on successful submission
   if (isSuccess) {
@@ -65,143 +127,160 @@ const EvaluationForm = ({ camp_id }) => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="w-full bg-white p-6 rounded-xl border border-black/10 shadow-sm flex flex-col gap-6"
+    <SectionCard
+      icon={<LuClipboardList />}
+      title="Evaluation Form"
+      description="Rate the referee across each performance category"
     >
-      <h2 className="text-2xl text-black">Evaluation Form</h2>
-
-      <div>
-        <h3 className="font-medium text-lg text-black">Performance Criteria</h3>
-        <p className="text-sm text-gray-600 mt-1">Who are you evaluating?</p>
-      </div>
-
-      <CommonInputWrapper
-        type="select"
-        selectClass={"text-center!"}
-        label="Select A Referee"
-        placeholder="+ Select A Referee"
-        register_as="referee_id"
-        control={control}
-        options={convertedRefOptions}
-        validationRules={{ required: "Please select a referee" }}
-        errors={errors}
-      />
-
-      {/* Call / No Call Accuracy */}
-      <CommonInputWrapper
-        type="select"
-        label="Call/No Call Accuracy (10=Excellent; 1=Poor)"
-        placeholder="Select one.."
-        register_as="call_accuracy"
-        control={control}
-        options={scoreOptions}
-        validationRules={{ required: "Required" }}
-        errors={errors}
-      />
-
-      {/* Communication Skills */}
-      <CommonInputWrapper
-        type="select"
-        label="Communication Skills (10=Excellent; 1=Poor)"
-        placeholder="Select one.."
-        register_as="communication_skills"
-        control={control}
-        options={scoreOptions}
-        validationRules={{ required: "Required" }}
-        errors={errors}
-      />
-
-      {/* Consistency of Calls */}
-      <CommonInputWrapper
-        type="select"
-        label="Consistency of Calls (10=Excellent; 1=Poor)"
-        placeholder="Select one.."
-        register_as="consistency_of_calls"
-        control={control}
-        options={scoreOptions}
-        validationRules={{ required: "Required" }}
-        errors={errors}
-      />
-
-      {/* Court Position / Mechanics */}
-      <CommonInputWrapper
-        type="select"
-        label="Court Position/Mechanics (10=Excellent; 1=Poor)"
-        placeholder="Select one.."
-        register_as="court_position_mechanics"
-        control={control}
-        options={scoreOptions}
-        validationRules={{ required: "Required" }}
-        errors={errors}
-      />
-
-      {/* Fitness / Mobility */}
-      <CommonInputWrapper
-        type="select"
-        label="Fitness/Mobility (10=Excellent; 1=Poor)"
-        placeholder="Select one.."
-        register_as="fitness_mobility"
-        control={control}
-        options={scoreOptions}
-        validationRules={{ required: "Required" }}
-        errors={errors}
-      />
-
-      {/* Game Awareness */}
-      <CommonInputWrapper
-        type="select"
-        label="Game Awareness (10=Excellent; 1=Poor)"
-        placeholder="Select one.."
-        register_as="game_awareness"
-        control={control}
-        options={scoreOptions}
-        validationRules={{ required: "Required" }}
-        errors={errors}
-      />
-
-      {/* Private Comments */}
-      <CommonInputWrapper
-        type="textarea"
-        label="Private Comments :"
-        textareaClass={'border-black/15'}
-        placeholder="Write comments..."
-        register_as="private_comments"
-        register={register}
-        errors={errors}
-      />
-
-      {/* Referee Feedback */}
-      <CommonInputWrapper
-        type="textarea"
-        textareaClass={'border-black/15'}
-        label="Referee Feedback :"
-        placeholder="Write feedback..."
-        register_as="referee_feedback"
-        register={register}
-        errors={errors}
-      />
-
-      {/* Highest Level Recommendation */}
-      <CommonInputWrapper
-        type="select"
-        label="Recommended HIGHEST Level of Officiating"
-        placeholder="Select one.."
-        register_as="recommended_level"
-        control={control}
-        options={levelOptions}
-        validationRules={{ required: "Required" }}
-        errors={errors}
-      />
-
-      <CommonSubmitBtn
-        variant="primary"
-        className="mt-2"
-        disabled={isSubmitting}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="p-5 sm:p-7 flex flex-col gap-6"
       >
-        {isSubmitting ? <LoaderV2 /> : "Submit Evaluation"}
-      </CommonSubmitBtn>
-    </form>
+        {/* Referee selection */}
+        <div className="bg-[#FAFAFA] border border-border rounded-[10px] p-4 sm:p-5">
+          <div className="flex items-center gap-2.5 mb-3">
+            <LuUserCheck className="text-primary text-lg" />
+            <h3 className="font-medium text-[#333]">Who are you evaluating?</h3>
+          </div>
+          <CommonInputWrapper
+            type="select"
+            label="Select A Referee"
+            placeholder="+ Select A Referee"
+            register_as="referee_id"
+            control={control}
+            options={convertedRefOptions}
+            validationRules={{ required: "Please select a referee" }}
+            errors={errors}
+          />
+        </div>
+
+        {/* Progress */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-medium text-lg text-[#333]">
+              Performance Criteria
+            </h3>
+            <span className="text-sm font-medium text-[#666]">
+              {ratedCount}/{criteria.length} rated
+            </span>
+          </div>
+          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                progress === 100 ? "bg-green-500" : "bg-primary",
+              )}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Criteria grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {criteria.map((item) => (
+            <div
+              key={item.key}
+              className="border border-border rounded-[10px] p-4 flex flex-col gap-3"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-base shrink-0">
+                  {item.icon}
+                </span>
+                <div>
+                  <p className="font-medium text-[#333] text-sm leading-tight">
+                    {item.label}
+                  </p>
+                  <p className="text-xs text-[#666] mt-0.5">{item.hint}</p>
+                </div>
+              </div>
+              <CommonInputWrapper
+                type="select"
+                placeholder="Select score (1-10)"
+                register_as={item.key}
+                control={control}
+                options={scoreOptions}
+                validationRules={{ required: "Required" }}
+                errors={errors}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Comments */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="referee_feedback"
+              className="capitalize font-medium text-[#333] text-base flex items-center gap-2"
+            >
+              <LuHeart className="text-primary" /> Referee Feedback
+            </label>
+            <CommonInputWrapper
+              type="textarea"
+              textareaClass={"border-black/15"}
+              placeholder="Write feedback for the referee..."
+              register_as="referee_feedback"
+              register={register}
+              errors={errors}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="private_comments"
+              className="capitalize font-medium text-[#333] text-base flex items-center gap-2"
+            >
+              <LuMessageSquare className="text-primary" /> Private Comments
+              <span className="text-xs text-[#999] normal-case">
+                (directors & evaluators only)
+              </span>
+            </label>
+            <CommonInputWrapper
+              type="textarea"
+              textareaClass={"border-black/15"}
+              placeholder="Write private comments..."
+              register_as="private_comments"
+              register={register}
+              errors={errors}
+            />
+          </div>
+        </div>
+
+        {/* Highest level recommendation */}
+        <div className="max-w-md">
+          <CommonInputWrapper
+            type="select"
+            label="Recommended HIGHEST Level of Officiating"
+            placeholder="Select one.."
+            register_as="recommended_level"
+            control={control}
+            options={levelOptions}
+            validationRules={{ required: "Required" }}
+            errors={errors}
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 border-t border-border">
+          <CommonSubmitBtn
+            variant="primary"
+            className="sm:flex-1 justify-center"
+            type="submit"
+            isLoading={isSubmitting}
+          >
+            <span className="inline-flex items-center gap-2">
+              <LuSend className="text-base" /> Submit Evaluation
+            </span>
+          </CommonSubmitBtn>
+          <button
+            type="button"
+            onClick={() => resetForm()}
+            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border text-[#666] hover:bg-gray-50 transition font-medium cursor-pointer"
+          >
+            <LuRefreshCw className="text-base" /> Clear
+          </button>
+        </div>
+      </form>
+    </SectionCard>
   );
 };
 

@@ -1,15 +1,14 @@
-import { Card, Avatar } from "antd";
 import profile from "@/assets/dashboard/profile.png";
-import { BiX } from "react-icons/bi";
 import Swal from "sweetalert2";
 import { useRemoveMemberFromCrew } from "@/hooks/api/director-hooks/useCrews";
+import { LuTrash2, LuMail, LuPhone } from "react-icons/lu";
 
 const MemberCard = ({ member, crewId }) => {
   const removeMemberMutation = useRemoveMemberFromCrew(crewId);
 
   const handleRemove = (e) => {
     e.stopPropagation();
-    
+
     Swal.fire({
       title: "Are you sure?",
       text: "This member will be removed from the crew. This action cannot be undone!",
@@ -27,46 +26,56 @@ const MemberCard = ({ member, crewId }) => {
   };
 
   return (
-    <Card
-      hoverable
-      className="group relative overflow-hidden rounded-xl border border-black/10 shadow-sm transition-all duration-300"
-    >
-      {/* Gradient overlay on hover */}
-      <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_center,rgba(0,175,239,0.35),rgba(0,175,239,0.10),transparent_70%)]" />
-
-      {/* Delete Button - Top Right */}
+    <div className="relative group bg-white border border-border rounded-[10px] p-5 shadow-sm hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center text-center">
+      {/* Remove Button - Top Right */}
       <button
         onClick={handleRemove}
         disabled={removeMemberMutation.isPending}
-        className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity 
-                   bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg 
-                   disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-red-50 hover:bg-red-100 text-red-600 rounded-lg p-2 shadow-sm border border-red-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         title="Remove member"
+        aria-label={`Remove ${member?.name || "member"} from crew`}
       >
         {removeMemberMutation.isPending ? (
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <div className="w-4 h-4 border-2 border-red-200 border-t-red-600 rounded-full animate-spin" />
         ) : (
-          <BiX className="w-4 h-4" />
+          <LuTrash2 className="w-4 h-4" />
         )}
       </button>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center gap-3 py-4">
-        <Avatar size={80} src={member?.avatar || profile} />
-
-        <div className="space-y-1 px-4 py-5">
-          <h3 className="text-lg font-medium text-black">
-            {member?.name || "Unnamed Referee"}{" "}
-            {member?.jersey_number ? `#${member?.jersey_number}` : ""}
-          </h3>
-
-          <p className="text-sm text-gray-500 break-all">
-            <span className="font-medium text-[#444]">Email:</span>{" "}
-            {member?.email || "N/A"}
-          </p>
-        </div>
+      {/* Avatar + Jersey badge */}
+      <div className="relative">
+        <img
+          src={member?.avatar || profile}
+          alt={member?.name || "Referee"}
+          className="w-20 h-20 rounded-full object-cover border-4 border-primary/20 shadow-md"
+          onError={(e) => (e.target.src = profile)}
+        />
+        {member?.jersey_number && (
+          <span className="absolute -bottom-1.5 right-0 min-w-6 h-6 px-1.5 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center border-2 border-white shadow-sm">
+            #{member.jersey_number}
+          </span>
+        )}
       </div>
-    </Card>
+
+      {/* Name */}
+      <h3 className="mt-4 font-semibold text-[#333] text-base line-clamp-1 w-full">
+        {member?.name || "Unnamed Referee"}
+      </h3>
+
+      {/* Contact info */}
+      <div className="mt-2.5 space-y-1.5 w-full text-left">
+        <p className="flex items-center gap-2 text-xs text-[#666] min-w-0">
+          <LuMail className="text-primary shrink-0" />
+          <span className="truncate">{member?.email || "N/A"}</span>
+        </p>
+        {member?.phone && (
+          <p className="flex items-center gap-2 text-xs text-[#666] min-w-0">
+            <LuPhone className="text-primary shrink-0" />
+            <span className="truncate">{member.phone}</span>
+          </p>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -2,13 +2,25 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import ScheduleAddModal from "./ScheduleAddModal";
 import CourtSlotBox from "./CourtSlotBox";
+import CourtSlotCardMobile from "./CourtSlotCardMobile";
 import ScheduleActionButtons from "./ScheduleActionButtons";
 import ScheduleSkeleton from "./ScheduleSkeleton";
+import {
+  LuMapPin,
+  LuCalendarDays,
+  LuClock,
+  LuLayoutGrid,
+  LuUsers,
+  LuBan,
+  LuPencil,
+  LuLock,
+  LuLockOpen,
+  LuLoaderCircle,
+} from "react-icons/lu";
 import { HiLockClosed, HiLockOpen } from "react-icons/hi2";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { MdModeEditOutline } from "react-icons/md";
 import {
   useAvailableDates,
   useCourtInfo,
@@ -31,7 +43,11 @@ const CourtLists = ({ campData }) => {
   // Editing state
   const [editingSlotId, setEditingSlotId] = useState(null);
   const [editValue, setEditValue] = useState("");
-  const inputRef = useRef(null);
+  // Separate refs for the desktop and mobile edit inputs — both layouts are
+  // mounted in the DOM at once (one hidden via CSS), so a shared ref would
+  // always point at the hidden input and break autofocus.
+  const desktopInputRef = useRef(null);
+  const mobileInputRef = useRef(null);
 
   // ── Hooks ──────────────────────────────────────────────────────
   const { data: initialData, isLoading: loadingInitial } = useAvailableDates(
@@ -149,10 +165,58 @@ const CourtLists = ({ campData }) => {
       : slot.courts;
   };
 
+  // ── Stats for the selected day / location ─────────────────────
+  const totalSlots = timeSlots.reduce(
+    (sum, slot) => sum + getFilteredCourtsForSlot(slot).length,
+    0,
+  );
+  const assignedSlots = timeSlots.reduce(
+    (sum, slot) =>
+      sum +
+      getFilteredCourtsForSlot(slot).filter(
+        (court) => (court.assignments || []).length > 0,
+      ).length,
+    0,
+  );
+  const blockedSlots = timeSlots.reduce(
+    (sum, slot) =>
+      sum +
+      getFilteredCourtsForSlot(slot).filter((court) => court.is_blocked).length,
+    0,
+  );
+  const coverage = totalSlots ? Math.round((assignedSlots / totalSlots) * 100) : 0;
+
+  const stats = [
+    {
+      label: "Courts",
+      value: `${filteredCourtHeaders.length}`,
+      icon: <LuLayoutGrid />,
+    },
+    {
+      label: "Time Slots",
+      value: `${timeSlots.length}`,
+      icon: <LuClock />,
+    },
+    {
+      label: "Assigned Slots",
+      value: `${assignedSlots} / ${totalSlots}`,
+      icon: <LuUsers />,
+    },
+    {
+      label: "Blocked Slots",
+      value: `${blockedSlots}`,
+      icon: <LuBan />,
+    },
+  ];
+
   const startEditing = (courtIdentifier, currentName) => {
     setEditingSlotId(courtIdentifier);
     setEditValue(currentName || "");
-    setTimeout(() => inputRef.current?.focus(), 0);
+    setTimeout(() => {
+      // Focusing a hidden input is a no-op; the visible one receives focus.
+      desktopInputRef.current?.focus();
+      mobileInputRef.current?.focus();
+    }, 0);
   };
 
   const saveEditBulk = (locationId, courtNumber) => {
@@ -174,8 +238,6 @@ const CourtLists = ({ campData }) => {
     setSelectedTimeSlot(timeSlot);
     setIsModalOpen(true);
   };
-
-
 
   const handleBlockCourt = () => {
     if (!selectedCourt?.slot_id) return;
@@ -204,7 +266,12 @@ const CourtLists = ({ campData }) => {
     });
 
     if (result.isConfirmed) {
-      bulkToggleBlockMutation.mutate({ scheduleId, date, start_time: time24h, action });
+      bulkToggleBlockMutation.mutate({
+        scheduleId,
+        date,
+        start_time: time24h,
+        action,
+      });
     }
   };
 
@@ -215,63 +282,137 @@ const CourtLists = ({ campData }) => {
   if (loadingInitial || isLoading) return <ScheduleSkeleton />;
   if (availableDates.length === 0)
     return (
-      <div className="text-center py-12 text-gray-500">No available dates.</div>
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <span className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-3xl">
+          <LuCalendarDays />
+        </span>
+        <p className="mt-4 font-medium text-[#333]">No available dates</p>
+        <p className="text-sm text-[#666] mt-1">
+          Build a schedule first to start assigning courts.
+        </p>
+      </div>
     );
 
   return (
     <div className="w-full mt-6 mb-16">
-      {/* Location Filter */}
-      {availableLocations.length > 1 && (
-        <div className="flex gap-4 mb-6 overflow-x-auto pb-4">
-          {availableLocations.map((loc) => (
-            <button
-              key={loc.location_id}
-              onClick={() => handleLocationClick(loc.location_id)}
-              className={`border border-[#00AEEF] px-6 py-3 rounded-lg whitespace-nowrap font-medium transition-all cursor-pointer flex items-center gap-3
-                ${
-                  selectedLocationId === loc.location_id
-                    ? "bg-[#00AEEF] text-white shadow-lg"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-            >
-              <span>{loc.address}</span>
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">
-                {loc.court_count} courts
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Date Filter */}
-      <div className="flex gap-4 mb-8 overflow-x-auto pb-6">
-        {availableDates.map((item) => (
-          <button
-            key={item.formatted}
-            onClick={() => handleDateClick(item)}
-            className={`border border-[#00AEEF] px-6 py-3 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer
-              ${
-                activeFilter === item.formatted
-                  ? "bg-[#00AEEF] text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
-              }`}
+      {/* ── Overview stats ─────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="bg-white border border-border rounded-[10px] px-4 py-3.5 flex items-center gap-3"
           >
-            <div className="text-center font-semibold">{item.formatted}</div>
-          </button>
+            <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
+              {stat.icon}
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs text-[#666]">{stat.label}</p>
+              <p className="text-sm font-medium text-[#333] truncate">
+                {stat.value}
+              </p>
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Schedule Table */}
-      <div className="w-full border border-gray-300 rounded-xl overflow-hidden">
-        <div className="max-h-[90vh] overflow-auto scrollbar-thin scrollbar-thumb-gray-400">
+      {/* ── Schedule coverage ──────────────────────────────────── */}
+      <div className="bg-white border border-border rounded-[10px] px-4 sm:px-5 py-3.5 mt-3 sm:mt-4">
+        <div className="flex items-center justify-between gap-3 text-xs">
+          <span className="font-medium text-[#666]">Schedule coverage</span>
+          <span className="font-semibold text-[#333] whitespace-nowrap">
+            {coverage}% filled
+          </span>
+        </div>
+        <div className="h-2 bg-gray-100 rounded-full mt-2.5 overflow-hidden">
+          <div
+            className="h-2 bg-primary rounded-full transition-all duration-500"
+            style={{ width: `${coverage}%` }}
+          />
+        </div>
+      </div>
+
+      {/* ── Location filter ────────────────────────────────────── */}
+      {availableLocations.length > 1 && (
+        <div className="mt-6">
+          <p className="text-xs font-semibold text-[#666] uppercase tracking-wide mb-2">
+            Location
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 hide-scrollbar">
+            {availableLocations.map((loc) => {
+              const active = selectedLocationId === loc.location_id;
+              return (
+                <button
+                  key={loc.location_id}
+                  onClick={() => handleLocationClick(loc.location_id)}
+                  className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium transition-all cursor-pointer ${
+                    active
+                      ? "bg-primary border-primary text-white shadow-sm"
+                      : "bg-white border-border text-[#333] hover:border-primary/60 hover:text-primary"
+                  }`}
+                >
+                  <LuMapPin
+                    className={`shrink-0 ${active ? "" : "text-primary"}`}
+                    size={15}
+                  />
+                  <span className="max-w-44 truncate">{loc.address}</span>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${
+                      active
+                        ? "bg-white/20"
+                        : "bg-gray-100 text-[#666]"
+                    }`}
+                  >
+                    {loc.court_count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Date filter ────────────────────────────────────────── */}
+      <div className="mt-5">
+        <p className="text-xs font-semibold text-[#666] uppercase tracking-wide mb-2">
+          Camp Day
+        </p>
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 hide-scrollbar">
+          {availableDates.map((item) => {
+            const active = activeFilter === item.formatted;
+            return (
+              <button
+                key={item.formatted}
+                onClick={() => handleDateClick(item)}
+                className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium transition-all cursor-pointer ${
+                  active
+                    ? "bg-primary border-primary text-white shadow-sm"
+                    : "bg-white border-border text-[#333] hover:border-primary/60 hover:text-primary"
+                }`}
+              >
+                <LuCalendarDays
+                  className={`shrink-0 ${active ? "" : "text-primary"}`}
+                  size={15}
+                />
+                {item.formatted}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Desktop: court grid board (lg+) ────────────────────── */}
+      <div className="hidden lg:block w-full border border-border rounded-2xl overflow-hidden bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] mt-6">
+        <div className="max-h-[85vh] overflow-auto scrollbar-thin scrollbar-thumb-gray-300">
           <div className="min-w-max">
             {/* Header */}
-            <div className="flex gap-6 bg-gray-50 border-b border-gray-300 sticky top-0 z-20">
-              <div className="w-34 shrink-0 px-6 py-6 text-lg font-semibold sticky left-0 bg-gray-50 z-30 border-r border-gray-300">
-                <span>Time</span>
+            <div className="flex border-b border-border bg-[#FAFAFA] sticky top-0 z-20">
+              <div className="w-28 shrink-0 sticky left-0 bg-[#FAFAFA] z-30 border-r border-border px-4 py-4 flex items-center justify-center">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#666]">
+                  Time
+                </span>
               </div>
 
-              <div className="flex gap-6 py-6">
+              <div className="flex">
                 {filteredCourtHeaders.map((court) => {
                   const isEditingThisCourt =
                     editingSlotId === court.court_number;
@@ -279,13 +420,12 @@ const CourtLists = ({ campData }) => {
                   return (
                     <div
                       key={court.court_number}
-                      className="shrink-0 w-72 text-center"
+                      className="shrink-0 w-64 px-4 py-3.5 text-center"
                     >
-                      {/* Court name - editable only on Enter */}
                       {isEditingThisCourt ? (
                         <div className="relative">
                           <input
-                            ref={inputRef}
+                            ref={desktopInputRef}
                             type="text"
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
@@ -300,37 +440,36 @@ const CourtLists = ({ campData }) => {
                                 cancelEdit();
                               }
                             }}
-                            className="text-[#00AEEF] font-bold text-xl bg-white border-b-2 border-[#00AEEF] outline-none px-2 py-1 text-center w-full"
+                            className="w-full text-center text-sm font-semibold text-primary bg-white border border-primary/40 rounded-lg px-2 py-1.5 outline-none ring-2 ring-primary/20"
                             placeholder="Court name..."
-                            autoFocus
                           />
-
-                          {/* Optional small hint while editing */}
-                          <div className="absolute -bottom-5 left-0 right-0 text-xs text-gray-500 text-center pointer-events-none">
-                            Press Enter to save • Esc to cancel
+                          <div className="absolute -bottom-5 left-0 right-0 text-[10px] text-gray-400 text-center pointer-events-none whitespace-nowrap">
+                            Enter to save • Esc to cancel
                           </div>
                         </div>
                       ) : (
-                        <div
+                        <button
                           onClick={() =>
                             startEditing(
                               court.court_number,
-                              court.court_name || `Court ${court.court_number}`,
+                              court.court_name ||
+                                `Court ${court.court_number}`,
                             )
                           }
-                          className="text-[#00AEEF] font-bold text-xl cursor-pointer hover:opacity-80 transition-opacity flex justify-center items-center gap-2 group"
+                          className="group inline-flex items-center gap-1.5 font-semibold text-[#333] hover:text-primary transition-colors cursor-pointer"
                           title="Click to edit court name (updates all time slots)"
                         >
-                          {court.court_name || `Court ${court.court_number}`}
-                          <MdModeEditOutline className="opacity-0 group-hover:opacity-100 transition-opacity text-lg" />
-                        </div>
+                          <span className="truncate max-w-[180px]">
+                            {court.court_name || `Court ${court.court_number}`}
+                          </span>
+                          <LuPencil className="opacity-0 group-hover:opacity-100 text-sm text-primary shrink-0 transition-opacity" />
+                        </button>
                       )}
 
-                      {/* Location hint when multiple locations exist */}
                       {!isEditingThisCourt && (
-                        <div className="text-xs text-gray-500 mt-1 truncate">
+                        <p className="text-[11px] text-gray-400 mt-0.5 truncate">
                           {court.address}
-                        </div>
+                        </p>
                       )}
                     </div>
                   );
@@ -348,54 +487,60 @@ const CourtLists = ({ campData }) => {
               return (
                 <div
                   key={slot.time_24h}
-                  className="flex gap-6 border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="flex border-b border-border last:border-b-0 hover:bg-primary/[0.02] transition-colors"
                 >
-                  <div className="w-34 shrink-0 px-6 py-10 text-lg font-medium text-gray-800 sticky left-0 bg-white z-10 border-r border-gray-200 flex flex-col items-center justify-center gap-6">
-                    <span>{slot.time}</span>
+                  <div className="w-28 shrink-0 sticky left-0 bg-white z-10 border-r border-border px-3 py-5 flex flex-col items-center justify-center gap-3">
+                    <span className="text-sm font-semibold text-[#333]">
+                      {slot.time}
+                    </span>
 
                     <button
                       onClick={() =>
                         handleBulkBlock(slot.time_24h, selectedDate)
                       }
                       disabled={bulkToggleBlockMutation.isPending}
-                      className={`rounded-lg px-4 py-2 flex items-center gap-2 text-white font-medium transition-all cursor-pointer
-                        ${
-                          allBlocked
-                            ? "bg-green-400 hover:bg-green-500"
-                            : "bg-red-400 hover:bg-red-500"
-                        } disabled:opacity-70 disabled:cursor-not-allowed`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
+                        allBlocked
+                          ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                          : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                      }`}
                     >
-                      {allBlocked ? (
-                        <HiLockOpen className="w-3 h-3" />
+                      {bulkToggleBlockMutation.isPending ? (
+                        <LuLoaderCircle className="w-3.5 h-3.5 animate-spin" />
+                      ) : allBlocked ? (
+                        <LuLockOpen className="w-3.5 h-3.5" />
                       ) : (
-                        <HiLockClosed className="w-3 h-3" />
+                        <LuLock className="w-3.5 h-3.5" />
                       )}
-                      <span className="text-xs">
-                        {allBlocked ? "Unblock" : "Block"}
-                      </span>
+                      {bulkToggleBlockMutation.isPending
+                        ? allBlocked
+                          ? "Unblocking..."
+                          : "Blocking..."
+                        : allBlocked
+                          ? "Unblock"
+                          : "Block"}
                     </button>
                   </div>
 
-                  <div className="flex gap-6 py-8">
+                  <div className="flex gap-4 px-4 py-4">
                     {filteredCourts.map((court) => {
                       const isBlocked = court?.is_blocked;
                       const referees = court?.assignments || [];
 
                       return (
-                        <div key={court.slot_id} className="shrink-0 w-72">
-                          {/* Court Slot Box */}
-                          <CourtSlotBox
-                            court={court}
-                            timeSlot={slot}
-                            isBlocked={isBlocked}
-                            referees={referees}
-                            campId={campData?.id}
-                            selectedDate={selectedDate}
-                            maxReferees={maxReferees}
-                            onClick={handleBoxClick}
-                            onUndoBlock={handleUndoBlock}
-                          />
-                        </div>
+                        <CourtSlotBox
+                          key={court.slot_id}
+                          court={court}
+                          timeSlot={slot}
+                          isBlocked={isBlocked}
+                          referees={referees}
+                          campId={campData?.id}
+                          selectedDate={selectedDate}
+                          maxReferees={maxReferees}
+                          onClick={handleBoxClick}
+                          onUndoBlock={handleUndoBlock}
+                          isBlockPending={toggleBlockMutation.isPending}
+                        />
                       );
                     })}
                   </div>
@@ -404,6 +549,98 @@ const CourtLists = ({ campData }) => {
             })}
           </div>
         </div>
+      </div>
+
+      {/* ── Mobile: time-slot cards (<lg) ──────────────────────── */}
+      <div className="lg:hidden space-y-4 mt-6">
+        {timeSlots.map((slot) => {
+          const filteredCourts = getFilteredCourtsForSlot(slot);
+          const allBlocked = filteredCourts.every((court) => court.is_blocked);
+
+          return (
+            <div
+              key={slot.time_24h}
+              className="bg-white border border-border rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+            >
+              {/* Time slot header */}
+              <div className="flex items-center justify-between gap-3 px-4 py-3.5 bg-[#FAFAFA] border-b border-border">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <LuClock size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[#333] leading-tight">
+                      {slot.time}
+                    </p>
+                    <p className="text-xs text-[#666]">
+                      {filteredCourts.length} court
+                      {filteredCourts.length === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleBulkBlock(slot.time_24h, selectedDate)}
+                  disabled={bulkToggleBlockMutation.isPending}
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer disabled:opacity-60 ${
+                    allBlocked
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : "bg-white text-red-500 border-red-200 hover:bg-red-50"
+                  }`}
+                >
+                  {bulkToggleBlockMutation.isPending ? (
+                    <LuLoaderCircle className="w-3.5 h-3.5 animate-spin" />
+                  ) : allBlocked ? (
+                    <HiLockOpen className="w-3.5 h-3.5" />
+                  ) : (
+                    <HiLockClosed className="w-3.5 h-3.5" />
+                  )}
+                  {bulkToggleBlockMutation.isPending
+                    ? allBlocked
+                      ? "Unblocking..."
+                      : "Blocking..."
+                    : allBlocked
+                      ? "Unblock all"
+                      : "Block all"}
+                </button>
+              </div>
+
+              {/* Courts */}
+              <div className="divide-y divide-border">
+                {filteredCourts.map((court) => (
+                  <CourtSlotCardMobile
+                    key={court.slot_id}
+                    court={court}
+                    timeSlot={slot}
+                    isBlocked={court?.is_blocked}
+                    campId={campData?.id}
+                    selectedDate={selectedDate}
+                    maxReferees={maxReferees}
+                    address={
+                      filteredCourtHeaders.find(
+                        (h) => h.court_number === court.court_number,
+                      )?.address
+                    }
+                    onOpen={handleBoxClick}
+                    onToggleBlock={handleUndoBlock}
+                    isEditing={editingSlotId === court.court_number}
+                    editValue={editValue}
+                    setEditValue={setEditValue}
+                    inputRef={mobileInputRef}
+                    isTogglePending={toggleBlockMutation.isPending}
+                    onStartEdit={(name) =>
+                      startEditing(court.court_number, name)
+                    }
+                    onSaveEdit={(locationId, courtNumber) =>
+                      saveEditBulk(locationId, courtNumber)
+                    }
+                    onCancelEdit={cancelEdit}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <ScheduleActionButtons campId={campData?.id} />
@@ -418,6 +655,7 @@ const CourtLists = ({ campData }) => {
         campId={campData?.id}
         maxReferees={maxReferees}
         selectedDate={selectedDate}
+        isBlocking={toggleBlockMutation.isPending}
         onAssignSuccess={handleAssignSuccess}
       />
     </div>

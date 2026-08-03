@@ -21,7 +21,7 @@ const LocationAutocomplete = ({ register, setValue, errors }) => {
 
   return (
     <div className="w-full flex flex-col gap-2 sm:gap-3">
-      <label className="capitalize font-medium text-[#333] text-sm sm:text-base lg:text-lg">
+      <label className="capitalize font-medium text-[#333] text-base">
         Location <span className="text-red-500">*</span>
       </label>
 
@@ -37,7 +37,7 @@ const LocationAutocomplete = ({ register, setValue, errors }) => {
           <input
             type="text"
             placeholder="e.g., Los Angeles, CA or search gym/stadium..."
-            className="w-full px-6 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00AEEF] focus:border-[#00AEEF] text-base bg-white shadow-sm transition-all duration-200"
+            className="w-full px-4 sm:py-3 py-3 rounded-lg placeholder-[#5A5C5F] outline-none text-black shadow-input border border-black/20 bg-[rgba(255,255,255,0.05)] focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all duration-200"
             {...register("location", {
               required: "Location is required",
             })}

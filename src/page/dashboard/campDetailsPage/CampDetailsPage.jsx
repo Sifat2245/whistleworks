@@ -47,6 +47,15 @@ export default function CampDetailsPage() {
     referee: ["performance", "my-games", "roster", "ranking-report"],
   };
 
+  // Tabs that should be visible to the user based on registration status.
+  // Unregistered users only see "Camp Details" — the rest are hidden.
+  const evaluatorVisibleTabs = isEvaluatorRegistered
+    ? ["camp-details", ...allowedTabs.evaluator]
+    : ["camp-details"];
+  const refereeVisibleTabs = isRefereeRegistered
+    ? ["camp-details", ...allowedTabs.referee]
+    : ["camp-details"];
+
   const isTabAllowed =
     allowedTabs.common.includes(tab) ||
     (isEvaluator &&
@@ -68,9 +77,9 @@ export default function CampDetailsPage() {
       <div className="md:flex items-center justify-between container px-4">
         <ActiveCmpsBackBtn label="Active Camps" />
         {pathname.includes("evaluator-dashboard") ? (
-          <EvolatorCampTabs />
+          <EvolatorCampTabs visibleTabs={evaluatorVisibleTabs} />
         ) : (
-          <CampDetailsTabs />
+          <CampDetailsTabs visibleTabs={refereeVisibleTabs} />
         )}
       </div>
       <Divider className="my-6" />

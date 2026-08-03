@@ -96,7 +96,7 @@ const CommonInputWrapper = ({
       ) : type === "select" ? (
         <div
           className={cn(
-            "w-full text-black border-black/20 flex gap-2 px-4 py-2 sm:min-h-[66px] items-center border rounded-lg",
+            "w-full text-black border-black/20 flex gap-2 px-4 sm:min-h-[66px] items-center border rounded-lg",
             selectClass,
           )}
         >

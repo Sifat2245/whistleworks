@@ -96,33 +96,28 @@ const ScheduleActionButtons = ({ campId }) => {
   };
 
   return (
-    <div className="flex flex-col-reverse md:flex-row gap-4 md:gap-0 justify-between items-center mt-10">
-      {/* Left Side */}
-      <div className="flex flex-col md:flex-row gap-6">
+    <div className="mt-10 pt-6 border-t border-border flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+      {/*
+        Mobile (default): Publish (full width) then Auto-Assign (full width),
+        then Clear & Delete side by side — Publish shows first.
+        Desktop (lg+): this group moves to the right via lg:order-2, keeping
+        the original Auto-Assign → Publish order.
+      */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3 lg:order-2">
+        {/* Publish — primary action, shown first on mobile, rightmost on desktop */}
         <CommonSubmitBtn
-          className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg transition-colors"
-          onClick={handleDelete}
-          isLoading={deleteMutation.isPending}
-          disabled={deleteMutation.isPending}
+          variant="primary"
+          className="w-full lg:w-auto lg:order-2"
+          onClick={handlePublish}
+          isLoading={publishMutation.isPending}
+          disabled={publishMutation.isPending}
         >
-          Delete Schedule
+          Publish Schedule
         </CommonSubmitBtn>
 
-        <CommonSubmitBtn
-          onClick={handleClearSchedule}
-          isLoading={clearSchedule.isPending}
-          disabled={clearSchedule.isPending}
-          className="border border-primary bg-white text-primary px-8 py-3! hover:bg-gray-50"
-        >
-          {clearSchedule.isPending ? <LoaderV2/> : "Clear Schedule"}
-        </CommonSubmitBtn>
-      </div>
-
-      {/* Right Side */}
-      <div className="flex flex-col-reverse md:flex-row gap-6 items-center relative">
         {/* Auto-Assign Button with Tooltip */}
         <div
-          className="relative"
+          className="relative w-full lg:w-auto lg:order-1"
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
@@ -131,24 +126,30 @@ const ScheduleActionButtons = ({ campId }) => {
             variant="primary"
             isLoading={autoAssign.isPending}
             disabled={autoAssign.isPending}
+            className="w-full"
           >
             Auto-Assign Referees
           </CommonSubmitBtn>
 
           {/* Tooltip */}
           {showTooltip && (
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 z-50">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-w-[calc(100vw-2rem)] z-50">
               <div className="bg-gray-800 text-white text-sm rounded-lg shadow-2xl p-5 border border-gray-700">
-                <h4 className="font-bold text-lg mb-3 text-center">Auto Assign Rules</h4>
+                <h4 className="font-bold text-lg mb-3 text-center">
+                  Auto Assign Rules
+                </h4>
                 <ol className="list-decimal list-inside space-y-3 text-left">
                   <li>
                     A <strong>MINIMUM of 1 game rest</strong> between games
                   </li>
                   <li>
-                    Referees will <strong>not be assigned</strong> to previously assigned court unless no other courts are available
+                    Referees will <strong>not be assigned</strong> to
+                    previously assigned court unless no other courts are
+                    available
                   </li>
                   <li>
-                    Referees will be assigned <strong>similar number of games</strong>
+                    Referees will be assigned{" "}
+                    <strong>similar number of games</strong>
                   </li>
                 </ol>
                 <p className="mt-4 text-xs italic text-gray-300 text-center">
@@ -163,15 +164,31 @@ const ScheduleActionButtons = ({ campId }) => {
             </div>
           )}
         </div>
+      </div>
 
+      {/*
+        Mobile: Clear & Delete side by side (grid-cols-2).
+        Desktop (lg+): this group moves to the left via lg:order-1.
+      */}
+      <div className="grid grid-cols-2 gap-3 lg:flex lg:gap-3 lg:order-1">
+        {/* Delete */}
         <CommonSubmitBtn
-          variant="primary"
-          className={"w-full sm:w-auto"}
-          onClick={handlePublish}
-          isLoading={publishMutation.isPending}
-          disabled={publishMutation.isPending}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 lg:px-8 py-3 rounded-lg transition-colors"
+          onClick={handleDelete}
+          isLoading={deleteMutation.isPending}
+          disabled={deleteMutation.isPending}
         >
-          Publish Schedule
+          Delete Schedule
+        </CommonSubmitBtn>
+
+        {/* Clear */}
+        <CommonSubmitBtn
+          onClick={handleClearSchedule}
+          isLoading={clearSchedule.isPending}
+          disabled={clearSchedule.isPending}
+          className="border border-primary bg-white text-primary px-4 lg:px-8 py-3 hover:bg-gray-50"
+        >
+          {clearSchedule.isPending ? <LoaderV2 /> : "Clear Schedule"}
         </CommonSubmitBtn>
       </div>
     </div>

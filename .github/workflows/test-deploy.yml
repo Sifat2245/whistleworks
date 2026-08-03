@@ -1,0 +1,102 @@
+name: Deploy to Staging (Test Server)
+
+on:
+  push:
+    branches:
+      - test
+
+env:
+  DOMAIN_NAME: test.whistleworks.org
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Create Staging .env File
+        run: |
+          cat > .env << 'EOF'
+          ${{ secrets.TEST_ENV_FILE }}
+          EOF
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.TEST_SSH_KEY }}
+          SSH_HOST: ${{ secrets.TEST_SSH_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+
+          printf "%s" "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+          # Verify the private key is valid
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+
+      - name: Deploy via SSH
+        env:
+          SSH_HOST: ${{ secrets.TEST_SSH_HOST }}
+          SSH_USER: ${{ secrets.TEST_SSH_USER }}
+        run: |
+          RELEASE_NAME="release-${{ github.sha }}-${{ github.run_id }}"
+          TAR_FILE="${RELEASE_NAME}.tar.gz"
+
+          tar -czf "$TAR_FILE" -C dist .
+
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -o IdentitiesOnly=yes \
+            "$SSH_USER@$SSH_HOST" \
+            "mkdir -p ~/htdocs/releases"
+
+          scp \
+            -i ~/.ssh/id_ed25519 \
+            -o IdentitiesOnly=yes \
+            "$TAR_FILE" \
+            "$SSH_USER@$SSH_HOST:~/htdocs/releases/"
+
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -o IdentitiesOnly=yes \
+            "$SSH_USER@$SSH_HOST" \
+            "export RELEASE_NAME='$RELEASE_NAME' TAR_FILE='$TAR_FILE' DOMAIN_NAME='${{ env.DOMAIN_NAME }}'; bash -s" << 'EOF'
+          set -e
+
+          HTDOCS="$HOME/htdocs"
+          RELEASES="$HTDOCS/releases"
+          TARGET_DIR="$RELEASES/$RELEASE_NAME"
+          FULL_TAR_PATH="$RELEASES/$TAR_FILE"
+          SYMLINK="$HTDOCS/$DOMAIN_NAME"
+
+          mkdir -p "$TARGET_DIR"
+
+          tar -xzf "$FULL_TAR_PATH" -C "$TARGET_DIR"
+
+          rm -f "$FULL_TAR_PATH"
+
+          ln -sfn "$TARGET_DIR" "${SYMLINK}_tmp"
+          mv -Tf "${SYMLINK}_tmp" "$SYMLINK"
+
+          cd "$RELEASES"
+
+          ls -1dt release-* 2>/dev/null | tail -n +6 | xargs -r rm -rf
+          EOF
