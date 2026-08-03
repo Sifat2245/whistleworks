@@ -2,13 +2,14 @@ import { useState } from "react";
 import NoticePopup from "@/components/shared/NoticePopup";
 import DashboardHeader from "@/components/shared/DashboardHeader";
 import { Outlet } from "react-router-dom";
+import NoticeTopbar from "@/components/shared/NoticeTopbar";
 
 const DirectorLayout = () => {
     const [isNoticeOpen, setIsNoticeOpen] = useState(false);
 
     return (
         <div className="w-full relative">
-            {/* <NoticeTopbar onViewUpdate={() => setIsNoticeOpen(true)} /> */}
+            <NoticeTopbar onViewUpdate={() => setIsNoticeOpen(true)} />
             <DashboardHeader />
             <main className="w-full container pt-10">
                 <Outlet />
