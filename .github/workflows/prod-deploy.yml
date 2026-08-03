@@ -52,11 +52,14 @@ jobs:
           TAR_FILE="${RELEASE_NAME}.tar.gz"
           tar -czf "$TAR_FILE" -C dist .
 
-          # 3. Upload tarball to releases folder
-          scp "$TAR_FILE" "$SSH_USER@$SSH_HOST:~/htdocs/releases/"
+          # 3. Create releases directory on remote server if it doesn't exist
+          ssh -o PubkeyAcceptedKeyTypes=+ssh-rsa "$SSH_USER@$SSH_HOST" "mkdir -p ~/htdocs/releases"
 
-          # 4. Extract and atomically update symlink
-          ssh "$SSH_USER@$SSH_HOST" "export RELEASE_NAME='$RELEASE_NAME' TAR_FILE='$TAR_FILE' DOMAIN_NAME='${{ env.DOMAIN_NAME }}'; bash -s" << 'EOF'
+          # 4. Upload tarball to releases folder (with legacy RSA fallback support)
+          scp -o PubkeyAcceptedKeyTypes=+ssh-rsa "$TAR_FILE" "$SSH_USER@$SSH_HOST:~/htdocs/releases/"
+
+          # 5. Extract and atomically update symlink (with legacy RSA fallback support)
+          ssh -o PubkeyAcceptedKeyTypes=+ssh-rsa "$SSH_USER@$SSH_HOST" "export RELEASE_NAME='$RELEASE_NAME' TAR_FILE='$TAR_FILE' DOMAIN_NAME='${{ env.DOMAIN_NAME }}'; bash -s" << 'EOF'
             set -e
 
             HTDOCS="$HOME/htdocs"
