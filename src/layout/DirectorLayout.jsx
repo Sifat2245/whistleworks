@@ -9,7 +9,7 @@ const DirectorLayout = () => {
 
     return (
         <div className="w-full relative">
-            <NoticeTopbar onViewUpdate={() => setIsNoticeOpen(true)} />
+            {/* <NoticeTopbar onViewUpdate={() => setIsNoticeOpen(true)} /> */}
             <DashboardHeader />
             <main className="w-full container pt-10">
                 <Outlet />
