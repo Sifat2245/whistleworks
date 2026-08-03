@@ -3,19 +3,16 @@ import { useState, useEffect } from "react";
 import { Select, DatePicker, Spin, Button } from "antd";
 import filterIcon from "@/assets/svg/mage_filter.png";
 import CommonText from "@/components/common/CommonText";
-import CampCard from "@/components/reusable/CampCard";
+import CampCard from "@/components/shared/CampCard";
 import { ReloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useSearchParams } from "react-router-dom";
-import useAxiosPublic from "@/hooks/useAxiosPublic";
-import { useQuery } from "@tanstack/react-query";
-import { useCamps } from "@/hooks/getAllCamps";
+import { usePublicCamps, useSportsTypes, useLocations } from "@/hooks/api/useNoAuthCamps";
 import PaginationV2 from "@/components/common/PaginationV2";
 
 const { RangePicker } = DatePicker;
 
 const FilterCamps = ({ limit }) => {
-  const axiosPublic = useAxiosPublic();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Read from URL
@@ -46,22 +43,10 @@ const FilterCamps = ({ limit }) => {
   const [currentPage, setCurrentPage] = useState(initialPage);
 
   // Fetch Sports Types
-  const { data: sportsTypes = [], isLoading: sportsLoading } = useQuery({
-    queryKey: ["sports-types"],
-    queryFn: async () => {
-      const res = await axiosPublic.get("/v1/camp/sports-type");
-      return res?.data?.data || [];
-    },
-  });
+  const { data: sportsTypes = [], isLoading: sportsLoading } = useSportsTypes();
 
   // Fetch Locations
-  const { data: locationList = [], isLoading: locationsLoading } = useQuery({
-    queryKey: ["locations"],
-    queryFn: async () => {
-      const res = await axiosPublic.get("/v1/camp/locations");
-      return res?.data?.data?.location_list || [];
-    },
-  });
+  const { data: locationList = [], isLoading: locationsLoading } = useLocations();
 
   // Build filters
   const filters = {
@@ -82,7 +67,7 @@ const FilterCamps = ({ limit }) => {
     camps = [],
     isLoading: campsLoading,
     pagination = {},
-  } = useCamps(filters);
+  } = usePublicCamps(filters);
 
   const totalItems = pagination.total || 0;
   const totalPages = pagination.last_page || 1;

@@ -1,4 +1,4 @@
-import NoticePopup from "@/components/dashboard/NoticePopup";
+import NoticePopup from "@/components/shared/NoticePopup";
 import DashboardHeader from "@/components/shared/DashboardHeader";
 import { Outlet } from "react-router-dom";
 

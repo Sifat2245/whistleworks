@@ -2,48 +2,48 @@ import { createBrowserRouter } from "react-router-dom";
 import Home from "@/page/home/Home";
 import RootLayout from "@/layout/RootLayout";
 import DirectorLayout from "@/layout/DirectorLayout";
-import Dashboard from "@/page/director-dashboard/dashboard/Dashboard";
+import Dashboard from "@/page/dashboard/director-dashboard/dashboard/Dashboard";
 import EvolatorLayout from "@/layout/EvolatorLayout";
-import EvolatorDashboard from "@/page/EvolatorDashboard/EvolatorDashboard";
+import EvolatorDashboard from "@/page/dashboard/EvolatorDashboard/EvolatorDashboard";
 import RefereeLayout from "@/layout/RefereeLayout";
-import RefereeDashboard from "@/page/RefereeDashboard/RefereeDashboard";
+import RefereeDashboard from "@/page/dashboard/RefereeDashboard/RefereeDashboard";
 import AuthLayout from "@/layout/AuthLayout";
 import SignIn from "@/page/auth/SignIn";
 import SignUp from "@/page/auth/SignUp";
 import ForgetPassword from "@/page/auth/ForgetPassword";
 import VerifyOtp from "@/page/auth/VerifyOtp";
 import ResetPassword from "@/page/auth/ResetPassword";
-import CreateNewCamp from "@/page/director-dashboard/create-new-camp/CreateNewCamp";
-import BuildSchedule from "@/page/director-dashboard/build-schedule/BuildSchedule";
-import CreatedCourt from "@/page/director-dashboard/court-list/CreatedCourt";
-import Ranking from "@/page/DirectorDashboard/Ranking";
-import Roster from "@/page/DirectorDashboard/Roster";
-import Evaluate from "@/page/DirectorDashboard/Evaluate";
-import ActiveCamps from "@/page/RefereeDashboard/ActiveCamps";
-import Profile from "@/components/common/Profile";
-import PreviousCamps from "@/page/RefereeDashboard/PreviousCamps";
-import FindCamps from "@/page/RefereeDashboard/FindCamps";
-import CampDetailsPage from "@/page/RefereeDashboard/CampDetailsPage";
-import EvolatorFindCamp from "@/page/EvolatorDashboard/EvolatorFindCamp";
-import ActiveEvaluate from "@/page/DirectorDashboard/ActiveEvaluate";
-import ActiveCrews from "@/page/DirectorDashboard/ActiveCrews";
+import CreateNewCamp from "@/page/dashboard/director-dashboard/create-new-camp/CreateNewCamp";
+import BuildSchedule from "@/page/dashboard/director-dashboard/build-schedule/BuildSchedule";
+import CreatedCourt from "@/page/dashboard/director-dashboard/court-list/CreatedCourt";
+import Ranking from "@/page/dashboard/director-dashboard/ranking/Ranking";
+import Roster from "@/page/dashboard/director-dashboard/roster/Roster";
+import Evaluate from "@/page/dashboard/director-dashboard/evaluate/Evaluate";
+import ActiveCamps from "@/page/dashboard/RefereeDashboard/ActiveCamps";
+import Profile from "@/page/dashboard/profile/Profile";
+import PreviousCamps from "@/page/dashboard/RefereeDashboard/PreviousCamps";
+import FindCamps from "@/page/dashboard/RefereeDashboard/FindCamps";
+import CampDetailsPage from "@/page/dashboard/campDetailsPage/CampDetailsPage";
+import EvolatorFindCamp from "@/page/dashboard/EvolatorDashboard/EvolatorFindCamp";
+import ActiveEvaluate from "@/page/dashboard/director-dashboard/evaluators/ActiveEvaluate";
+import ActiveCrews from "@/page/dashboard/director-dashboard/crews/ActiveCrews";
 import AboutUs from "@/page/about-us/AboutUs";
 import RoleBasedPrivateRoute from "@/routes/RoleBasedPrivateRoute";
 import ResetPasswordOtp from "@/page/auth/ResetPasswordOtp";
-import CampOverview from "@/page/director-dashboard/camp-overview/CampOverview";
-import axiosSecureInstance from "@/hooks/axiosInstace";
-import EditCampPage from "@/page/director-dashboard/edit-camp/EditCampPage";
-import PaymentSuccess from "@/page/RefereeDashboard/PaymentSuccess";
-import PaymentCancel from "@/page/RefereeDashboard/PaymentCancel";
-import MyCamps from "@/page/EvolatorDashboard/MyCamp";
-import CrewDetailsPage from "@/page/DirectorDashboard/CrewDetailsPage";
-import MakeAnnouncement from "@/page/DirectorDashboard/MakeAnnouncement";
+import CampOverview from "@/page/dashboard/director-dashboard/camp-overview/CampOverview";
+import EditCampPage from "@/page/dashboard/director-dashboard/edit-camp/EditCampPage";
+import PaymentSuccess from "@/page/dashboard/RefereeDashboard/PaymentSuccess";
+import PaymentCancel from "@/page/dashboard/RefereeDashboard/PaymentCancel";
+import MyCamps from "@/page/dashboard/EvolatorDashboard/MyCamp";
+import CrewDetailsPage from "@/page/dashboard/director-dashboard/crews/crew-details/CrewDetailsPage";
+import MakeAnnouncement from "@/page/dashboard/director-dashboard/make-announcement/MakeAnnouncement";
 import AllCamps from "@/page/all-camps/AllCamps";
 import CampDetailsPageForNoAuth from "@/page/all-camps/camp-details/CampDetailsPageForNoAuth";
-import CampSchedules from "@/page/DirectorDashboard/CampSchedules";
+import CampSchedules from "@/page/dashboard/director-dashboard/camp-schedules/CampSchedules";
 import PrivacyPolicy from "@/page/privacy-policy/PrivacyPolicy";
 import TermsConditions from "@/page/terms-conditions/TermsConditions";
 import FAQ from "@/page/faq/FAQ";
+import StripeConnectionSuccess from "@/page/dashboard/director-dashboard/strip-connection-success";
 
 const router = createBrowserRouter([
   {
@@ -113,12 +113,6 @@ const router = createBrowserRouter([
       {
         path: "court-list/:id",
         element: <CreatedCourt />,
-        loader: async ({ params }) => {
-          const response = await axiosSecureInstance.get(
-            `/v1/camp/details/${params.id}`,
-          );
-          return response;
-        },
       },
       {
         path: "camp-schedules/:id",
@@ -156,10 +150,10 @@ const router = createBrowserRouter([
         path: "profile",
         element: <Profile />,
       },
-      // {
-      //   path: "profile/:id",
-      //   element: <EditProfile />
-      // }
+      {
+        path: "stripe-connection-success",
+        element: <StripeConnectionSuccess />,
+      },
     ],
   },
 
@@ -182,8 +176,6 @@ const router = createBrowserRouter([
       {
         path: "camp/:id",
         element: <CampDetailsPage />,
-        loader: async ({ params }) =>
-          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
       },
       {
         path: "previous-camps",
@@ -219,8 +211,6 @@ const router = createBrowserRouter([
       {
         path: "camp/:id",
         element: <CampDetailsPage />,
-        loader: async ({ params }) =>
-          await axiosSecureInstance.get(`/v1/camp/details/${params.id}`),
       },
       {
         path: "previous-camps",

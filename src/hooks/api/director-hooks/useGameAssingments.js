@@ -136,6 +136,53 @@ export const useBulkToggleBlock = (campId, selectedDate, callbacks = {}) => {
 };
 
 // ════════════════════════════════════════════════════════════════════
+//  MUTATION HOOKS  —  CourtSlotBox (remove assignment)
+// ════════════════════════════════════════════════════════════════════
+
+// ── Auto-assign referees ────────────────────────────────────────
+export const useAutoAssign = (campId, callbacks = {}) => {
+  const { autoAssignReferees } = useGameAssignmentService();
+  const { onSuccess: onSuccessCb, onError: onErrorCb } = callbacks;
+
+  return useMutation({
+    mutationKey: ["auto-assign", campId],
+    mutationFn: () => autoAssignReferees(campId),
+    onSuccess: (data, variables, context) => {
+      toast.success(
+        data?.data?.message ||
+          "All available referees assigned successfully!",
+      );
+      if (onSuccessCb) onSuccessCb(data, variables, context);
+    },
+    onError: (error) => {
+      toast.error(
+        error?.response?.data?.message || "Failed to auto-assign referees",
+      );
+      if (onErrorCb) onErrorCb(error);
+    },
+  });
+};
+
+export const useRemoveAssignment = (campId, selectedDate) => {
+  const queryClient = useQueryClient();
+  const { removeAssignment } = useGameAssignmentService();
+
+  return useMutation({
+    mutationKey: ["remove-assignment", campId],
+    mutationFn: (assignmentId) => removeAssignment(assignmentId),
+    onSuccess: () => {
+      toast.success("Assignment removed successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["court-info", campId, selectedDate],
+      });
+    },
+    onError: () => {
+      toast.error("Failed to remove assignment");
+    },
+  });
+};
+
+// ════════════════════════════════════════════════════════════════════
 //  MUTATION HOOKS  —  ScheduleAddModal
 // ════════════════════════════════════════════════════════════════════
 

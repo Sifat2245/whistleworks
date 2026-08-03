@@ -1,6 +1,5 @@
-import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
+import { usePublicCampDetails } from "@/hooks/api/useNoAuthCamps";
 import {
   FiCalendar,
   FiMapPin,
@@ -16,19 +15,11 @@ import Swal from "sweetalert2";
 const CampDetailsPageForNoAuth = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const axiosInstance = useAxiosSecure();
-
   const {
     data: campDetails,
     isLoading,
     isError,
-  } = useQuery({
-    queryKey: ["camp-details", id],
-    queryFn: async () => {
-      const response = await axiosInstance.get(`/no-auth/camp/details/${id}`);
-      return response?.data?.data;
-    },
-  });
+  } = usePublicCampDetails(id);
 
   if (isLoading) {
     return (
