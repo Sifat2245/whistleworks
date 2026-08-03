@@ -1,0 +1,84 @@
+name: Deploy to Staging (Test Server)
+
+on:
+  push:
+    branches:
+      - test
+
+env:
+  DOMAIN_NAME: test.whistleworks.org
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Create Staging .env File
+        run: |
+          echo "${{ secrets.TEST_ENV_FILE }}" > .env
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Deploy via SSH (Atomic Symlink)
+        env:
+          SSH_KEY: ${{ secrets.TEST_SSH_KEY }}
+          SSH_HOST: ${{ secrets.TEST_SSH_HOST }}
+          SSH_USER: ${{ secrets.TEST_SSH_USER }}
+        run: |
+          # 1. Setup SSH agent and add key
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+          # 2. Package build directory
+          RELEASE_NAME="release-${{ github.sha }}-${{ github.run_id }}"
+          TAR_FILE="${RELEASE_NAME}.tar.gz"
+          tar -czf "$TAR_FILE" -C dist .
+
+          # 3. Upload tarball to releases folder
+          scp "$TAR_FILE" "$SSH_USER@$SSH_HOST:~/htdocs/releases/"
+
+          # 4. Extract and atomically update symlink
+          ssh "$SSH_USER@$SSH_HOST" "export RELEASE_NAME='$RELEASE_NAME' TAR_FILE='$TAR_FILE' DOMAIN_NAME='${{ env.DOMAIN_NAME }}'; bash -s" << 'EOF'
+            set -e
+
+            HTDOCS="$HOME/htdocs"
+            RELEASES="$HTDOCS/releases"
+            TARGET_DIR="$RELEASES/$RELEASE_NAME"
+            FULL_TAR_PATH="$RELEASES/$TAR_FILE"
+            SYMLINK="$HTDOCS/$DOMAIN_NAME"
+
+            # Create target folder
+            mkdir -p "$TARGET_DIR"
+
+            # Extract files
+            tar -xzf "$FULL_TAR_PATH" -C "$TARGET_DIR"
+
+            # Remove tarball
+            rm -f "$FULL_TAR_PATH"
+
+            # Atomic Symlink Swap
+            ln -sfn "$TARGET_DIR" "${SYMLINK}_tmp"
+            mv -Tf "${SYMLINK}_tmp" "$SYMLINK"
+
+            # Keep only the last 5 releases to conserve disk space
+            cd "$RELEASES"
+            ls -1t | grep '^release-' | tail -n +6 | xargs -I {} rm -rf {}
+          EOF

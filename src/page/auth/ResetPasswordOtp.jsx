@@ -10,6 +10,7 @@ import { useVerifyResetOtp } from "@/hooks/api/useAuth";
 
 const ResetPasswordOtp = () => {
   const get_email = sessionStorage.getItem("verify_email");
+  // eslint-disable-next-line no-unused-vars
   const get_otp = sessionStorage.getItem("testing_purpose_otp");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState(false);
