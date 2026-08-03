@@ -38,8 +38,7 @@ jobs:
         run: npm run build
 
       - name: Configure SSH
-        env:
-        SSH_KEY: ${{ secrets.TEST_SSH_KEY }}
+        env: SSH_KEY: ${{ secrets.TEST_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
 
