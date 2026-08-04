@@ -1,5 +1,5 @@
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { useState, useRef, useEffect, useCallback, useId } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useId } from "react";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
@@ -43,6 +43,49 @@ const timeAgo = (date) => {
   } catch {
     return "recently";
   }
+};
+
+/* ── Message with inline expand/collapse ────────────────── */
+const TruncatedMessage = ({ text, unread }) => {
+  const msgRef = useRef(null);
+  const [isClamped, setIsClamped] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  // Show "See more" only when the message actually overflows the 2-line clamp.
+  // useLayoutEffect measures before paint so the button doesn't flash in late;
+  // also collapses any open item when its message changes.
+  useLayoutEffect(() => {
+    const el = msgRef.current;
+    if (!el) return;
+    setIsClamped(el.scrollHeight > el.clientHeight + 1);
+    setExpanded(false);
+  }, [text]);
+
+  return (
+    <div>
+      <p
+        ref={msgRef}
+        className={`mt-0.5 text-xs leading-relaxed ${expanded ? "" : "line-clamp-2"} ${
+          unread ? "font-medium text-gray-700" : "text-gray-500"
+        }`}
+      >
+        {text}
+      </p>
+      {isClamped && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((v) => !v);
+          }}
+          aria-expanded={expanded}
+          className="mt-1 rounded underline text-[11px] font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        >
+          {expanded ? "See less" : "See more"}
+        </button>
+      )}
+    </div>
+  );
 };
 
 /* ── Small presentational pieces ────────────────────────── */
@@ -120,15 +163,7 @@ const NotificationItem = ({ notif, isLast, lastRef, onOpen, onDelete, isDeleting
           {d.title || d.subject || "Notification"}
         </h4>
 
-        {d.message && (
-          <p
-            className={`mt-0.5 line-clamp-2 text-xs leading-relaxed ${
-              isUnread ? "font-medium text-gray-700" : "text-gray-500"
-            }`}
-          >
-            {d.message}
-          </p>
-        )}
+        {d.message && <TruncatedMessage text={d.message} unread={isUnread} />}
 
         {(d.camp?.name || d.game_slot) && (
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
