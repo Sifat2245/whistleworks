@@ -1,5 +1,5 @@
 // ActiveCamps.jsx
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import ActiveCmpsBackBtn from "@/components/common/ActiveCmpsBackBtn";
 import CommonText from "@/components/common/CommonText";
 import CampCard from "@/components/shared/CampCard";
@@ -20,6 +20,8 @@ const PER_PAGE_OPTIONS = [5, 10, 20, 30, 50];
 
 export default function ActiveCamps() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { pathname } = useLocation();
+  const isDashboardRoot = pathname === "/referee-dashboard";
 
   // Get params from URL
   const urlTab = searchParams.get("tab") || TAB_KEYS.CHECKED_IN;
@@ -126,10 +128,10 @@ export default function ActiveCamps() {
   });
 
   return (
-    <section className="container w-full px-4 mx-auto mt-5">
-      <ActiveCmpsBackBtn label="Active Camps" />
+    <section className="w-full mt-2">
+      {!isDashboardRoot && <ActiveCmpsBackBtn label="Active Camps" />}
 
-      <div className="mt-8">
+      <div className="mt-6">
         <div className="flex justify-between items-center mb-6">
           <Tabs activeKey={activeTab} onChange={handleTabChange} size="large">
             <TabPane

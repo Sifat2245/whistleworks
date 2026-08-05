@@ -4,7 +4,7 @@ import { FiArrowRight } from "react-icons/fi";
 const NoticeTopbar = ({ onViewUpdate }) => {
   return (
     <div className="w-full bg-gradient-to-r from-[#0096D6] via-[#00AEEF] to-[#33C6F4] text-white">
-      <div className="container flex items-center justify-center py-2.5 px-4">
+      <div className="container flex h-11 items-center justify-center px-4">
         <div className="flex flex-wrap items-center justify-center gap-2 text-center">
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/15">
             <IoMegaphoneOutline className="h-4 w-4" />

@@ -4,9 +4,7 @@ import RootLayout from "@/layout/RootLayout";
 import DirectorLayout from "@/layout/DirectorLayout";
 import Dashboard from "@/page/dashboard/director-dashboard/dashboard/Dashboard";
 import EvolatorLayout from "@/layout/EvolatorLayout";
-import EvolatorDashboard from "@/page/dashboard/EvolatorDashboard/EvolatorDashboard";
 import RefereeLayout from "@/layout/RefereeLayout";
-import RefereeDashboard from "@/page/dashboard/RefereeDashboard/RefereeDashboard";
 import AuthLayout from "@/layout/AuthLayout";
 import SignIn from "@/page/auth/SignIn";
 import SignUp from "@/page/auth/SignUp";
@@ -44,6 +42,7 @@ import PrivacyPolicy from "@/page/privacy-policy/PrivacyPolicy";
 import TermsConditions from "@/page/terms-conditions/TermsConditions";
 import FAQ from "@/page/faq/FAQ";
 import StripeConnectionSuccess from "@/page/dashboard/director-dashboard/strip-connection-success";
+import DirectorPreviousCamps from "@/page/dashboard/director-dashboard/previous-camps/PreviousCamps";
 
 const router = createBrowserRouter([
   {
@@ -93,6 +92,10 @@ const router = createBrowserRouter([
         index: true,
         path: "/director-dashboard",
         element: <Dashboard />,
+      },
+      {
+        path: "previous-camps",
+        element: <DirectorPreviousCamps />,
       },
       {
         path: "camp-overview/:id",
@@ -167,7 +170,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <EvolatorDashboard />,
+        element: <MyCamps />,
       },
       {
         path: "active-camps",
@@ -202,7 +205,7 @@ const router = createBrowserRouter([
       {
         index: true,
         path: "",
-        element: <RefereeDashboard />,
+        element: <ActiveCamps />,
       },
       {
         path: "active-camps",

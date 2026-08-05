@@ -20,7 +20,7 @@ const MyCamps = () => {
   const hasMultiplePages = pagination?.last_page > 1 || totalCamps > actualPerPage;
 
   return (
-    <div className="w-full border border-[#E8E8E8] rounded-xl md:p-6 p-4 my-10 bg-white">
+    <div className="w-full border border-[#E8E8E8] rounded-xl md:p-6 p-4 my-6 bg-white">
       {/* Header */}
       <div className="mb-6">
         <h4 className="text-2xl font-semibold text-[#333]">

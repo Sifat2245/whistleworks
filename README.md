@@ -306,7 +306,8 @@ The application has three distinct roles, each with its own dashboard and featur
 
 | Path                                       | Page              | Description                 |
 | ------------------------------------------ | ----------------- | --------------------------- |
-| `/director-dashboard`                      | Dashboard         | Main dashboard              |
+| `/director-dashboard`                      | Dashboard         | Main dashboard (All Camps)   |
+| `/director-dashboard/previous-camps`       | DirectorPreviousCamps | Previous camps (placeholder) |
 | `/director-dashboard/create-new-camp`      | CreateNewCamp     | Create a new camp           |
 | `/director-dashboard/camp-overview/:id`    | CampOverview      | View camp details           |
 | `/director-dashboard/edit-camp/:id`        | EditCampPage      | Edit existing camp          |
@@ -327,7 +328,7 @@ The application has three distinct roles, each with its own dashboard and featur
 
 | Path                                       | Page              | Description                      |
 | ------------------------------------------ | ----------------- | -------------------------------- |
-| `/evaluator-dashboard`                     | EvolatorDashboard | Main dashboard                   |
+| `/evaluator-dashboard`                     | MyCamps           | My registered camps (default)    |
 | `/evaluator-dashboard/active-camps`        | MyCamp            | My registered camps              |
 | `/evaluator-dashboard/camp/:id`            | CampDetailsPage   | Camp details (tabbed view)       |
 | `/evaluator-dashboard/previous-camps`      | PreviousCamps     | Past camp history                |
@@ -338,7 +339,7 @@ The application has three distinct roles, each with its own dashboard and featur
 
 | Path                                       | Page              | Description                      |
 | ------------------------------------------ | ----------------- | -------------------------------- |
-| `/referee-dashboard`                       | RefereeDashboard  | Main dashboard                   |
+| `/referee-dashboard`                       | ActiveCamps       | My camps (default)               |
 | `/referee-dashboard/active-camps`          | ActiveCamps       | Checked-in & registered camps    |
 | `/referee-dashboard/camp/:id`              | CampDetailsPage   | Camp details (tabbed view)       |
 | `/referee-dashboard/previous-camps`        | PreviousCamps     | Past camp history                |

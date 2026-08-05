@@ -101,10 +101,10 @@ export default function PreviousCamps() {
   }
 
   return (
-    <section className="container w-full px-4 mx-auto mt-5 mb-18">
+    <section className="w-full mt-2">
       <ActiveCmpsBackBtn label="Previous Camps" />
 
-      <h2 className="text-2xl font-semibold mb-8 mt-6">Previous Camps</h2>
+      <h2 className="text-2xl font-semibold mb-6 mt-4">Previous Camps</h2>
 
       {previousCamps.length > 0 ? (
         <>
