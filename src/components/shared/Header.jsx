@@ -12,6 +12,7 @@ import userImage from "@/assets/dashboard/userImage.png";
 
 const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { userData } = useAuth();
 
   const navItems = [
@@ -67,7 +68,9 @@ const Header = () => {
                   <Popover
                     placement="bottomRight"
                     trigger="click"
-                    content={<UserPopover />}
+                    open={isUserMenuOpen}
+                    onOpenChange={setIsUserMenuOpen}
+                    content={<UserPopover onNavigate={() => setIsUserMenuOpen(false)} />}
                     className="cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 sm:gap-3">

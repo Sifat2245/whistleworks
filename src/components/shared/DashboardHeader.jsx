@@ -1,6 +1,7 @@
 import Logo from "@/components/common/Logo";
 import { Popover } from "antd";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import userImage from "@/assets/dashboard/userImage.png"
 import UserPopover from "./UserPopover";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +16,7 @@ const roleConfig = {
 
 const DashboardHeader = ({ onOpenSidebar }) => {
     const { userData } = useAuth();
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const userRole = userData?.role;
     const role = roleConfig[userRole];
 
@@ -68,7 +70,9 @@ const DashboardHeader = ({ onOpenSidebar }) => {
                     <div className="flex items-center md:gap-4 gap-1.5">
                         <Popover
                             className="header-popover" placement="bottomRight" trigger={"click"}
-                            content={<UserPopover />}
+                            open={isUserMenuOpen}
+                            onOpenChange={setIsUserMenuOpen}
+                            content={<UserPopover onNavigate={() => setIsUserMenuOpen(false)} />}
                         >
                             <div className="flex items-center md:gap-4 gap-1.5">
                                 <div className="md:size-10 size-7 shrink-0 ring-2  ring-[#E5E4E6] rounded-full cursor-pointer">
