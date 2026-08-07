@@ -8,7 +8,7 @@ const CourtHeader = ({ campData, scheduleData, isLoading }) => {
 
   return (
     <>
-      <div className="w-full flex items-center justify-between mt-5">
+      <div className="w-full flex flex-col sm:flex-row gap-6 sm:gap-0 items-center justify-between mt-5">
         <CommonSectionTitle
           text={`Schedule - ${campData?.camp_name}`}
           subText="Manage games, locations, and referee assignments"
@@ -16,7 +16,7 @@ const CourtHeader = ({ campData, scheduleData, isLoading }) => {
 
         <CommonSubmitBtn
           variant="primary"
-          className="px-6"
+          className="px-6 w-full sm:w-auto"
           onClick={() => setIsModalOpen(true)}
         >
           Schedule Details

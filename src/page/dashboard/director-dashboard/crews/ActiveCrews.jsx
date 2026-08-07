@@ -4,9 +4,10 @@ import CreateCrewModal from "@/page/dashboard/director-dashboard/crews/component
 import CrewCard from "@/page/dashboard/director-dashboard/crews/components/CrewCard";
 import CrewCardSkeleton from "@/page/dashboard/director-dashboard/crews/components/CrewCardSkeleton";
 import { useCampCrews } from "@/hooks/api/director-hooks/useCrews";
+import { useExportCrews } from "@/hooks/api/director-hooks/useExport";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { LuLayers, LuUsers, LuPlus, LuInbox } from "react-icons/lu";
+import { LuLayers, LuUsers, LuPlus, LuInbox, LuDownload } from "react-icons/lu";
 
 const ActiveCrews = () => {
   const { id } = useParams();
@@ -16,6 +17,9 @@ const ActiveCrews = () => {
     (total, group) => total + (group?.member_count || 0),
     0
   );
+
+  // Export CSV
+  const { mutate: exportCrews, isPending: isExporting } = useExportCrews(id);
 
   const [openModal, setOpenModal] = useState(false);
 
@@ -31,12 +35,23 @@ const ActiveCrews = () => {
             subText="Manage and view all active crew groups"
           />
 
-          <button
-            onClick={() => setOpenModal(true)}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-[10px] bg-primary text-white font-medium hover:bg-primary/90 transition cursor-pointer shrink-0"
-          >
-            <LuPlus className="text-lg" /> Create a Referee Crew
-          </button>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button
+              onClick={() => exportCrews()}
+              disabled={isExporting || crewGroups.length === 0}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-[10px] border border-border bg-white text-[#333] font-semibold text-sm whitespace-nowrap transition-all duration-300 hover:border-primary hover:text-primary hover:shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            >
+              <LuDownload className="text-base" />
+              {isExporting ? "Exporting..." : "Export CSV"}
+            </button>
+
+            <button
+              onClick={() => setOpenModal(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-[10px] bg-primary text-white font-medium hover:bg-primary/90 transition cursor-pointer shrink-0"
+            >
+              <LuPlus className="text-lg" /> Create a Referee Crew
+            </button>
+          </div>
         </div>
 
         {/* Stats */}

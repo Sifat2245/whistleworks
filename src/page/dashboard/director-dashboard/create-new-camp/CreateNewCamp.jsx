@@ -273,20 +273,20 @@ const CreateNewCamp = () => {
           {/* Submit / Reset — right-aligned on desktop, stacked on mobile */}
           <div className="w-full flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 sm:gap-4 lg:gap-5 pt-2">
             <CommonSubmitBtn
-              variant="secondary"
-              className="w-full sm:w-auto justify-center"
-              type="button"
-              onClick={() => window.location.reload()}
-            >
-              Reset Form
-            </CommonSubmitBtn>
-            <CommonSubmitBtn
               variant="primary"
               className="w-full sm:w-auto justify-center"
               type="submit"
               isLoading={createCampMutation.isPending}
             >
               Create Camp
+            </CommonSubmitBtn>
+            <CommonSubmitBtn
+              variant="secondary"
+              className="w-full sm:w-auto justify-center"
+              type="button"
+              onClick={() => window.location.reload()}
+            >
+              Reset Form
             </CommonSubmitBtn>
           </div>
         </form>

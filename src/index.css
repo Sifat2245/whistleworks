@@ -32,7 +32,7 @@ xl: 1280px
 */
 @utility container {
   margin-inline: auto;
-  max-width: 1280px;
+  max-width: 1536px;
   padding-inline: clamp(1.25rem, 4vw, 2rem);
 }
 

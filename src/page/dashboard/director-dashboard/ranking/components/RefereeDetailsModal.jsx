@@ -7,7 +7,7 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { useMemo, useRef, useCallback } from "react";
+import { useMemo, useRef, useCallback, useEffect } from "react";
 import { useRefereeEvaluationHistory } from "@/hooks/api/useRankings";
 
 const SCORE_ITEMS = [
@@ -183,6 +183,16 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!referee) return null;
 
   return (
@@ -196,28 +206,32 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
           onClick={onClose}
         >
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Referee performance details"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="bg-white rounded-2xl shadow-2xl max-w-8xl w-full my-8 max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-2xl shadow-2xl max-w-8xl w-full my-8 max-h-[90vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex justify-between items-center px-5 py-4 border-b border-border bg-primary/5">
+            <div className="flex justify-between items-center px-5 py-4 border-b border-border bg-primary/5 shrink-0">
               <h2 className="text-lg font-semibold text-[#333]">
                 Referee Performance Details
               </h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition"
+                aria-label="Close modal"
+                className="p-2 -mr-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition cursor-pointer"
               >
-                <MdClose className="w-6 h-6" />
+                <MdClose className="w-5 h-5" />
               </button>
             </div>
 
             {/* Summary Section — compact horizontal on mobile, centered on desktop */}
-            <div className="p-3 sm:p-4 bg-[#FAFAFA]">
+            <div className="p-3 sm:p-4 bg-[#FAFAFA] shrink-0">
               {/* Mobile compact layout */}
               <div className="md:hidden flex items-center gap-3">
                 <div className="relative shrink-0">
@@ -290,8 +304,8 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
             </div>
 
             {/* Evaluations Table */}
-            <div className="p-4 sm:p-6">
-              <h3 className="text-lg font-semibold text-[#333] mb-4">
+            <div className="p-4 sm:p-6 flex-1 min-h-0 flex flex-col">
+              <h3 className="text-lg font-semibold text-[#333] mb-4 shrink-0">
                 Evaluation History ({evaluations?.length})
               </h3>
 
@@ -306,7 +320,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
               ) : (
                 <>
                   {/* Desktop table (md+) */}
-                  <div className="hidden md:block max-h-[40vh] overflow-y-auto border border-border rounded-[10px]">
+                  <div className="hidden md:block min-h-0 overflow-auto border border-border rounded-[10px]">
                     <table className="w-full min-w-[1400px]">
                       <thead className="bg-[#FAFAFA] border-b border-border sticky top-0">
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -351,7 +365,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                   </div>
 
                   {/* Mobile cards (below md) */}
-                  <div className="md:hidden max-h-[40vh] overflow-y-auto flex flex-col gap-3 pr-0.5">
+                  <div className="md:hidden min-h-0 overflow-y-auto flex flex-col gap-3 pr-0.5">
                     {evaluations.map((evalItem, index) => (
                       <div
                         key={evalItem.id || index}
@@ -430,13 +444,13 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
 
                   {/* Infinite scroll footer */}
                   {isFetchingNextPage && (
-                    <div className="py-4 text-center text-[#666] text-sm">
+                    <div className="py-4 text-center text-[#666] text-sm shrink-0">
                       Loading more evaluations...
                     </div>
                   )}
 
                   {!hasNextPage && evaluations.length > 0 && (
-                    <div className="py-4 text-center text-gray-400 text-sm">
+                    <div className="py-4 text-center text-gray-400 text-sm shrink-0">
                       End of evaluation history
                     </div>
                   )}
@@ -444,15 +458,6 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="p-6 border-t border-border">
-              <button
-                onClick={onClose}
-                className="w-full py-3 bg-white hover:bg-[#FAFAFA] border border-border text-[#333] font-medium rounded-lg transition"
-              >
-                Close
-              </button>
-            </div>
           </motion.div>
         </motion.div>
       )}
