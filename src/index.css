@@ -32,7 +32,8 @@ xl: 1280px
 */
 @utility container {
   margin-inline: auto;
-  padding-inline: 1rem;
+  max-width: 1280px;
+  padding-inline: clamp(1.25rem, 4vw, 2rem);
 }
 
 ::-webkit-scrollbar {
