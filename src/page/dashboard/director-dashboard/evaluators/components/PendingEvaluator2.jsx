@@ -1,6 +1,11 @@
+import { useState } from "react";
 import Swal from "sweetalert2";
+import { formatDistanceToNow } from "date-fns";
 import PaginationV2 from "@/components/common/PaginationV2";
+import Loader from "@/components/common/Loader";
 import EvaluatorListSkeleton from "./EvaluatorListSkeleton";
+import EvaluatorSectionHeader from "./EvaluatorSectionHeader";
+import EvaluatorStateCard from "./EvaluatorStateCard";
 import {
   useApproveEvaluator,
   useRejectEvaluator,
@@ -9,23 +14,15 @@ import {
   LuClock,
   LuCheck,
   LuX,
-  LuInbox,
-  LuTriangleAlert,
-  LuRefreshCw,
-  LuMail,
   LuPhone,
   LuCalendarDays,
 } from "react-icons/lu";
 
-const formatDate = (dateStr) => {
+const timeAgo = (dateStr) => {
   if (!dateStr) return "N/A";
   const d = new Date(dateStr);
-  if (isNaN(d)) return dateStr;
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  if (isNaN(d)) return "N/A";
+  return formatDistanceToNow(d, { addSuffix: true });
 };
 
 const PendingEvaluator2 = ({
@@ -39,8 +36,20 @@ const PendingEvaluator2 = ({
   const approveMutation = useApproveEvaluator(campId);
   const rejectMutation = useRejectEvaluator(campId);
 
-  const handleApprove = (registrationId) =>
-    approveMutation.mutate(registrationId);
+  // Track which registration + action is in flight so only that card shows a spinner.
+  // Stored as { id, type } and reset functionally so rapid clicks on another card
+  // never leave stale loading state behind.
+  const [actingOn, setActingOn] = useState(null);
+
+  const handleApprove = (registrationId) => {
+    setActingOn({ id: registrationId, type: "approve" });
+    approveMutation.mutate(registrationId, {
+      onSettled: () =>
+        setActingOn((current) =>
+          current?.id === registrationId ? null : current,
+        ),
+    });
+  };
 
   const handleReject = async (registrationId, evaluatorName) => {
     const result = await Swal.fire({
@@ -55,112 +64,141 @@ const PendingEvaluator2 = ({
       confirmButtonText: "Yes, Reject",
     });
 
-    if (result.isConfirmed) {
-      rejectMutation.mutate(registrationId);
-    }
+    if (!result.isConfirmed) return;
+
+    setActingOn({ id: registrationId, type: "reject" });
+    rejectMutation.mutate(registrationId, {
+      onSettled: () =>
+        setActingOn((current) =>
+          current?.id === registrationId ? null : current,
+        ),
+    });
   };
-
-  const busy = approveMutation.isPending || rejectMutation.isPending;
-
-  if (isError) {
-    return (
-      <section className="w-full">
-        <PendingHeader count={pagination.total} />
-        <div className="mx-auto max-w-md bg-red-50 border border-red-200 rounded-[10px] p-8 text-center">
-          <LuTriangleAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-red-800 mb-3">
-            Failed to Load Pending Evaluators
-          </h3>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition cursor-pointer"
-          >
-            <LuRefreshCw className="w-4 h-4" /> Retry
-          </button>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="w-full">
-      <PendingHeader count={pagination.total} />
+      <EvaluatorSectionHeader
+        icon={LuClock}
+        title="Pending Evaluators"
+        subtitle="Applications waiting for your review"
+        count={pagination.total}
+        countLabel="pending"
+        tone="amber"
+      />
 
-      {isLoading ? (
+      {isError ? (
+        <EvaluatorStateCard
+          type="error"
+          title="Failed to Load Pending Evaluators"
+          description="We couldn't load pending applications. Please try again."
+        />
+      ) : isLoading ? (
         <EvaluatorListSkeleton count={8} />
       ) : pendingEvaluatorData.length === 0 ? (
-        <div className="rounded-[10px] border border-border bg-white py-16 text-center">
-          <LuInbox className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-[#333]">
-            No Pending Evaluators
-          </h3>
-          <p className="text-sm text-[#666] mt-1">
-            All applications have been processed.
-          </p>
-        </div>
+        <EvaluatorStateCard
+          icon={LuClock}
+          title="No Pending Evaluators"
+          description="All applications have been processed. New applications will appear here as they come in."
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
-          {pendingEvaluatorData.map((evaluator) => (
-            <div
-              key={evaluator.id}
-              className="relative bg-white border border-border rounded-[10px] p-5 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-300 flex flex-col"
-            >
-              <span className="absolute top-4 right-4 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold px-2.5 py-1 rounded-full">
-                Pending
-              </span>
+          {pendingEvaluatorData.map((evaluator) => {
+            const isBusy = actingOn?.id === evaluator.id;
+            const showApproveLoader = isBusy && actingOn?.type === "approve";
+            const showRejectLoader = isBusy && actingOn?.type === "reject";
 
-              <div className="flex flex-col items-center mb-5">
-                <img
-                  src={evaluator.image || "/default-avatar.png"}
-                  alt={evaluator.name}
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-primary/20 shadow-md"
-                  onError={(e) => (e.target.src = "/default-avatar.png")}
-                />
-                <h6 className="text-lg font-bold text-[#333] text-center line-clamp-1 mt-4">
-                  {evaluator.name}
-                </h6>
-              </div>
-
-              <div className="space-y-2.5 text-sm flex-1">
-                <div className="flex items-center gap-2 text-[#666] min-w-0">
-                  <LuMail className="text-primary shrink-0" />
-                  <span className="truncate">
-                    {evaluator.evaluatorMail || "N/A"}
+            return (
+              <div
+                key={evaluator.id}
+                className="group relative bg-white border border-border rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-amber-100/70 hover:-translate-y-1 hover:border-amber-300/70 transition-all duration-300 flex flex-col"
+              >
+                {/* Status pill */}
+                <div className="flex justify-end mb-4">
+                  <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200/80 text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                    <span className="relative flex size-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-70 motion-reduce:animate-none" />
+                      <span className="relative inline-flex rounded-full size-1.5 bg-amber-500" />
+                    </span>
+                    Awaiting review
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-[#666]">
-                  <LuPhone className="text-primary shrink-0" />
-                  <span>
-                    {evaluator.isPhoneShow !== false &&
-                    evaluator.evaluatorNumber
-                      ? evaluator.evaluatorNumber
-                      : "-"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-[#666]">
-                  <LuCalendarDays className="text-primary shrink-0" />
-                  <span>Applied {formatDate(evaluator.registeredAt)}</span>
-                </div>
-              </div>
 
-              <div className="flex gap-3 mt-5 pt-4 border-t border-border">
-                <button
-                  onClick={() => handleApprove(evaluator.id)}
-                  disabled={busy}
-                  className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <LuCheck /> Approve
-                </button>
-                <button
-                  onClick={() => handleReject(evaluator.id, evaluator.name)}
-                  disabled={busy}
-                  className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-lg text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <LuX /> Deny
-                </button>
+                {/* Profile */}
+                <div className="flex flex-col items-center mb-5">
+                  <div className="relative">
+                    <img
+                      src={evaluator.image || "/default-avatar.png"}
+                      alt={evaluator.name}
+                      className="w-20 h-20 rounded-full object-cover ring-4 ring-amber-100 shadow-md group-hover:ring-amber-200 transition"
+                      onError={(e) => (e.target.src = "/default-avatar.png")}
+                    />
+                    <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber-100 border-2 border-white flex items-center justify-center">
+                      <LuClock className="w-3 h-3 text-amber-600" />
+                    </span>
+                  </div>
+                  <h6 className="text-base font-bold text-[#333] text-center line-clamp-1 mt-3.5">
+                    {evaluator.name}
+                  </h6>
+                  <p className="text-xs text-[#999] mt-1 truncate max-w-full">
+                    {evaluator.evaluatorMail || "No email provided"}
+                  </p>
+                </div>
+
+                {/* Contact details */}
+                <div className="space-y-2 text-sm flex-1">
+                  <div className="flex items-center gap-2.5 text-[#666] min-w-0">
+                    <span className="w-7 h-7 rounded-lg bg-amber-50/80 text-amber-600 flex items-center justify-center shrink-0">
+                      <LuPhone className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="truncate">
+                      {evaluator.isPhoneShow !== false &&
+                      evaluator.evaluatorNumber
+                        ? evaluator.evaluatorNumber
+                        : "Phone hidden"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-[#666]">
+                    <span className="w-7 h-7 rounded-lg bg-amber-50/80 text-amber-600 flex items-center justify-center shrink-0">
+                      <LuCalendarDays className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="truncate">
+                      Applied {timeAgo(evaluator.registeredAt)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 mt-5 pt-4 border-t border-border">
+                  <button
+                    onClick={() => handleApprove(evaluator.id)}
+                    disabled={isBusy}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 active:scale-[0.98] text-white py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+                  >
+                    {showApproveLoader ? (
+                      <Loader size={16} color="#ffffff" />
+                    ) : (
+                      <>
+                        <LuCheck className="w-4 h-4" /> Approve
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleReject(evaluator.id, evaluator.name)}
+                    disabled={isBusy}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 hover:border-red-300 active:scale-[0.98] py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+                  >
+                    {showRejectLoader ? (
+                      <Loader size={16} color="#dc2626" />
+                    ) : (
+                      <>
+                        <LuX className="w-4 h-4" /> Deny
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -173,27 +211,6 @@ const PendingEvaluator2 = ({
         />
       )}
     </section>
-  );
-};
-
-const PendingHeader = ({ count }) => {
-  return (
-    <div className="flex items-center gap-3.5 mb-6">
-      <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xl shrink-0">
-        <LuClock />
-      </span>
-      <div className="flex-1 min-w-0">
-        <h2 className="text-lg font-semibold text-[#333]">
-          Pending Evaluators
-        </h2>
-        <p className="text-sm text-[#666]">
-          Applications waiting for your review
-        </p>
-      </div>
-      <span className="bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold px-3 py-1.5 rounded-full shrink-0">
-        {count} pending
-      </span>
-    </div>
   );
 };
 

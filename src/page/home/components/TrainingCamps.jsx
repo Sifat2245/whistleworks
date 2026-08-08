@@ -18,7 +18,7 @@ const TrainingCamps = ({ trainingCampData }) => {
             }
           />
         ) : (
-          <p className="mt-4 w-4xl mx-auto text-xl">
+          <p className="mt-4 max-w-2xl mx-auto text-base sm:text-lg text-neutral-500 text-center px-3">
             Browse and register for upcoming sports referee training camps and led by experienced conference coordinators.
           </p>
         )}

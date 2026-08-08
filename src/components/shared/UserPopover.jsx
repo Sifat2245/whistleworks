@@ -42,7 +42,7 @@ const itemVariants = {
   },
 };
 
-const UserPopover = () => {
+const UserPopover = ({ onNavigate }) => {
   const { userData, handleLogout } = useAuth();
   const userRole = userData?.role;
 
@@ -135,7 +135,10 @@ const UserPopover = () => {
                 <motion.button
                   key={item.id}
                   variants={itemVariants}
-                  onClick={handleLogout}
+                  onClick={() => {
+                    onNavigate?.();
+                    handleLogout();
+                  }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200 group cursor-pointer"
                 >
                   <span className="shrink-0 size-8 flex items-center justify-center rounded-lg bg-red-50 text-red-400 group-hover:bg-red-100 transition-colors">
@@ -148,6 +151,7 @@ const UserPopover = () => {
                 <motion.div key={item.id} variants={itemVariants}>
                   <Link
                     to={item.path}
+                    onClick={onNavigate}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-all duration-200 group"
                   >
                     <span className="shrink-0 size-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">

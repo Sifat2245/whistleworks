@@ -20,12 +20,12 @@ const MyCamps = () => {
   const hasMultiplePages = pagination?.last_page > 1 || totalCamps > actualPerPage;
 
   return (
-    <div className="w-full border border-[#E8E8E8] rounded-xl md:p-6 p-4 my-10 bg-white">
+    <div className="w-full border border-[#E8E8E8] rounded-xl md:p-6 p-4 my-6 bg-white">
       {/* Header */}
       <div className="mb-6">
-        <h4 className="text-2xl font-semibold text-[#333]">
+        <h4 className="text-xl md:text-2xl font-semibold text-[#333]">
           My Camps
-          <span className="text-lg font-normal text-gray-600 ml-2">
+          <span className="text-sm font-normal text-gray-600 ml-2">
             ({totalCamps} total)
           </span>
         </h4>

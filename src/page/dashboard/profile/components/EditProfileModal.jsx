@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
-import CommonInputWrapper from "./CommonInputWrapper";
+import CommonInputWrapper from "../../../../components/common/CommonInputWrapper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import useAxiosSecure from "@/hooks/useAxiosSecure";

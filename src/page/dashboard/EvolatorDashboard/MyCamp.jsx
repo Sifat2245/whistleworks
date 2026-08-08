@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import ActiveCmpsBackBtn from "@/components/common/ActiveCmpsBackBtn";
 import CommonText from "@/components/common/CommonText";
 import PaginationV2 from "@/components/common/PaginationV2";
@@ -8,6 +9,8 @@ import { Spin } from "antd";
 
 export default function MyCamps() {
   const [currentPage, setCurrentPage] = useState(1);
+  const { pathname } = useLocation();
+  const isDashboardRoot = pathname === "/evaluator-dashboard";
   const [perPage] = useState(12);
 
   const { registrations, pagination, isLoading } = useMyRegistrations(
@@ -32,8 +35,8 @@ export default function MyCamps() {
   }
 
   return (
-    <section className="container w-full px-4 mx-auto mt-5">
-      <ActiveCmpsBackBtn label="My Registered Camps" />
+    <section className="w-full mt-2">
+      {!isDashboardRoot && <ActiveCmpsBackBtn label="My Registered Camps" />}
 
       <div className="mb-6">
         <h2 className="text-2xl font-semibold text-[#333]">

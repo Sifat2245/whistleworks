@@ -1,7 +1,9 @@
 import ActiveEvalutorList2 from "./components/ActiveEvalutorList2";
 import PendingEvaluator2 from "./components/PendingEvaluator2";
 import RejectedEvaluators from "./components/RejectedEvaluators";
+import { LuDownload } from "react-icons/lu";
 import { useParams, useSearchParams } from "react-router-dom";
+import { useExportEvaluators } from "@/hooks/api/director-hooks/useExport";
 import {
   usePendingEvaluators,
   useApprovedEvaluators,
@@ -41,6 +43,10 @@ const ActiveEvaluate = ({ searchQuery = "" }) => {
     isError: rejectedError,
   } = useRejectedEvaluators(id, rejectedPage);
 
+  // ── Export CSV ────────────────────────────────────────
+  const { mutate: exportEvaluators, isPending: isExporting } =
+    useExportEvaluators(id);
+
   const handlePageChange = (page, section) => {
     const params = new URLSearchParams(searchParams);
     params.set(`${section}Page`, String(page));
@@ -49,6 +55,18 @@ const ActiveEvaluate = ({ searchQuery = "" }) => {
 
   return (
     <div className="w-full flex flex-col items-start gap-12 mb-16">
+      {/* Export CSV */}
+      <div className="w-full flex justify-end">
+        <button
+          onClick={() => exportEvaluators()}
+          disabled={isExporting}
+          className="inline-flex shrink-0 items-center gap-2 px-5 py-3 rounded-[10px] border border-border bg-white text-[#333] font-semibold text-sm whitespace-nowrap transition-all duration-300 hover:border-primary hover:text-primary hover:shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <LuDownload className="text-base" />
+          {isExporting ? "Exporting..." : "Export CSV"}
+        </button>
+      </div>
+
       <PendingEvaluator2
         pendingEvaluatorData={pendingEvaluators}
         pagination={pendingPagination}

@@ -1,17 +1,12 @@
 import { motion } from "framer-motion";
 import { SiStripe } from "react-icons/si";
-import {
-  FiExternalLink,
-  FiRefreshCw,
-  FiPlus,
-} from "react-icons/fi";
+import { FiExternalLink, FiRefreshCw, FiPlus } from "react-icons/fi";
 import MyCamps from "@/page/dashboard/director-dashboard/dashboard/components/MyCampus";
 import {
   useStripeConnectionStatus,
   useConnectStripe,
   useStripeDashboard,
 } from "@/hooks/api/useStripConnection";
-import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 
 // ── Skeleton ────────────────────────────────────────────────────
@@ -53,50 +48,50 @@ const StripeStatCard = () => {
   const cardState = !isStripeConnected
     ? "disconnected"
     : isPayoutPending
-    ? "pending_payouts"
-    : "connected";
+      ? "pending_payouts"
+      : "connected";
 
   const borderColor =
     cardState === "connected"
       ? "border-emerald-100"
       : cardState === "pending_payouts"
-      ? "border-orange-100"
-      : "border-amber-100";
+        ? "border-orange-100"
+        : "border-amber-100";
 
   const badgeStyle =
     cardState === "connected"
       ? "bg-emerald-50 text-emerald-600"
       : cardState === "pending_payouts"
-      ? "bg-orange-50 text-orange-600"
-      : "bg-amber-50 text-amber-600";
+        ? "bg-orange-50 text-orange-600"
+        : "bg-amber-50 text-amber-600";
 
   const dotColor =
     cardState === "connected"
       ? "bg-emerald-500"
       : cardState === "pending_payouts"
-      ? "bg-orange-500"
-      : "bg-amber-500";
+        ? "bg-orange-500"
+        : "bg-amber-500";
 
   const badgeLabel =
     cardState === "connected"
       ? "Active"
       : cardState === "pending_payouts"
-      ? "Connected"
-      : "Setup needed";
+        ? "Connected"
+        : "Setup needed";
 
   const iconBg =
     cardState === "connected"
       ? "bg-emerald-50"
       : cardState === "pending_payouts"
-      ? "bg-orange-50"
-      : "bg-amber-50";
+        ? "bg-orange-50"
+        : "bg-amber-50";
 
   const stripeIconColor =
     cardState === "connected"
       ? "text-emerald-600"
       : cardState === "pending_payouts"
-      ? "text-orange-600"
-      : "text-amber-600";
+        ? "text-orange-600"
+        : "text-amber-600";
 
   return (
     <motion.div
@@ -108,12 +103,16 @@ const StripeStatCard = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
-          <div className={`size-8 rounded-lg flex items-center justify-center ${iconBg}`}>
+          <div
+            className={`size-8 rounded-lg flex items-center justify-center ${iconBg}`}
+          >
             <SiStripe className={`size-4 ${stripeIconColor}`} />
           </div>
           <span className="text-sm font-semibold text-slate-800">Payouts</span>
         </div>
-        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${badgeStyle}`}>
+        <span
+          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${badgeStyle}`}
+        >
           <span className={`size-1.5 rounded-full ${dotColor}`} />
           {badgeLabel}
         </span>
@@ -123,13 +122,15 @@ const StripeStatCard = () => {
       <div className="mb-3 space-y-1.5">
         {cardState === "connected" && (
           <p className="text-xs text-slate-500 leading-relaxed">
-            Camp fees are paid directly to your Stripe account. Payouts are active.
+            Camp fees are paid directly to your Stripe account. Payouts are
+            active.
           </p>
         )}
         {cardState === "pending_payouts" && (
           <>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Your Stripe account is connected. Payouts are being enabled — this typically takes 1–2 business days.
+              Your Stripe account is connected. Payouts are being enabled — this
+              typically takes 1–2 business days.
             </p>
             <p className="text-[11px] text-orange-600 flex items-center gap-1.5">
               <span className="size-1.5 rounded-full bg-orange-400 animate-pulse" />
@@ -197,21 +198,12 @@ const StripeStatCard = () => {
 
 // ── Main Dashboard ─────────────────────────────────────────────
 const DirectorHome = () => {
-  const { userData } = useAuth();
-
   return (
     <div className="w-full ">
       {/* ── Welcome Header ── */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-0">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              Welcome back{userData?.first_name ? `, ${userData.first_name}` : ""}
-            </h1>
-            <p className="text-sm sm:text-base text-slate-500 mt-1.5">
-              Manage your camps, referees, and schedules.
-            </p>
-          </div>
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0">
+          <StripeStatCard />
           <Link
             to="/director-dashboard/create-new-camp"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00AEEF] hover:bg-[#0099d4] text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-[#00AEEF]/20 hover:shadow-[#00AEEF]/30 shrink-0"
@@ -220,11 +212,6 @@ const DirectorHome = () => {
             New Camp
           </Link>
         </div>
-      </div>
-
-      {/* ── Stripe Status ── */}
-      <div className="mb-8 max-w-sm">
-        <StripeStatCard />
       </div>
 
       {/* ── Camps List ── */}

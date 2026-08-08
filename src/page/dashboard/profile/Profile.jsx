@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUpdateAvatar, useUpdateProfile } from "@/hooks/api/useAuth";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
-import EditProfileModal from "../../../components/common/EditProfileModal";
+import EditProfileModal from "./components/EditProfileModal";
 import ProfileSettingsModal from "../../../components/common/ProfileSettingsModal";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -107,7 +107,7 @@ export default function Profile() {
   };
 
   return (
-    <section className="container w-full px-4 mx-automb-18">
+    <section className="w-full mt-2">
       <ActiveCmpsBackBtn label="Profile" />
       <div className="mx-auto space-y-8">
         {/* image and name */}

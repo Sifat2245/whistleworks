@@ -6,6 +6,7 @@ import CrewDetailsModal from "@/page/dashboard/director-dashboard/camp-schedules
 import CampSchedulesSkeleton from "@/page/dashboard/director-dashboard/camp-schedules/components/CampSchedulesSkeleton";
 import useInfiniteScroll from "@/hooks/infinity-scroll-hook";
 import { useCampRosterDetails } from "@/hooks/api/evaluator-hooks/useEvaluatorSchedule";
+import { useExportSchedule } from "@/hooks/api/director-hooks/useExport";
 import { Input, Spin } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -16,6 +17,7 @@ import {
   LuSearch,
   LuInbox,
   LuTriangleAlert,
+  LuDownload,
 } from "react-icons/lu";
 import { useParams } from "react-router-dom";
 
@@ -54,6 +56,11 @@ const CampSchedules = () => {
     isError,
     error,
   } = useCampRosterDetails(camp_id);
+
+  const {
+    mutate: exportSchedule,
+    isPending: isExporting,
+  } = useExportSchedule(camp_id);
 
   const formatTime = (time) => {
     if (!time) return "";
@@ -281,7 +288,7 @@ const CampSchedules = () => {
         ))}
       </div>
 
-      {/* Search */}
+      {/* Search + Export */}
       <div className="mt-6 flex items-center justify-between gap-4">
         <Input
           placeholder="Search by court, referee, date..."
@@ -291,6 +298,15 @@ const CampSchedules = () => {
           className="w-full md:w-96 h-12 rounded-[10px] border-border focus:border-primary"
           allowClear
         />
+
+        <button
+          onClick={() => exportSchedule()}
+          disabled={isExporting || totalGames === 0}
+          className="inline-flex shrink-0 items-center gap-2 px-5 py-3 rounded-[10px] border border-border bg-white text-[#333] font-semibold text-sm whitespace-nowrap transition-all duration-300 hover:border-primary hover:text-primary hover:shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <LuDownload className="text-base" />
+          {isExporting ? "Exporting..." : "Export CSV"}
+        </button>
       </div>
 
       {/* Schedule table */}

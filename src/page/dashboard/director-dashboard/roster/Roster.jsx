@@ -86,7 +86,7 @@ const Roster = () => {
 
   if (isError || !campData) {
     return (
-      <div className="w-full container mx-auto px-4 py-6">
+      <div className="w-full py-6">
         <BackBtn />
         <div className="mt-6 mx-auto max-w-md bg-red-50 border border-red-200 rounded-xl p-8 text-center">
           <LuTriangleAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -135,7 +135,7 @@ const Roster = () => {
   ];
 
   return (
-    <div className="w-full container mx-auto px-4 py-6">
+    <div className="w-full py-6">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-8">
         <div className="flex items-center justify-between w-full lg:w-auto">
@@ -214,7 +214,7 @@ const Roster = () => {
           className="max-w-3xl"
         />
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <span className="inline-flex items-center bg-primary/10 text-primary px-5 py-2.5 rounded-[10px] font-semibold text-sm whitespace-nowrap">
             {counterLabel}
           </span>

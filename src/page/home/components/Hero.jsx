@@ -41,7 +41,7 @@ const Hero = ({ heroData }) => {
 
       {/* Content */}
       <motion.div
-        className="relative z-10 container px-4 sm:px-6 lg:px-8 text-white sm:py-10 lg:py-20 flex flex-col justify-center space-y-4 sm:space-y-5 lg:space-y-6 text-center"
+        className="relative z-10 container text-white sm:py-10 lg:py-20 flex flex-col justify-center space-y-4 sm:space-y-5 lg:space-y-6 text-center"
         variants={containerVariants}
         initial="hidden"
         animate="visible"

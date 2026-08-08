@@ -20,9 +20,11 @@ import {
   LuCheck,
   LuPencil,
   LuSave,
+  LuDownload,
 } from "react-icons/lu";
 import { cn } from "@/lib/utils";
 import RefereeDetailsModal from "./RefereeDetailsModal";
+import { useExportReferees } from "@/hooks/api/director-hooks/useExport";
 import {
   useCheckInReferee,
   useRemoveRefereeFromRoster,
@@ -51,6 +53,10 @@ const RosterTable = ({ referees = [], campId }) => {
   const checkInMutation = useCheckInReferee(campId);
   const removeMutation = useRemoveRefereeFromRoster(campId);
   const updateJerseyMutation = useUpdateJerseyNumber(campId);
+
+  // Export CSV
+  const { mutate: exportReferees, isPending: isExporting } =
+    useExportReferees(campId);
 
   const data = useMemo(() => referees, [referees]);
 
@@ -415,22 +421,33 @@ const RosterTable = ({ referees = [], campId }) => {
 
   return (
     <div className="w-full">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-white border border-border rounded-[10px] px-4 py-3.5 flex items-center gap-3 hover:shadow-sm transition-shadow"
-          >
-            <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
-              {stat.icon}
-            </span>
-            <div className="min-w-0">
-              <p className="text-lg font-medium text-[#333]">{stat.value}</p>
-              <p className="text-xs text-[#666]">{stat.label}</p>
+      {/* Export + Stats Cards */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 flex-1">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-white border border-border rounded-[10px] px-4 py-3.5 flex items-center gap-3 hover:shadow-sm transition-shadow"
+            >
+              <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
+                {stat.icon}
+              </span>
+              <div className="min-w-0">
+                <p className="text-lg font-medium text-[#333]">{stat.value}</p>
+                <p className="text-xs text-[#666]">{stat.label}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        <button
+          onClick={() => exportReferees()}
+          disabled={isExporting}
+          className="inline-flex shrink-0 items-center gap-2 px-5 py-3 rounded-[10px] border border-border bg-white text-[#333] font-semibold text-sm whitespace-nowrap transition-all duration-300 hover:border-primary hover:text-primary hover:shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <LuDownload className="text-base" />
+          {isExporting ? "Exporting..." : "Export CSV"}
+        </button>
       </div>
 
       {/* Desktop Table */}

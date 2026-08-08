@@ -4,7 +4,7 @@ const Skeleton = ({ className = "" }) => (
 
 const RosterSkeleton = () => {
   return (
-    <div className="w-full container mx-auto px-4 py-6">
+    <div className="w-full py-6">
       {/* Header row */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-8">
         <Skeleton className="h-10 w-44 rounded-lg" />

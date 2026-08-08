@@ -73,8 +73,8 @@ export default function CampDetailsPage() {
     allowedTabs.evaluator.includes(tab);
 
   return (
-    <section className="w-full mt-7 mb-18">
-      <div className="md:flex items-center justify-between container px-4">
+    <section className="w-full mt-2">
+      <div className="md:flex items-center justify-between">
         <ActiveCmpsBackBtn label="Active Camps" />
         {pathname.includes("evaluator-dashboard") ? (
           <EvolatorCampTabs visibleTabs={evaluatorVisibleTabs} />
@@ -84,7 +84,7 @@ export default function CampDetailsPage() {
       </div>
       <Divider className="my-6" />
 
-      <div className="container px-4">
+      <div className="w-full">
         {!isTabAllowed ? (
           <>
             {/* Evaluator: Not registered */}
