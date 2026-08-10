@@ -1,5 +1,11 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCampService } from "@/services/director-services/camp.service";
+
+// ── Query key factory ──────────────────────────────────────────
+export const campKeys = {
+  all: ["camps"],
+  previousCamps: (page) => ["camps", "previous-camps", page],
+};
 
 // ── Director's camp list ────────────────────────────────────────
 export const useGetMyCamp = (page = 1) => {
@@ -134,4 +140,55 @@ export const useDeleteCamp = (options) => {
     mutationFn: deleteCamp,
     ...options,
   });
+};
+
+// ── Director's previously ended camps (paginated, cached) ───────
+export const useGetPreviousCamps = (page = 1) => {
+  const { previousCamp } = useCampService();
+
+  const { data, isLoading, isError, isFetching, refetch } = useQuery({
+    queryKey: campKeys.previousCamps(page),
+    queryFn: async () => {
+      const response = await previousCamp(page);
+      return (
+        response?.data?.data || { previous_camps: [], pagination: {} }
+      );
+    },
+    staleTime: 5 * 60 * 1000, // 5 min — previous camps rarely change
+    gcTime: 30 * 60 * 1000, // keep in cache for 30 min
+    placeholderData: (previousData) => previousData, // keep last page while navigating
+    refetchOnWindowFocus: false,
+    retry: 1,
+    // Normalize to the shape the MyCampusCart component (My Camps) expects
+    select: (data) => ({
+      previous_camps: (data?.previous_camps || []).map((camp) => ({
+        camp_id: camp.id,
+        camp_name: camp.name || "Untitled Camp",
+        camp_logo: camp.logo,
+        location: camp.location,
+        status: camp.status,
+        total_referees: camp.total_referees,
+        total_courts: camp.total_courts,
+      })),
+      pagination: data?.pagination || {},
+    }),
+  });
+
+  return {
+    previousCamps: data?.previous_camps || [],
+    pagination: data?.pagination || {},
+    isLoading,
+    isError,
+    isFetching,
+    refetch,
+  };
+};
+
+// ── Invalidate previous camps cache (e.g. after a camp completes) ─
+export const useInvalidatePreviousCamps = () => {
+  const queryClient = useQueryClient();
+
+  return () => {
+    queryClient.invalidateQueries({ queryKey: campKeys.all });
+  };
 };

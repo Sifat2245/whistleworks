@@ -42,5 +42,9 @@ export const useCampService = () => {
     // Auth required — delete a camp
     deleteCamp: (id) =>
       axiosSecure.delete(`/v1/camp/delete/${id}`),
+
+    // Auth required — director's previously ended camps (paginated)
+    previousCamp: (page = 1) =>
+      axiosSecure.get(`/v1/director/camp/previous-camps?page=${page}`)
   };
 };
