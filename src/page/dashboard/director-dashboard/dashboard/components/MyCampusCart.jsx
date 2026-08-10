@@ -4,6 +4,8 @@ import { BsArrowLeftRight } from "react-icons/bs";
 import { CiCalendar } from "react-icons/ci";
 import { HiOutlineUser } from "react-icons/hi2";
 import { MdSchedule } from "react-icons/md";
+import { LuShieldCheck } from "react-icons/lu";
+import { CARD_ACTION_PERMISSIONS } from "@/lib/assistantPermissions";
 import { PiCourtBasketball, PiSunglassesLight, PiMegaphone } from "react-icons/pi";
 import { Link } from "react-router-dom";
 
@@ -52,7 +54,12 @@ const actions = [
   },
 ];
 
-const MyCampusCart = ({ league }) => {
+const MyCampusCart = ({
+  league,
+  assignedBy,
+  permissions,
+  skipScheduleFetch = false,
+}) => {
   const {
     camp_id,
     camp_logo,
@@ -63,16 +70,27 @@ const MyCampusCart = ({ league }) => {
     total_courts,
   } = league || {};
 
-  const { scheduleData } = useCampSchedule(total_courts > 0 ? camp_id : null);
+  const isAssistantView = !!assignedBy;
+
+  const { scheduleData } = useCampSchedule(
+    !skipScheduleFetch && total_courts > 0 ? camp_id : null
+  );
 
   const scheduleStatus = scheduleData?.status;
 
   const filteredActions = actions.filter((action) => {
-    if (total_courts > 0) {
-      return action.id !== "schedule";
-    } else {
-      return action.id !== "court";
+    if (total_courts > 0 && action.id === "schedule") return false;
+    if (total_courts <= 0 && action.id === "court") return false;
+
+    if (isAssistantView) {
+      const requiredPermissions = CARD_ACTION_PERMISSIONS[action.id];
+      // Actions without a permission gate (e.g. Game Schedules) are
+      // visible by default to every director.
+      if (requiredPermissions === undefined) return true;
+      return requiredPermissions.some((key) => permissions?.includes(key));
     }
+
+    return true;
   });
 
   return (
@@ -119,6 +137,15 @@ const MyCampusCart = ({ league }) => {
 
           {/* Status badges */}
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {assignedBy && (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide bg-violet-50 text-violet-700 border border-violet-200"
+                title={`Assigned by ${assignedBy}`}
+              >
+                <LuShieldCheck className="text-[13px]" />
+                Assigned by {assignedBy}
+              </span>
+            )}
             {(scheduleStatus === "published" || scheduleStatus === "draft") && (
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${

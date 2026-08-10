@@ -37,7 +37,10 @@ const Evaluate = () => {
       />
       <div className="flex flex-col lg:flex-row gap-6 mt-8">
         <div className="w-full lg:w-2/3">
-          <EvaluationForm camp_id={camp_id} />
+          <EvaluationForm
+            camp_id={camp_id}
+            sports_type_name={campData?.sports_type_name}
+          />
         </div>
 
         <div className="w-full lg:w-1/3 flex flex-col gap-6">

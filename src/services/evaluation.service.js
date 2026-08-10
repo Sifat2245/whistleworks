@@ -8,6 +8,11 @@ export const useEvaluationService = () => {
       axiosSecure.get(`/referee/evaluation/camp/${campId}/all-referees`, {
         params: { page },
       }),
+    
+    getRecommendLevels: (name) =>
+      axiosSecure.get("/referee/evaluation/recommended-highest-level", {
+        params: name ? { name } : {},
+      }),
 
     submitEvaluation: (formData) =>
       axiosSecure.post("/referee/evaluation/upsert", formData),

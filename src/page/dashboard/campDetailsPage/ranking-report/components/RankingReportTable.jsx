@@ -2,21 +2,14 @@ import { Table, ConfigProvider, Select, Input, Button, Alert, Spin } from "antd"
 import { ReloadOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import badge from "@/assets/svg/badge.svg";
 import Icon from "@/components/common/Icon";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useRefereeEvaluations } from "@/hooks/api/useRankings";
+import { useRecommendedLevels } from "@/hooks/api/useEvaluation";
+import { resolveLevels, LEVEL_LABELS } from "@/lib/recommendedLevels";
 
 const { Option } = Select;
 
-const LEVEL_OPTIONS = [
-  { label: "DI", value: "NCAA D1" },
-  { label: "D2", value: "NCAA D2" },
-  { label: "NAIA", value: "NAIA" },
-  { label: "JC", value: "JUCO" },
-  { label: "HS", value: "HS" },
-  { label: "JH", value: "JH/ELEM" },
-];
-
-export default function RankingReportTable({ camp_id }) {
+export default function RankingReportTable({ camp_id, sports_type_name }) {
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState(null);
   const [minScore, setMinScore] = useState(null);
@@ -26,6 +19,22 @@ export default function RankingReportTable({ camp_id }) {
     isLoading,
     error,
   } = useRefereeEvaluations(camp_id);
+
+  // Recommended levels are driven by the camp's sports type
+  // (e.g. HS Basketball → Large School Varsity ... JH/ELEM).
+  const { data: recommendedLevels = [], isLoading: levelsLoading } =
+    useRecommendedLevels(sports_type_name);
+
+  const levels = resolveLevels(recommendedLevels);
+
+  // If the level list swaps after the sports-type data loads (e.g. the user
+  // picked a legacy level while the HS Basketball list was still loading),
+  // clear the stale filter so it can't silently match nothing.
+  useEffect(() => {
+    if (level && !levels.includes(level)) {
+      setLevel(null);
+    }
+  }, [levels, level]);
 
   const isPermissionDenied = error?.response?.status === 403;
 
@@ -51,12 +60,7 @@ export default function RankingReportTable({ camp_id }) {
         consistency: parseFloat(item.averages.consistency_of_calls.toFixed(1)),
         gA: parseFloat(item.averages.game_awareness.toFixed(1)),
         totalEvaluations: item.total_evaluations,
-        d1: levelCounts["NCAA D1"] || 0,
-        d2: levelCounts["NCAA D2"] || 0,
-        naia: levelCounts["NAIA"] || 0,
-        jc: levelCounts["JUCO"] || 0,
-        hs: levelCounts["HS"] || 0,
-        jh: levelCounts["JH/ELEM"] || 0,
+        levelCounts,
       };
     });
 
@@ -64,13 +68,7 @@ export default function RankingReportTable({ camp_id }) {
       const matchesSearch = item.name?.toLowerCase().includes(search.toLowerCase());
       const matchesScore = minScore ? item.overall >= minScore : true;
       const matchesLevel =
-        !level ||
-        (level === "NCAA D1" && item.d1 > 0) ||
-        (level === "NCAA D2" && item.d2 > 0) ||
-        (level === "NAIA" && item.naia > 0) ||
-        (level === "JUCO" && item.jc > 0) ||
-        (level === "HS" && item.hs > 0) ||
-        (level === "JH/ELEM" && item.jh > 0);
+        !level || (item.levelCounts[level] || 0) > 0;
       return matchesSearch && matchesLevel && matchesScore;
     });
 
@@ -85,6 +83,18 @@ export default function RankingReportTable({ camp_id }) {
   }, []);
 
   // NOW SAFE: No hooks after this line
+  const levelColumns = levels.map((lvl) => ({
+    title: (
+      <span title={lvl} className="cursor-help">
+        {LEVEL_LABELS[lvl] || lvl}
+      </span>
+    ),
+    width: 90,
+    align: "center",
+    render: (_, record) =>
+      (record.levelCounts[lvl] || 0) > 0 ? record.levelCounts[lvl] : "-",
+  }));
+
   const columns = [
     {
       title: "Rank",
@@ -127,48 +137,7 @@ export default function RankingReportTable({ camp_id }) {
     { title: "Comm", dataIndex: "comm", width: 80, render: (v) => v?.toFixed(1) || "-" },
     { title: "Consistency", dataIndex: "consistency", width: 120, render: (v) => v?.toFixed(1) || "-" },
     { title: "G/A", dataIndex: "gA", width: 80, render: (v) => v?.toFixed(1) || "-" },
-    {
-      title: "DI",
-      dataIndex: "d1",
-      width: 70,
-      align: "center",
-      render: (count) => (count > 0 ? count : "-"),
-    },
-    {
-      title: "D2",
-      dataIndex: "d2",
-      width: 70,
-      align: "center",
-      render: (count) => (count > 0 ? count : "-"),
-    },
-    {
-      title: "NAIA",
-      dataIndex: "naia",
-      width: 80,
-      align: "center",
-      render: (count) => (count > 0 ? count : "-"),
-    },
-    {
-      title: "JC",
-      dataIndex: "jc",
-      width: 70,
-      align: "center",
-      render: (count) => (count > 0 ? count : "-"),
-    },
-    {
-      title: "HS",
-      dataIndex: "hs",
-      width: 70,
-      align: "center",
-      render: (count) => (count > 0 ? count : "-"),
-    },
-    {
-      title: "JH",
-      dataIndex: "jh",
-      width: 70,
-      align: "center",
-      render: (count) => (count > 0 ? count : "-"),
-    },
+    ...levelColumns,
   ];
 
   // Early returns are now 100% safe
@@ -228,15 +197,15 @@ export default function RankingReportTable({ camp_id }) {
           onChange={(e) => setSearch(e.target.value)}
         />
         <Select
-          placeholder="Filter by recommended level"
+          placeholder={levelsLoading ? "Loading levels..." : "Filter by recommended level"}
           allowClear
           className="w-56"
           value={level}
           onChange={setLevel}
         >
-          {LEVEL_OPTIONS.map((opt) => (
-            <Option key={opt.value} value={opt.value}>
-              {opt.label}
+          {levels.map((lvl) => (
+            <Option key={lvl} value={lvl}>
+              {lvl}
             </Option>
           ))}
         </Select>

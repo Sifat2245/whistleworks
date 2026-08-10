@@ -7,6 +7,7 @@ import {
   FiClock,
   FiSearch,
   FiUser,
+  FiUsers,
   FiLogOut,
   FiX,
   FiChevronRight,
@@ -73,6 +74,14 @@ const NAV_CONFIG = {
           label: "Previous Camps",
           icon: FiClock,
           path: "/director-dashboard/previous-camps",
+          isNew: true,
+        },
+        {
+          id: "assigned-camps",
+          label: "My Assigned Camps",
+          icon: FiUsers,
+          path: "/director-dashboard/assigned-camps",
+          isNew: true,
         },
       ],
     },
@@ -246,6 +255,14 @@ const SidebarNav = ({ nav, pathname }) => (
                   <Icon className="size-[17px]" />
                 </span>
                 <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                {item.isNew && (
+                  <span
+                    className="relative shrink-0 animate-badge-pulse rounded-full border border-primary/60 bg-primary/5 px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-primary"
+                    title="New feature"
+                  >
+                    New
+                  </span>
+                )}
                 {active && (
                   <FiChevronRight className="size-4 shrink-0 text-primary/60" />
                 )}

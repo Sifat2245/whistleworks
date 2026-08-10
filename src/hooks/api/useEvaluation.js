@@ -14,6 +14,7 @@ export const evaluationKeys = {
   campEvaluations: (campId, page) => ["camp-evaluations", campId, page],
   rankings: (campId) => ["referees-ranking", campId],
   stats: (campId) => ["evaluation-stats", campId],
+  recommendedLevels: (sportsTypeName) => ["recommended-levels", sportsTypeName],
 };
 
 // Get registered referees (with pagination & caching)
@@ -91,6 +92,23 @@ export const useRefereeRankings = (campId) => {
     enabled: !!campId,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
+  });
+};
+
+// Get recommended highest levels for a sports type (e.g. "HS Basketball").
+// Always enabled — when no name is passed the API returns the generic
+// level list, so the dropdown never ends up empty.
+export const useRecommendedLevels = (sportsTypeName) => {
+  const { getRecommendLevels } = useEvaluationService();
+
+  return useQuery({
+    queryKey: evaluationKeys.recommendedLevels(sportsTypeName || "default"),
+    queryFn: async () => {
+      const response = await getRecommendLevels(sportsTypeName);
+      return response?.data?.data || [];
+    },
+    staleTime: 24 * 60 * 60 * 1000, // levels rarely change
+    gcTime: 24 * 60 * 60 * 1000,
   });
 };
 

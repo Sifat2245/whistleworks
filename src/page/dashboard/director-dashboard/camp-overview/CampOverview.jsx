@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
@@ -27,8 +28,11 @@ import {
   LuTimer,
   LuCircleCheck,
   LuInfo,
+  LuSettings2,
 } from "react-icons/lu";
 import { MdOutlineSportsTennis } from "react-icons/md";
+import ManageCampModal from "./components/ManageCampModal";
+import { dummyDirectors } from "./components/dummyDirectors";
 
 const STATUS_META = {
   upcoming: {
@@ -108,6 +112,41 @@ const CampOverview = () => {
     status?.toLowerCase() === "upcoming" ||
     (startDate && dayjs(startDate).valueOf() > Date.now());
   const countdown = useCountdown(isUpcoming ? startDate : null);
+
+  /* ================= Manage Camp (assistant directors) ================= */
+  const [manageCampOpen, setManageCampOpen] = useState(false);
+  // Demo seed — will come from the real API later
+  const [assistants, setAssistants] = useState(() => [
+    {
+      ...dummyDirectors[0],
+      permissions: ["build_schedule", "assign_referee"],
+    },
+  ]);
+
+  const handleAssignAssistant = (director, permissionKeys) => {
+    setAssistants((prev) => [
+      ...prev,
+      { ...director, permissions: permissionKeys },
+    ]);
+  };
+
+  const handleRemoveAssistant = async (assistantId) => {
+    const result = await Swal.fire({
+      title: "Remove assistant?",
+      text: "This director will lose their access to this camp.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, remove",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+    setAssistants((prev) =>
+      prev.filter((assistant) => assistant.id !== assistantId)
+    );
+  };
 
   /* ================= Delete Camp ================= */
   const handleDelete = async () => {
@@ -199,11 +238,19 @@ const CampOverview = () => {
               </span>
 
               {directorEmail === userEmail && (
-                <div className="flex items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                  <button
+                    onClick={() => setManageCampOpen(true)}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-border text-[#333] hover:border-primary hover:text-primary rounded-lg text-sm cursor-pointer whitespace-nowrap transition-colors sm:px-4"
+                  >
+                    <LuSettings2 />
+                    Manage Camp
+                  </button>
+
                   <Link to={`/director-dashboard/edit-camp/${campData?.id}`}>
                     <CommonSubmitBtn
                       variant="primary"
-                      className="flex items-center gap-1.5 py-1.5! px-4"
+                      className="flex items-center justify-center gap-1.5 py-2! px-3 sm:px-4"
                     >
                       <FaEdit />
                       Edit
@@ -212,7 +259,7 @@ const CampOverview = () => {
 
                   <button
                     onClick={handleDelete}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm cursor-pointer whitespace-nowrap transition-colors"
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm cursor-pointer whitespace-nowrap transition-colors sm:px-4"
                   >
                     <FaTrashAlt />
                     Delete
@@ -382,6 +429,16 @@ const CampOverview = () => {
           )}
         </div>
       </SectionCard>
+
+      {/* Manage Camp — assign assistant directors */}
+      <ManageCampModal
+        open={manageCampOpen}
+        onClose={() => setManageCampOpen(false)}
+        campName={campData?.camp_name}
+        assistants={assistants}
+        onAssign={handleAssignAssistant}
+        onRemove={handleRemoveAssistant}
+      />
     </div>
   );
 };

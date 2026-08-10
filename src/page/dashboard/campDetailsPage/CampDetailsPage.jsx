@@ -170,7 +170,11 @@ export default function CampDetailsPage() {
             {(isEvaluator && isEvaluatorRegistered) ||
             (isReferee && isRefereeRegistered)
               ? tab === "ranking-report" && (
-                  <RankingReport camp_id={id} campName={campName} />
+                  <RankingReport
+                    camp_id={id}
+                    campName={campName}
+                    sports_type_name={campData?.sports_type_name}
+                  />
                 )
               : null}
 
@@ -178,7 +182,11 @@ export default function CampDetailsPage() {
             {isEvaluator && isEvaluatorRegistered && (
               <>
                 {tab === "evaluate" && (
-                  <EvaluateV2 camp_id={id} campName={campName} />
+                  <EvaluateV2
+                    camp_id={id}
+                    campName={campName}
+                    sports_type_name={campData?.sports_type_name}
+                  />
                 )}
                 {tab === "schedule" && (
                   <Schedule camp_id={id} campName={campName} />

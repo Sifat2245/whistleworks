@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useRegisteredReferees } from "@/hooks/api/useRegisteredReferees";
 import {
   useSubmitEvaluation,
+  useRecommendedLevels,
   buildEvaluationFormData,
 } from "@/hooks/api/useEvaluation";
 import { cn } from "@/lib/utils";
@@ -28,15 +29,6 @@ const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `${i + 1}`,
   value: i + 1,
 })).sort((a, b) => a.value - b.value);
-
-const levelOptions = [
-  { label: "NCAA D1", value: "NCAA D1" },
-  { label: "NCAA D2", value: "NCAA D2" },
-  { label: "NAIA", value: "NAIA" },
-  { label: "JUCO", value: "JUCO" },
-  { label: "HS", value: "HS" },
-  { label: "JH/ELEM", value: "JH/ELEM" },
-];
 
 const criteria = [
   {
@@ -77,8 +69,17 @@ const criteria = [
   },
 ];
 
-const EvaluationForm = ({ camp_id }) => {
+const EvaluationForm = ({ camp_id, sports_type_name }) => {
   const { getRegisterReferess } = useRegisteredReferees(camp_id);
+
+  // Recommended highest levels are driven by the camp's sports type
+  const { data: recommendedLevels = [], isLoading: levelsLoading } =
+    useRecommendedLevels(sports_type_name);
+
+  const levelOptions = recommendedLevels.map((level) => ({
+    label: level,
+    value: level,
+  }));
 
   // Mutation for submitting evaluation (handles success/error toasts internally)
   const {
@@ -250,10 +251,11 @@ const EvaluationForm = ({ camp_id }) => {
           <CommonInputWrapper
             type="select"
             label="Recommended HIGHEST Level of Officiating"
-            placeholder="Select one.."
+            placeholder={levelsLoading ? "Loading levels..." : "Select one.."}
             register_as="recommended_level"
             control={control}
             options={levelOptions}
+            disabled={levelsLoading}
             validationRules={{ required: "Required" }}
             errors={errors}
           />

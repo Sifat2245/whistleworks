@@ -22,6 +22,7 @@ const CommonInputWrapper = ({
   errors = {},
   validationRules = {},
   readOnly = false,
+  disabled = false,
   value = "",
   control,
   selectMode = "single",
@@ -108,6 +109,7 @@ const CommonInputWrapper = ({
             render={({ field }) => (
               <Select
                 {...field}
+                disabled={disabled}
                 mode={selectMode !== "single" ? selectMode : undefined}
                 placeholder={placeholder}
                 options={options}

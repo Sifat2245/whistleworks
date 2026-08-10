@@ -2,6 +2,7 @@ import CommonInputWrapper from "@/components/common/CommonInputWrapper";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import LoaderV2 from "@/components/common/LoaderV2";
 import { useRegisteredReferees } from "@/hooks/api/useRegisteredReferees";
+import { useRecommendedLevels } from "@/hooks/api/useEvaluation";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { useMutation } from "@tanstack/react-query";
 import { Avatar } from "antd";
@@ -13,18 +14,18 @@ const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
   value: i + 1,
 })).sort((a, b) => a.value - b.value);
 
-const levelOptions = [
-  { label: "NCAA D1", value: "NCAA D1" },
-  { label: "NCAA D2", value: "NCAA D2" },
-  { label: "NAIA", value: "NAIA" },
-  { label: "JUCO", value: "JUCO" },
-  { label: "HS", value: "HS" },
-  { label: "JH/ELEM", value: "JH/ELEM" },
-];
-
-const EvaluationFormV2 = ({ camp_id }) => {
+const EvaluationFormV2 = ({ camp_id, sports_type_name }) => {
   const axiosInstance = useAxiosSecure();
   const { getRegisterReferess } = useRegisteredReferees(camp_id);
+
+  // Recommended highest levels are driven by the camp's sports type
+  const { data: recommendedLevels = [], isLoading: levelsLoading } =
+    useRecommendedLevels(sports_type_name);
+
+  const levelOptions = recommendedLevels.map((level) => ({
+    label: level,
+    value: level,
+  }));
 
   // Convert referees to select options
   const convertedRefOptions = getRegisterReferess?.map((ref) => ({
@@ -235,10 +236,11 @@ const EvaluationFormV2 = ({ camp_id }) => {
       <CommonInputWrapper
         type="select"
         label="Recommended HIGHEST Level of Officiating"
-        placeholder="Select one.."
+        placeholder={levelsLoading ? "Loading levels..." : "Select one.."}
         register_as="recommended_level"
         control={control}
         options={levelOptions}
+        disabled={levelsLoading}
         validationRules={{ required: "Required" }}
         errors={errors}
       />

@@ -20,8 +20,8 @@ import { Avatar } from "antd";
 import RefereeDetailsModal from "./RefereeDetailsModal";
 import RankingsSkeleton from "./RankingsSkeleton";
 import { useRefereeEvaluations } from "@/hooks/api/useRankings";
-
-const LEVELS = ["NCAA D1", "NCAA D2", "NAIA", "JUCO", "HS", "JH/ELEM"];
+import { useRecommendedLevels } from "@/hooks/api/useEvaluation";
+import { resolveLevels, LEVEL_LABELS } from "@/lib/recommendedLevels";
 
 const trophyColor = (rank) => {
   if (rank === 1) return "text-amber-400";
@@ -52,7 +52,7 @@ const rankBadgeClass = (rank) => {
   return "bg-[#333]";
 };
 
-const Rankings = ({ campId }) => {
+const Rankings = ({ campId, sports_type_name }) => {
   const {
     evaluations: rawEvaluations,
     isLoading,
@@ -60,21 +60,20 @@ const Rankings = ({ campId }) => {
     error,
   } = useRefereeEvaluations(campId);
 
+  const { data: recommendedLevels = [] } = useRecommendedLevels(sports_type_name);
+  const levels = resolveLevels(recommendedLevels);
+
   const processedData = useMemo(() => {
     const mapped = rawEvaluations.map((item) => {
       const averages = item.averages || {};
-      const levels = {
-        "NCAA D1": 0,
-        "NCAA D2": 0,
-        NAIA: 0,
-        JUCO: 0,
-        HS: 0,
-        "JH/ELEM": 0,
-      };
+      const levelCounts = {};
+      levels.forEach((lvl) => {
+        levelCounts[lvl] = 0;
+      });
 
       (item.recommended_levels || []).forEach((lvl) => {
-        if (lvl.level in levels) {
-          levels[lvl.level] = lvl.count;
+        if (lvl.level in levelCounts) {
+          levelCounts[lvl.level] = lvl.count;
         }
       });
 
@@ -94,7 +93,7 @@ const Rankings = ({ campId }) => {
         game_awareness: averages.game_awareness || 0,
         overall_percentage: overall,
         overall_avg: overall,
-        levels,
+        levels: levelCounts,
       };
     });
 
@@ -106,7 +105,7 @@ const Rankings = ({ campId }) => {
       ...item,
       rank: index + 1,
     }));
-  }, [rawEvaluations]);
+  }, [rawEvaluations, levels]);
 
   const totalEvals = useMemo(
     () =>
@@ -290,17 +289,17 @@ const Rankings = ({ campId }) => {
           </div>
         ),
       },
-      ...LEVELS.map((level) => ({
-        accessorKey: `levels.${level}`,
-        header: level === "JH/ELEM" ? "JH/Elem" : level,
+      ...levels.map((lvl) => ({
+        accessorKey: `levels.${lvl}`,
+        header: LEVEL_LABELS[lvl] || lvl,
         cell: ({ row }) => (
           <div className="text-center text-sm text-[#444]">
-            {row.original.levels[level] || "–"}
+            {row.original.levels[lvl] || "–"}
           </div>
         ),
       })),
     ],
-    [],
+    [levels],
   );
 
   const table = useReactTable({
@@ -474,7 +473,7 @@ const Rankings = ({ campId }) => {
           ) : (
             <div className="flex flex-col gap-3 p-4">
               {processedData.map((referee) => {
-                const activeLevels = LEVELS.filter(
+                const activeLevels = levels.filter(
                   (lvl) => (referee.levels[lvl] || 0) > 0,
                 );
                 return (

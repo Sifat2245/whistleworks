@@ -54,7 +54,7 @@ const Ranking = () => {
         </div>
       </div>
 
-      <Rankings campId={id} />
+      <Rankings campId={id} sports_type_name={campData?.sports_type_name} />
 
       <SettingsModal
         isOpen={isSettingsOpen}
