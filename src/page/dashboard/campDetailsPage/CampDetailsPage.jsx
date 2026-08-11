@@ -197,7 +197,12 @@ export default function CampDetailsPage() {
             {/* Referee-Only Tabs */}
             {isReferee && isRefereeRegistered && (
               <>
-                {tab === "performance" && <Performance camp_id={id} />}
+                {tab === "performance" && (
+                  <Performance
+                    camp_id={id}
+                    sports_type_name={campData?.sports_type_name}
+                  />
+                )}
                 {tab === "my-games" && <MyGames camp_id={id} />}
               </>
             )}

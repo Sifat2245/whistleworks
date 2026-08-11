@@ -60,7 +60,8 @@ const Rankings = ({ campId, sports_type_name }) => {
     error,
   } = useRefereeEvaluations(campId);
 
-  const { data: recommendedLevels = [] } = useRecommendedLevels(sports_type_name);
+  const { data: recommendedLevels = [] } =
+    useRecommendedLevels(sports_type_name);
   const levels = resolveLevels(recommendedLevels);
 
   const processedData = useMemo(() => {
@@ -167,7 +168,9 @@ const Rankings = ({ campId, sports_type_name }) => {
         cell: ({ row }) => (
           <div className="flex items-center justify-center gap-2">
             {row.original.rank <= 3 && (
-              <LuTrophy className={`w-5 h-5 ${trophyColor(row.original.rank)}`} />
+              <LuTrophy
+                className={`w-5 h-5 ${trophyColor(row.original.rank)}`}
+              />
             )}
             <span className="text-lg font-semibold text-[#333]">
               #{row.original.rank}
@@ -364,8 +367,8 @@ const Rankings = ({ campId, sports_type_name }) => {
           </h2>
           <p className="text-sm text-[#666] mt-0.5">
             Based on {totalEvals} submitted evaluation
-            {totalEvals !== 1 ? "s" : ""} — click a referee name to view
-            their full evaluation history
+            {totalEvals !== 1 ? "s" : ""} — click a referee name to view their
+            full evaluation history
           </p>
         </div>
 

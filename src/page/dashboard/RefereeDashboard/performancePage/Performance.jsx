@@ -3,10 +3,19 @@ import OverallPerformance from "@/page/dashboard/RefereeDashboard/performancePag
 import PerformanceBreakdown from "@/page/dashboard/RefereeDashboard/performancePage/components/PerformanceBreakdown";
 import RecentFeedback from "@/page/dashboard/RefereeDashboard/performancePage/components/RecentFeedback";
 import { useMyEvaluations } from "@/hooks/api/referee-hooks/useRefereePerformance";
+import { useRecommendedLevels } from "@/hooks/api/useEvaluation";
+import { resolveLevels } from "@/lib/recommendedLevels";
 import { Spin } from "antd";
 
-export default function Performance({ camp_id }) {
+export default function Performance({ camp_id, sports_type_name }) {
   const { data, isLoading } = useMyEvaluations(camp_id);
+
+  // Recommended levels are driven by the camp's sports type
+  // (e.g. HS Basketball → Large School Varsity ... JH/ELEM),
+  // falling back to the legacy list while loading or for other sports.
+  const { data: recommendedLevels = [] } =
+    useRecommendedLevels(sports_type_name);
+  const levels = resolveLevels(recommendedLevels);
 
   // Destructure properly
   const overallPerformance = data?.overall_performance || {};
@@ -15,9 +24,6 @@ export default function Performance({ camp_id }) {
   const recentFeedback = data?.recent_feedback || [];
   const totalEvaluations = overallPerformance?.total_evaluations || 0;
   const recommendedLevel = data?.recommended_levels || [];
-  
-  // console.log(data, 'performance data');
-  // console.log(recommendedLevel, 'recommended level');
 
   const hasEvaluations = totalEvaluations > 0;
 
@@ -40,6 +46,7 @@ export default function Performance({ camp_id }) {
         breakdown={performanceBreakdown}
         recommendedLevel={recommendedLevel}
         hasEvaluations={hasEvaluations}
+        levels={levels}
       />
       <RecentFeedback feedbackList={recentFeedback} />
     </section>

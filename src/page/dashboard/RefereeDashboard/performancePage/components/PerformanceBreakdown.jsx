@@ -18,20 +18,11 @@ const COLORS = [
   "#4CE78A", // light green
 ];
 
-// Define all possible recommended levels in desired order
-const RECOMMENDED_LEVELS = [
-  "NCAA D1",
-  "NCAA D2",
-  "NAIA",
-  "JUCO",
-  "HS",
-  "JH/ELEM",
-];
-
 export default function PerformanceBreakdown({
   breakdown,
   hasEvaluations,
   recommendedLevel = [],
+  levels = [],
 }) {
   // Total recommendations (used for percentage calculation)
   const totalRecommendations =
@@ -102,7 +93,7 @@ export default function PerformanceBreakdown({
       <div>
         <h3 className="text-xl font-medium mb-6">Recommended Level</h3>
         <div className="space-y-5">
-          {RECOMMENDED_LEVELS.map((level, idx) => {
+          {levels.map((level, idx) => {
             // Get count from data or default to 0
             const count = levelCounts.get(level) || 0;
             const percent = (count / totalRecommendations) * 100;
