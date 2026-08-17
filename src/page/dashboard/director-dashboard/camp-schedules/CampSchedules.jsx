@@ -168,7 +168,7 @@ const CampSchedules = () => {
 
   useEffect(() => {
     reset();
-  }, [searchQuery]);
+  }, [searchQuery, reset]);
 
   const totalGames = games.length;
   const displayedGames = filteredGames.length;

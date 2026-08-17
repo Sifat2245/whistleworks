@@ -1,4 +1,3 @@
-import { useState } from "react";
 import BackBtn from "@/components/common/BackBtn";
 import CommonSectionTitle from "@/components/common/CommonSectionTitle";
 import MyCampCartSkeleton from "@/page/dashboard/director-dashboard/dashboard/components/MyCampCartSkeleton";
@@ -7,7 +6,7 @@ import { useGetAssignedCamps } from "@/hooks/api/director-hooks/useCamps";
 import { LuShieldCheck, LuInbox } from "react-icons/lu";
 
 const AssignedCamps = () => {
-  const [page, setPage] = useState(1);
+  const page = 1;
   const { data, isLoading } = useGetAssignedCamps(page);
 
   const camps = data?.camp_list || [];

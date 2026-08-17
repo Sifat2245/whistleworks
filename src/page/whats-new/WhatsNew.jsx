@@ -11,7 +11,6 @@ import {
   FiAward,
   FiLayers,
   FiGrid,
-  FiShield,
   FiLock,
   FiZap,
   FiClock,

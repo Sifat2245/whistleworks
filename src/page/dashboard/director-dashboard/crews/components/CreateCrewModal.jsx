@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Modal, Input, Button, Spin, Select } from "antd";
+import { Modal, Input, Button, Select } from "antd";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { LuTrash2 } from "react-icons/lu";
@@ -20,7 +20,6 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
   const {
     data,
     isLoading: loadingReferees,
-    isError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -228,7 +227,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
           </div>
 
           <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
-            {slots.map((slot, index) => {
+            {slots.map((slot) => {
               const availableRefs = getAvailableRefereesForSlot(slot.id);
               return (
                 <div

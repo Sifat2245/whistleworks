@@ -5,7 +5,7 @@ import CommonText from "@/components/common/CommonText";
 import CampCard from "@/components/shared/CampCard";
 import { useMyCheckins, useMyRegistrations } from "@/hooks/api/referee-hooks/useRefereeCamps";
 import { Spin, Tabs, Select } from "antd";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import PaginationV2 from "@/components/common/PaginationV2";
 
 const { TabPane } = Tabs;
@@ -35,7 +35,7 @@ export default function ActiveCamps() {
   const perPage = PER_PAGE_OPTIONS.includes(urlPerPage) ? urlPerPage : 10;
 
   // Update URL
-  const updateUrl = ({
+  const updateUrl = useCallback(({
     tab = activeTab,
     page = currentPage,
     perPage: newPerPage = perPage,
@@ -48,7 +48,7 @@ export default function ActiveCamps() {
       },
       { replace: true },
     );
-  };
+  }, [activeTab, currentPage, perPage, setSearchParams]);
 
   const handleTabChange = (key) => {
     updateUrl({ tab: key, page: 1 });
@@ -77,7 +77,7 @@ export default function ActiveCamps() {
         perPage: 10,
       });
     }
-  }, []);
+  }, [searchParams, updateUrl]);
 
   // Queries
   const {

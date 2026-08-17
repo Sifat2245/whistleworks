@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import ScheduleAddModal from "./ScheduleAddModal";
 import CourtSlotBox from "./CourtSlotBox";
@@ -89,8 +89,14 @@ const CourtLists = ({ campData }) => {
     campData?.id,
   );
 
-  const availableDates = initialData?.available_dates || [];
-  const availableLocations = initialData?.available_locations || [];
+  const availableDates = useMemo(
+    () => initialData?.available_dates || [],
+    [initialData?.available_dates]
+  );
+  const availableLocations = useMemo(
+    () => initialData?.available_locations || [],
+    [initialData?.available_locations]
+  );
 
   const { data, isLoading } = useCourtInfo(campData?.id, selectedDate);
 

@@ -7,15 +7,15 @@ import RefereeDetailsModal from "@/page/dashboard/director-dashboard/roster/comp
 
 const EvaluatorRefereeList = ({ camp_id }) => {
   const { data: campDetails, isLoading } = useCampRosterDetails(camp_id);
-  const referees = campDetails?.referees || [];
   const [searchQuery, setSearchQuery] = useState("");
 
   const [selectedMember, setSelectedMember] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const allMembers = [
-    ...referees.map((r) => ({ ...r, role: "Referee", status: r.status })),
-  ];
+  const allMembers = useMemo(() => {
+    const referees = campDetails?.referees || [];
+    return referees.map((r) => ({ ...r, role: "Referee", status: r.status }));
+  }, [campDetails?.referees]);
 
   // Client-side search filter
   const filteredMembers = useMemo(() => {

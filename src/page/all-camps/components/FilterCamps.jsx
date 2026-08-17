@@ -94,6 +94,7 @@ const FilterCamps = ({ limit }) => {
     selectedDateRange,
     selectedSort,
     currentPage,
+    setSearchParams,
   ]);
 
   const handleClearFilters = () => {

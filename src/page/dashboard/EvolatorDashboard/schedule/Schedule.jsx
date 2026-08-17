@@ -138,7 +138,7 @@ export default function Schedule({ camp_id }) {
 
   useEffect(() => {
     reset();
-  }, [searchQuery]);
+  }, [searchQuery, reset]);
 
   const totalGames = games.length;
   const displayedGames = filteredGames.length;

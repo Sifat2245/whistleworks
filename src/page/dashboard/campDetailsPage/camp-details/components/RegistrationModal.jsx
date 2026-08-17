@@ -135,7 +135,7 @@ const RegistrationModal = ({
       applyCouponMutation.reset();
       setRegistering(false);
     }
-  }, [open]);
+  }, [open, applyCouponMutation]);
 
   const handleCloseSuccess = () => {
     setSuccessData(null);
