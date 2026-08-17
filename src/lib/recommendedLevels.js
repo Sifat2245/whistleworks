@@ -1,7 +1,4 @@
-// Recommended-officiating levels shared by the ranking tables.
-// The column set is driven by the camp's sports type (e.g. "HS Basketball"
-// → Large School Varsity ... JH/ELEM) via the recommended-levels API, with
-// this legacy list used as a fallback while loading or for other sports.
+
 
 export const DEFAULT_LEVELS = [
   "NCAA D1",
@@ -12,7 +9,6 @@ export const DEFAULT_LEVELS = [
   "JH/ELEM",
 ];
 
-// Short header labels — the full level name is shown as a tooltip.
 export const LEVEL_LABELS = {
   "NCAA D1": "DI",
   "NCAA D2": "D2",
@@ -26,7 +22,5 @@ export const LEVEL_LABELS = {
   "Junior Varsity": "JV",
 };
 
-// Pick the level list to render: prefer the sports-type-specific list from
-// the API, otherwise fall back to the legacy levels.
 export const resolveLevels = (recommendedLevels = []) =>
   recommendedLevels.length ? recommendedLevels : DEFAULT_LEVELS;

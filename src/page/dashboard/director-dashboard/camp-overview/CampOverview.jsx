@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
@@ -17,7 +17,11 @@ import {
 import {
   useGetCampDetails,
   useDeleteCamp,
+  useAssignAssistantDirector,
+  useGetAllDirectors,
+  useRemoveAssistantDirector,
 } from "@/hooks/api/director-hooks/useCamps";
+import toast from "react-hot-toast";
 import {
   LuCalendarDays,
   LuMapPin,
@@ -32,7 +36,8 @@ import {
 } from "react-icons/lu";
 import { MdOutlineSportsTennis } from "react-icons/md";
 import ManageCampModal from "./components/ManageCampModal";
-import { dummyDirectors } from "./components/dummyDirectors";
+
+const parseBool = (val) => val === true || val === 1 || val === "1" || val === "true";
 
 const STATUS_META = {
   upcoming: {
@@ -76,7 +81,9 @@ const CampOverview = () => {
   const { userData } = useAuth();
   const navigate = useNavigate();
 
-  const { data: campData, isLoading } = useGetCampDetails(id);
+  const { data: campData, isLoading, refetch: refetchCampDetails } = useGetCampDetails(id);
+  const { data: allDirectors = [], refetch: refetchAllDirectors } = useGetAllDirectors("", id);
+
   const deleteCampMutation = useDeleteCamp({
     onSuccess: () => {
       Swal.fire({
@@ -94,6 +101,28 @@ const CampOverview = () => {
         text: "Failed to delete camp.",
         icon: "error",
       });
+    },
+  });
+
+  const assignMutation = useAssignAssistantDirector({
+    onSuccess: () => {
+      toast.success("Assistant director assigned successfully.");
+      refetchCampDetails();
+      refetchAllDirectors();
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Failed to assign assistant director.");
+    },
+  });
+
+  const removeMutation = useRemoveAssistantDirector({
+    onSuccess: () => {
+      toast.success("Assistant director removed successfully.");
+      refetchCampDetails();
+      refetchAllDirectors();
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Failed to remove assistant director.");
     },
   });
 
@@ -115,19 +144,117 @@ const CampOverview = () => {
 
   /* ================= Manage Camp (assistant directors) ================= */
   const [manageCampOpen, setManageCampOpen] = useState(false);
-  // Demo seed — will come from the real API later
-  const [assistants, setAssistants] = useState(() => [
-    {
-      ...dummyDirectors[0],
-      permissions: ["build_schedule", "assign_referee"],
-    },
-  ]);
+
+  const assistantsList = useMemo(() => {
+    // 1. Prioritize from allDirectors query if available and has assigned directors
+    const assignedFromList = (allDirectors || []).filter((d) => d.is_assigned);
+    if (assignedFromList.length > 0) {
+      return assignedFromList.map((dir) => {
+        const permObj = dir.permissions || {};
+        const uiPermissions = [];
+        if (parseBool(permObj.build_schedule) || parseBool(permObj.manage_schedule)) uiPermissions.push("manage_schedule");
+        if (parseBool(permObj.assign_referees) || parseBool(permObj.assign_referee)) uiPermissions.push("assign_referee");
+        if (parseBool(permObj.publish_camp)) uiPermissions.push("publish_camp");
+        if (parseBool(permObj.manage_ranking_reports) || parseBool(permObj.manage_ranking)) uiPermissions.push("manage_ranking");
+        if (parseBool(permObj.manage_roster_referees)) uiPermissions.push("manage_roster_referees");
+        if (parseBool(permObj.manage_roster_evaluators)) uiPermissions.push("manage_roster_evaluators");
+        if (parseBool(permObj.manage_roster_crews)) uiPermissions.push("manage_roster_crews");
+        if (parseBool(permObj.manage_announcements) || parseBool(permObj.manage_announcement)) uiPermissions.push("manage_announcement");
+
+        return {
+          id: dir.id,
+          name: `${dir.first_name || ""} ${dir.last_name || ""}`.trim() || dir.email,
+          email: dir.email,
+          permissions: uiPermissions,
+        };
+      });
+    }
+
+    // 2. Fallback to campData assistant directors list
+    const directList = campData?.assistant_directors || campData?.assistants || [];
+    if (directList.length > 0) {
+      return directList.map((item) => {
+        let permObj = {};
+        if (campData?.permissions) {
+          const found = Object.values(campData.permissions).find(
+            (p) => p.assistant_director_id === item.id
+          );
+          if (found) permObj = found;
+        }
+        if (!permObj.id) {
+          permObj = item.pivot || item.permissions || {};
+        }
+
+        const uiPermissions = [];
+        if (parseBool(permObj.build_schedule) || parseBool(permObj.manage_schedule)) uiPermissions.push("manage_schedule");
+        if (parseBool(permObj.assign_referees) || parseBool(permObj.assign_referee)) uiPermissions.push("assign_referee");
+        if (parseBool(permObj.publish_camp)) uiPermissions.push("publish_camp");
+        if (parseBool(permObj.manage_ranking_reports) || parseBool(permObj.manage_ranking)) uiPermissions.push("manage_ranking");
+        if (parseBool(permObj.manage_roster_referees)) uiPermissions.push("manage_roster_referees");
+        if (parseBool(permObj.manage_roster_evaluators)) uiPermissions.push("manage_roster_evaluators");
+        if (parseBool(permObj.manage_roster_crews)) uiPermissions.push("manage_roster_crews");
+        if (parseBool(permObj.manage_announcements) || parseBool(permObj.manage_announcement)) uiPermissions.push("manage_announcement");
+
+        return {
+          id: item.id,
+          name: item.name || `${item.first_name || ""} ${item.last_name || ""}`.trim() || item.email,
+          email: item.email,
+          permissions: uiPermissions,
+        };
+      });
+    }
+
+    // 3. Fallback to mapping permissions directly if directList is not yet resolved
+    if (campData?.permissions && allDirectors.length > 0) {
+      const activePermissions = Object.values(campData.permissions);
+      return activePermissions
+        .map((permObj) => {
+          const dir = allDirectors.find((d) => d.id === permObj.assistant_director_id);
+          if (!dir) return null;
+
+          const uiPermissions = [];
+          if (parseBool(permObj.build_schedule) || parseBool(permObj.manage_schedule)) uiPermissions.push("manage_schedule");
+          if (parseBool(permObj.assign_referees) || parseBool(permObj.assign_referee)) uiPermissions.push("assign_referee");
+          if (parseBool(permObj.publish_camp)) uiPermissions.push("publish_camp");
+          if (parseBool(permObj.manage_ranking_reports) || parseBool(permObj.manage_ranking)) uiPermissions.push("manage_ranking");
+          if (parseBool(permObj.manage_roster_referees)) uiPermissions.push("manage_roster_referees");
+          if (parseBool(permObj.manage_roster_evaluators)) uiPermissions.push("manage_roster_evaluators");
+          if (parseBool(permObj.manage_roster_crews)) uiPermissions.push("manage_roster_crews");
+          if (parseBool(permObj.manage_announcements) || parseBool(permObj.manage_announcement)) uiPermissions.push("manage_announcement");
+
+          return {
+            id: dir.id,
+            name: `${dir.first_name || ""} ${dir.last_name || ""}`.trim() || dir.email,
+            email: dir.email,
+            permissions: uiPermissions,
+          };
+        })
+        .filter(Boolean);
+    }
+
+    return [];
+  }, [campData, allDirectors]);
 
   const handleAssignAssistant = (director, permissionKeys) => {
-    setAssistants((prev) => [
-      ...prev,
-      { ...director, permissions: permissionKeys },
-    ]);
+    const payload = {
+      assistant_director_id: director.id,
+      camp_id: parseInt(id),
+      build_schedule: (permissionKeys.includes("build_schedule") || permissionKeys.includes("manage_schedule")) ? 1 : 0,
+      assign_referees: permissionKeys.includes("assign_referee") ? 1 : 0,
+      publish_camp: permissionKeys.includes("publish_camp") ? 1 : 0,
+      manage_ranking_reports: permissionKeys.includes("manage_ranking") ? 1 : 0,
+      manage_roster: (
+        permissionKeys.includes("manage_roster_referees") ||
+        permissionKeys.includes("manage_roster_evaluators") ||
+        permissionKeys.includes("manage_roster_crews")
+      ) ? 1 : 0,
+      manage_roster_referees: permissionKeys.includes("manage_roster_referees") ? 1 : 0,
+      manage_roster_evaluators: permissionKeys.includes("manage_roster_evaluators") ? 1 : 0,
+      manage_roster_crews: permissionKeys.includes("manage_roster_crews") ? 1 : 0,
+      manage_announcements: permissionKeys.includes("manage_announcement") ? 1 : 0,
+    };
+
+    assignMutation.mutate(payload);
   };
 
   const handleRemoveAssistant = async (assistantId) => {
@@ -143,9 +270,8 @@ const CampOverview = () => {
     });
 
     if (!result.isConfirmed) return;
-    setAssistants((prev) =>
-      prev.filter((assistant) => assistant.id !== assistantId)
-    );
+
+    removeMutation.mutate({ assistantId, campId: parseInt(id) });
   };
 
   /* ================= Delete Camp ================= */
@@ -250,7 +376,7 @@ const CampOverview = () => {
                   <Link to={`/director-dashboard/edit-camp/${campData?.id}`}>
                     <CommonSubmitBtn
                       variant="primary"
-                      className="flex items-center justify-center gap-1.5 py-2! px-3 sm:px-4"
+                      className="flex items-center justify-center gap-1.5 px-3 sm:px-4"
                     >
                       <FaEdit />
                       Edit
@@ -435,7 +561,8 @@ const CampOverview = () => {
         open={manageCampOpen}
         onClose={() => setManageCampOpen(false)}
         campName={campData?.camp_name}
-        assistants={assistants}
+        campId={id}
+        assistants={assistantsList}
         onAssign={handleAssignAssistant}
         onRemove={handleRemoveAssistant}
       />

@@ -1,9 +1,11 @@
 // components/schedule/CourtSlotCardMobile.jsx
 // Compact, thumb-friendly court card used in the mobile (< lg) layout.
-import { LuPencil, LuLock, LuPlus, LuUsers, LuLoaderCircle } from "react-icons/lu";
+import { LuPencil, LuLock, LuPlus, LuUsers, LuUser, LuLoaderCircle } from "react-icons/lu";
 import { HiXMark } from "react-icons/hi2";
 import Swal from "sweetalert2";
 import { useRemoveAssignment } from "@/hooks/api/director-hooks/useGameAssingments";
+import { getRefereePositions } from "@/utils/refereePositions";
+import { cn } from "@/lib/utils";
 
 const CourtSlotCardMobile = ({
   court,
@@ -23,6 +25,11 @@ const CourtSlotCardMobile = ({
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
+  sportName = "",
+  isDimmed = false,
+  searchQuery = "",
+  assignmentType = "referees",
+  onToggleSlotMode,
 }) => {
   // ── Remove assignment mutation ────────────────────────────
   const removeMutation = useRemoveAssignment(campId, selectedDate);
@@ -60,6 +67,14 @@ const CourtSlotCardMobile = ({
     if (result.isConfirmed) {
       removeMutation.mutate(assignmentId);
     }
+  };
+
+  const isRefereeMatch = (ref, query) => {
+    if (!query) return false;
+    const lower = query.toLowerCase();
+    const name = ref?.referee_name || ref?.name || "";
+    const email = ref?.referee_email || ref?.email || "";
+    return name.toLowerCase().includes(lower) || email.toLowerCase().includes(lower);
   };
 
   const handleCardClick = () => {
@@ -100,7 +115,10 @@ const CourtSlotCardMobile = ({
   return (
     <div
       onClick={handleCardClick}
-      className="px-4 py-4 cursor-pointer active:bg-primary/[0.03] transition-colors"
+      className={cn(
+        "px-4 py-4 cursor-pointer active:bg-primary/[0.03] transition-all duration-300",
+        isDimmed && "opacity-25 pointer-events-none scale-98"
+      )}
     >
       {/* Header: court name + actions */}
       <div className="flex items-center justify-between gap-3">
@@ -163,15 +181,112 @@ const CourtSlotCardMobile = ({
 
       {/* Body */}
       <div className="mt-3">
-        {hasCrew ? (
+        {individualReferees.length === 0 && !hasCrew ? (
+          // === Unassigned/Empty Slot View ===
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[#666]">
+                {assignmentType === "crews" ? "Crew Assignment" : "Positions"}
+              </span>
+              {/* Switcher Pill */}
+              <div className="bg-gray-100 p-0.5 rounded-full flex items-center shrink-0 border border-gray-200 shadow-sm">
+                <button
+                  onClick={(e) => {
+                    stop(e);
+                    if (assignmentType !== "referees") {
+                      onToggleSlotMode?.(court.slot_id);
+                    }
+                  }}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    assignmentType === "referees"
+                      ? "bg-white text-primary shadow-sm"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                  title="Switch to Individual Referees"
+                >
+                  <LuUser size={13} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    stop(e);
+                    if (assignmentType !== "crews") {
+                      onToggleSlotMode?.(court.slot_id);
+                    }
+                  }}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    assignmentType === "crews"
+                      ? "bg-white text-primary shadow-sm"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                  title="Switch to Crew Mode"
+                >
+                  <LuUsers size={13} />
+                </button>
+              </div>
+            </div>
+
+            {assignmentType === "crews" ? (
+              <div
+                onClick={handleCardClick}
+                className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-200 px-4 py-4 text-sm font-medium text-gray-400 hover:border-purple-300 hover:bg-purple-50/10 transition-all cursor-pointer"
+              >
+                <LuPlus size={16} className="text-purple-600 animate-pulse" />
+                Assign Crew
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {getRefereePositions(campId, sportName, maxReferees).map((positionName, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-gray-200 px-3.5 py-3 hover:border-primary/50 hover:bg-primary/[0.01] transition-all"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-gray-400">
+                        <LuPlus size={14} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 leading-none">
+                          {positionName}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Unassigned
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold text-primary">
+                      Assign
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : hasCrew ? (
+          // === Has Crew Assignment ===
           <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-purple-50 border border-purple-100 px-3.5 py-3">
+            {/* Crew Info Header Block */}
+            <div className={cn(
+              "flex items-center justify-between gap-3 rounded-xl px-3.5 py-3 border transition-all duration-200",
+              searchQuery && crewAssignment.crew_name?.toLowerCase().includes(searchQuery.toLowerCase())
+                ? "bg-primary/10 border-primary ring-2 ring-primary/10"
+                : "bg-purple-50 border-purple-100"
+            )}>
               <div className="flex items-center gap-3 min-w-0">
-                <span className="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                <span className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center shrink-0",
+                  searchQuery && crewAssignment.crew_name?.toLowerCase().includes(searchQuery.toLowerCase())
+                    ? "bg-primary/20 text-primary"
+                    : "bg-purple-100 text-purple-700"
+                )}>
                   <LuUsers size={16} />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-purple-800 truncate">
+                  <p className={cn(
+                    "text-sm font-semibold truncate",
+                    searchQuery && crewAssignment.crew_name?.toLowerCase().includes(searchQuery.toLowerCase())
+                      ? "text-primary"
+                      : "text-purple-800"
+                  )}>
                     {crewAssignment.crew_name || "Unnamed Crew"}
                   </p>
                   <p className="text-xs text-purple-600">
@@ -197,80 +312,145 @@ const CourtSlotCardMobile = ({
             {/* Crew members with names & jersey numbers */}
             {(crewAssignment.members || []).length > 0 && (
               <div className="rounded-xl bg-gray-50 border border-border divide-y divide-border overflow-hidden">
-                {crewAssignment.members.map((member) => (
-                  <div
-                    key={member.referee_id}
-                    className="flex items-center gap-2.5 px-3 py-2"
-                  >
-                    <img
-                      src={member.avatar || ""}
-                      alt={member.referee_name || "crew member"}
-                      className="w-7 h-7 rounded-full object-cover border border-gray-200 bg-white shrink-0"
-                    />
-                    <span className="text-sm font-medium text-[#333] truncate flex-1">
-                      {member.referee_name || "Unnamed Referee"}
-                    </span>
-                    {member.jersey_number && (
-                      <span className="shrink-0 text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                        #{member.jersey_number}
-                      </span>
-                    )}
-                  </div>
-                ))}
+                {crewAssignment.members.map((member) => {
+                  const crewId = crewAssignment.crew_id || crewAssignment.id || crewAssignment.assignment_id;
+                  const crewPositions = JSON.parse(
+                    localStorage.getItem(`crew_positions_${crewId}`) || "{}"
+                  );
+                  const posName = member.position_name || crewPositions[member.referee_id || member.id];
+                  const isMatched = searchQuery && isRefereeMatch(member, searchQuery);
+
+                  return (
+                    <div
+                      key={member.referee_id || member.id}
+                      className={cn(
+                        "flex items-center gap-2.5 px-3 py-2 transition-all duration-200 border-l-4",
+                        isMatched
+                          ? "bg-primary/15 border-l-primary"
+                          : "bg-transparent border-l-transparent"
+                      )}
+                    >
+                      <img
+                        src={member.avatar || ""}
+                        alt={member.referee_name || member.name || "crew member"}
+                        className="w-7 h-7 rounded-full object-cover border border-gray-200 bg-white shrink-0"
+                        onError={(e) => {
+                          e.target.src = "/default-avatar.png";
+                        }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        {posName && (
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-primary leading-none mb-0.5">
+                            {posName}
+                          </p>
+                        )}
+                        <span className="text-sm font-medium text-[#333] truncate block leading-tight">
+                          {member.referee_name || member.name || "Unnamed Referee"}
+                        </span>
+                      </div>
+                      {(member.jersey_number || member.jourcy_number) && (
+                        <span className="shrink-0 text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full ml-1">
+                          #{member.jersey_number || member.jourcy_number}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
-        ) : individualReferees.length > 0 ? (
-          <div className="space-y-2">
-            {individualReferees.map((item, idx) => {
-              const refereeName = item?.referee_name || "Unknown Referee";
-              const jerseyNumber = item?.jourcy_number;
+        ) : (
+          // === Has Individual Assignments ===
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[#666]">
+                Positions
+              </span>
+              <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                {individualReferees.length}/{maxReferees}
+              </span>
+            </div>
+            {getRefereePositions(campId, sportName, maxReferees).map((positionName, idx) => {
+              const item = individualReferees[idx];
 
+              if (item) {
+                const refereeName = item?.referee_name || "Unknown Referee";
+                const jerseyNumber = item?.jourcy_number;
+
+                const isMatched = searchQuery && isRefereeMatch(item, searchQuery);
+
+                return (
+                  <div
+                    key={item.assignment_id || idx}
+                    className={cn(
+                      "flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 transition-all duration-200",
+                      isMatched
+                        ? "bg-primary/15 border-primary ring-2 ring-primary/20 shadow-xs"
+                        : "bg-gray-50 border-border"
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <img
+                        src={item?.avatar || "/default-avatar.png"}
+                        alt={refereeName}
+                        onError={(e) => {
+                          e.target.src = "/default-avatar.png";
+                        }}
+                        className="w-8 h-8 rounded-full object-cover border border-gray-200 bg-white shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-primary leading-none">
+                          {positionName}
+                        </p>
+                        <p className="text-sm font-semibold text-[#333] truncate mt-1 leading-tight">
+                          {refereeName}
+                        </p>
+                      </div>
+                      {jerseyNumber && (
+                        <span className="shrink-0 text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full ml-1">
+                          #{jerseyNumber}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) =>
+                        handleRemove(e, item?.assignment_id, refereeName)
+                      }
+                      disabled={removeMutation.isPending}
+                      className="shrink-0 text-gray-400 hover:text-red-500 p-1.5 cursor-pointer transition-colors"
+                      title={`Unassign ${positionName}`}
+                    >
+                      <HiXMark className="w-4.5 h-4.5" />
+                    </button>
+                  </div>
+                );
+              }
+
+              // Position is empty
               return (
                 <div
-                  key={item.assignment_id || idx}
-                  className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 border border-border px-3.5 py-2.5"
+                  key={idx}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-gray-200 px-3.5 py-3 hover:border-primary/50 hover:bg-primary/[0.01] transition-all"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <img
-                      src={item?.avatar}
-                      alt={refereeName}
-                      className="w-8 h-8 rounded-full object-cover border border-gray-200 bg-white shrink-0"
-                    />
-                    <span className="text-sm font-medium text-[#333] truncate min-w-0">
-                      {refereeName}
+                    <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-gray-400">
+                      <LuPlus size={14} />
                     </span>
-                    {jerseyNumber && (
-                      <span className="shrink-0 text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                        #{jerseyNumber}
-                      </span>
-                    )}
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 leading-none">
+                        {positionName}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Unassigned
+                      </p>
+                    </div>
                   </div>
-                  <button
-                    onClick={(e) =>
-                      handleRemove(e, item?.assignment_id, refereeName)
-                    }
-                    disabled={removeMutation.isPending}
-                    className="shrink-0 text-gray-400 hover:text-red-500 p-1 cursor-pointer transition-colors"
-                    title="Unassign referee"
-                  >
-                    <HiXMark className="w-4.5 h-4.5" />
-                  </button>
+                  <span className="text-xs font-semibold text-primary">
+                    Assign
+                  </span>
                 </div>
               );
             })}
-            {individualReferees.length < maxReferees && (
-              <p className="text-xs text-gray-400 px-1 pt-0.5">
-                {maxReferees - individualReferees.length} spot
-                {maxReferees - individualReferees.length === 1 ? "" : "s"} open
-                — tap to add more
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 px-4 py-3.5 text-sm font-medium text-gray-400">
-            <LuPlus size={16} className="text-primary" />
-            Add referees or crew
           </div>
         )}
       </div>

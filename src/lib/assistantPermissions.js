@@ -1,13 +1,13 @@
 import { CiCalendar } from "react-icons/ci";
-import { PiCourtBasketball, PiMegaphone } from "react-icons/pi";
+import { PiCourtBasketball, PiMegaphone, PiSunglassesLight } from "react-icons/pi";
 import { FiSend } from "react-icons/fi";
 import { BsArrowLeftRight } from "react-icons/bs";
-import { LuUsers } from "react-icons/lu";
+import { LuUsers, LuUser } from "react-icons/lu";
 
 export const ASSISTANT_PERMISSIONS = [
   {
-    key: "build_schedule",
-    label: "Build Schedule",
+    key: "manage_schedule",
+    label: "Manage Schedules",
     description: "Create and edit the camp's game schedule",
     icon: CiCalendar,
   },
@@ -30,9 +30,21 @@ export const ASSISTANT_PERMISSIONS = [
     icon: BsArrowLeftRight,
   },
   {
-    key: "manage_roster",
-    label: "Manage Roster",
-    description: "Manage referees, evaluators & crews",
+    key: "manage_roster_referees",
+    label: "Manage Roster Referees",
+    description: "Manage referees in the camp roster",
+    icon: LuUser,
+  },
+  {
+    key: "manage_roster_evaluators",
+    label: "Manage Roster Evaluators",
+    description: "Manage evaluators in the camp roster",
+    icon: PiSunglassesLight,
+  },
+  {
+    key: "manage_roster_crews",
+    label: "Manage Roster Crews",
+    description: "Manage referee crews in the camp roster",
     icon: LuUsers,
   },
   {
@@ -46,8 +58,8 @@ export const ASSISTANT_PERMISSIONS = [
 export const CARD_ACTION_PERMISSIONS = {
   schedule: ["build_schedule"],
   court: ["assign_referee"],
-  evaluate: ["manage_roster"],
+  evaluate: ["manage_roster_evaluators"],
   ranking: ["manage_ranking"],
-  roster: ["manage_roster"],
+  roster: ["manage_roster_referees", "manage_roster_crews"],
   announcement: ["manage_announcement"],
 };

@@ -68,7 +68,7 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
         toast.warning("Maximum 6 members can be added at once");
         return prev;
       }
-      return [...prev, referee];
+      return [...prev, { ...referee, position: "" }];
     });
   };
 
@@ -84,6 +84,16 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
 
     try {
       await addMembersMutation.mutateAsync(payload);
+      // Save positions for newly added members
+      const crewPositions = JSON.parse(
+        localStorage.getItem(`crew_positions_${crewId}`) || "{}"
+      );
+      selectedMembers.forEach((m) => {
+        if (m.position?.trim()) {
+          crewPositions[m.id] = m.position.trim();
+        }
+      });
+      localStorage.setItem(`crew_positions_${crewId}`, JSON.stringify(crewPositions));
       onClose();
     } catch {
       // Error toast handled in hook
@@ -165,7 +175,7 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
                     key={ref.id}
                     onClick={() => !disabled && toggleSelection(ref)}
                     className={cn(
-                      "border rounded-[10px] p-4 flex items-center justify-between transition-all cursor-pointer",
+                      "border rounded-[10px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all cursor-pointer",
                       isSelected
                         ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
                         : disabled
@@ -173,7 +183,7 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
                         : "border-border bg-white hover:border-primary/50 hover:shadow-md"
                     )}
                   >
-                    <div className="flex items-center gap-4 min-w-0">
+                    <div className="flex items-center gap-4 min-w-0 flex-1">
                       <Avatar
                         src={ref.avatar}
                         size={48}
@@ -181,7 +191,7 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
                       >
                         {ref.name?.charAt(0)?.toUpperCase()}
                       </Avatar>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="font-medium text-[#333] truncate">
                           {ref.name}{" "}
                           {ref.jersey_number ? `#${ref.jersey_number}` : ""}
@@ -191,6 +201,25 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
                         </p>
                       </div>
                     </div>
+
+                    {/* Position input for selected referee */}
+                    {isSelected && (
+                      <div className="w-full sm:w-48" onClick={(e) => e.stopPropagation()}>
+                        <Input
+                          placeholder="Position (e.g. Umpire)"
+                          value={selectedMembers.find((m) => m.id === ref.id)?.position || ""}
+                          onChange={(e) => {
+                            setSelectedMembers((prev) =>
+                              prev.map((m) =>
+                                m.id === ref.id ? { ...m, position: e.target.value } : m
+                              )
+                            );
+                          }}
+                          className="rounded-lg"
+                        />
+                      </div>
+                    )}
+
                     <span
                       className={cn(
                         "w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors",

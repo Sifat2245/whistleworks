@@ -45,6 +45,18 @@ export const useCampService = () => {
 
     // Auth required — director's previously ended camps (paginated)
     previousCamp: (page = 1) =>
-      axiosSecure.get(`/v1/director/camp/previous-camps?page=${page}`)
+      axiosSecure.get(`/v1/director/camp/previous-camps?page=${page}`),
+
+    getAllDirectors: (search = "", campId = "") => axiosSecure.get(`/assistant-director/list?search=${search}&camp_id=${campId}`),
+
+    assignAssistantDirector: (data) =>
+      axiosSecure.post("/assistant-director-permissions/assign", data),
+
+    assignedCampList: (page = 1) =>
+      axiosSecure.get(`/assistant-director/camp/list?page=${page}`),
+
+    removeAssistantDirector: (assistantId, campId) =>
+      axiosSecure.delete(`/assistant-director/camp/permission/remove?assistant_director_id=${assistantId}&camp_id=${campId}`),
+
   };
 };

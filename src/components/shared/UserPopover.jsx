@@ -8,6 +8,7 @@ import {
   FiLogOut,
   FiChevronRight,
   FiExternalLink,
+  FiZap,
 } from "react-icons/fi";
 import { SiStripe } from "react-icons/si";
 import { useStripeConnectionStatus, useConnectStripe, useStripeDashboard } from "@/hooks/api/useStripConnection";
@@ -74,6 +75,7 @@ const UserPopover = ({ onNavigate }) => {
       { id: "profile", label: "Profile", path: profilePath, icon: FiUser },
     ],
     [
+      { id: "whats-new", label: "What's New", path: "/whats-new", icon: FiZap },
       { id: "privacy", label: "Privacy Policy", path: "/privacy-policy", icon: FiShield },
     ],
     [

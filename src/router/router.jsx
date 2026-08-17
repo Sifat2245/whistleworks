@@ -44,6 +44,7 @@ import FAQ from "@/page/faq/FAQ";
 import StripeConnectionSuccess from "@/page/dashboard/director-dashboard/strip-connection-success";
 import DirectorPreviousCamps from "@/page/dashboard/director-dashboard/previous-camps/PreviousCamps";
 import AssignedCamps from "@/page/dashboard/director-dashboard/assigned-camps/AssignedCamps";
+import WhatsNew from "@/page/whats-new/WhatsNew";
 
 const router = createBrowserRouter([
   {
@@ -69,6 +70,10 @@ const router = createBrowserRouter([
       {
         path: "faq",
         element: <FAQ />,
+      },
+      {
+        path: "whats-new",
+        element: <WhatsNew />,
       },
       {
         path: "all-camps",

@@ -5,7 +5,6 @@ import { CiCalendar } from "react-icons/ci";
 import { HiOutlineUser } from "react-icons/hi2";
 import { MdSchedule } from "react-icons/md";
 import { LuShieldCheck } from "react-icons/lu";
-import { CARD_ACTION_PERMISSIONS } from "@/lib/assistantPermissions";
 import { PiCourtBasketball, PiSunglassesLight, PiMegaphone } from "react-icons/pi";
 import { Link } from "react-router-dom";
 
@@ -81,15 +80,6 @@ const MyCampusCart = ({
   const filteredActions = actions.filter((action) => {
     if (total_courts > 0 && action.id === "schedule") return false;
     if (total_courts <= 0 && action.id === "court") return false;
-
-    if (isAssistantView) {
-      const requiredPermissions = CARD_ACTION_PERMISSIONS[action.id];
-      // Actions without a permission gate (e.g. Game Schedules) are
-      // visible by default to every director.
-      if (requiredPermissions === undefined) return true;
-      return requiredPermissions.some((key) => permissions?.includes(key));
-    }
-
     return true;
   });
 
@@ -148,25 +138,23 @@ const MyCampusCart = ({
             )}
             {(scheduleStatus === "published" || scheduleStatus === "draft") && (
               <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${
-                  scheduleStatus === "published"
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-amber-50 text-amber-700 border border-amber-200"
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${scheduleStatus === "published"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-amber-50 text-amber-700 border border-amber-200"
+                  }`}
               >
-              
+
                 {scheduleStatus}
               </span>
             )}
 
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${
-                status === "active"
-                  ? "bg-blue-50 text-blue-700 border border-blue-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
-              }`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${status === "active"
+                ? "bg-blue-50 text-blue-700 border border-blue-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+                }`}
             >
-             
+
               {status || "N/A"}
             </span>
           </div>

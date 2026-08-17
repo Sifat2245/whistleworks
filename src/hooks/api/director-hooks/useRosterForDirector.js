@@ -1,6 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRosterService } from "@/services/director-services/rosterForDirector.service";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
+
+const handleRosterError = (error, defaultMsg) => {
+  const errorData = error?.response?.data;
+  const isForbidden =
+    error?.response?.status === 403 || errorData?.code === 403;
+
+  if (isForbidden) {
+    const msg = errorData?.data || errorData?.message || defaultMsg;
+    Swal.fire({
+      icon: "error",
+      title: "Permission Denied",
+      text: msg,
+      confirmButtonColor: "#00AEEF",
+    });
+    return true;
+  }
+  return false;
+};
 
 // ── Query key factory ──────────────────────────────────────────
 export const rosterKeys = {
@@ -60,8 +79,19 @@ export const useCheckInReferee = (campId) => {
       if (context?.previous) {
         queryClient.setQueryData(CAMP_QUERY_KEY, context.previous);
       }
+      // Permission errors → SweetAlert (no toast)
+      if (
+        handleRosterError(
+          error,
+          "You do not have permission to manage referees for this camp.",
+        )
+      ) {
+        return;
+      }
       toast.error(
-        error?.response?.data?.message || "Failed to check in referee.",
+        error?.response?.data?.data ||
+          error?.response?.data?.message ||
+          "Failed to check in referee.",
       );
     },
   });
@@ -100,8 +130,19 @@ export const useRemoveRefereeFromRoster = (campId) => {
       if (context?.previous) {
         queryClient.setQueryData(CAMP_QUERY_KEY, context.previous);
       }
+      // Permission errors → SweetAlert (no toast)
+      if (
+        handleRosterError(
+          error,
+          "You do not have permission to remove referee from this camp.",
+        )
+      ) {
+        return;
+      }
       toast.error(
-        error?.response?.data?.message || "Failed to remove referee.",
+        error?.response?.data?.data ||
+          error?.response?.data?.message ||
+          "Failed to remove referee.",
       );
     },
   });

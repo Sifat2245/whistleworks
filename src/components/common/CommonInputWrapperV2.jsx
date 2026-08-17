@@ -60,11 +60,12 @@ const CommonInputWrapperV2 = ({
             )}
             {/* main inner wrapper container */}
             <div className={cn(
-                'w-full flex items-center bg-[rgba(255,255,255,0.60)] border border-[rgba(48,48,48,0.20)] rounded-lg px-4 sm:py-3 py-3',
+                'w-full flex items-center bg-[rgba(255,255,255,0.60)] border border-[rgba(48,48,48,0.20)] rounded-lg',
+                type === "select" ? 'p-2' : 'px-4 sm:py-2.5 py-2.5',
                 innerWrapper
             )}>
                 {/* Left icon */}
-                {icon && <div className="shrink-0 w-fit flex items-center md:pr-3 pr-1.5 text-primary">
+                {icon && <div className={cn("shrink-0 w-fit flex items-center md:pr-3 pr-1.5 text-primary", type === "select" && "pl-3.5")}>
                     {React.cloneElement(icon, { className: "text-lg sm:text-xl" })}
                 </div>}
                 {/* Textarea */}
@@ -90,6 +91,8 @@ const CommonInputWrapperV2 = ({
                             render={({ field }) => (
                                 <Select
                                     {...field}
+                                    bordered={false}
+                                    variant="borderless"
                                     mode={selectMode !== "single" ? selectMode : undefined}
                                     placeholder={placeholder}
                                     options={options}
@@ -102,7 +105,7 @@ const CommonInputWrapperV2 = ({
                                             field.onChange(option?.value || selectedValue);
                                         }
                                     }}
-                                    className="w-full bg-transparent border-none capitalize outline-none placeholder:text-dark text-base"
+                                    className="w-full bg-transparent border-none capitalize outline-none placeholder:text-dark text-base h-[40px] sm:h-[44px] flex items-center"
                                     showSearch
                                     allowClear
                                     dropdownClassName="text-base"

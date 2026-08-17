@@ -73,9 +73,8 @@ const CommonInputWrapper = ({
         <button
           type="button"
           onClick={() => setShow((prev) => !prev)}
-          className={`absolute cursor-pointer right-5 top-[50%] text-neutral-500 transform ${
-            errorMessage ? "translate-y-[-46%]" : "translate-y-[50%]"
-          }`}
+          className={`absolute cursor-pointer right-5 top-[50%] text-neutral-500 transform ${errorMessage ? "translate-y-[-46%]" : "translate-y-[50%]"
+            }`}
         >
           {show ? <FaEye /> : <FaEyeSlash />}
         </button>
@@ -97,7 +96,7 @@ const CommonInputWrapper = ({
       ) : type === "select" ? (
         <div
           className={cn(
-            "w-full text-black border-black/20 flex gap-2 px-4 sm:min-h-[66px] items-center border rounded-lg",
+            "w-full text-black border border-black/20 rounded-lg bg-[rgba(255,255,255,0.05)] shadow-input flex items-center p-1.5",
             selectClass,
           )}
         >
@@ -109,13 +108,15 @@ const CommonInputWrapper = ({
             render={({ field }) => (
               <Select
                 {...field}
+                bordered={false}
+                variant="borderless"
                 disabled={disabled}
                 mode={selectMode !== "single" ? selectMode : undefined}
                 placeholder={placeholder}
                 options={options}
                 value={
                   normalizeValue(field.value) === "" ||
-                  normalizeValue(field.value)?.length === 0
+                    normalizeValue(field.value)?.length === 0
                     ? undefined
                     : normalizeValue(field.value)
                 }
@@ -124,12 +125,12 @@ const CommonInputWrapper = ({
                 }}
                 showSearch
                 allowClear
-                className="w-full bg-transparent placeholder-neutral-600 h-[49px]"
+                className="w-full bg-transparent placeholder-neutral-600 h-[40px] sm:h-[44px] flex items-center text-base"
                 filterOption={(input, option) => {
                   const labelText =
                     typeof option?.label === "object"
                       ? option?.label?.props?.children?.[1]?.props?.children ||
-                        ""
+                      ""
                       : option?.label;
                   const jerseyMatch = option?.value?.toString() || "";
 
@@ -154,7 +155,7 @@ const CommonInputWrapper = ({
           defaultValue={value}
           readOnly={readOnly}
           className={cn(
-            "w-full px-4 sm:py-3 py-3 rounded-lg placeholder-[#5A5C5F] outline-none text-black shadow-input border border-black/20 bg-[rgba(255,255,255,0.05)]",
+            "w-full px-4 sm:py-2.5 py-2.5 rounded-lg placeholder-[#5A5C5F] outline-none text-black shadow-input border border-black/20 bg-[rgba(255,255,255,0.05)]",
             inputClass,
           )}
           {...register(register_as, validationRules)}

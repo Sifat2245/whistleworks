@@ -16,6 +16,9 @@ import {
   LuLock,
   LuLockOpen,
   LuLoaderCircle,
+  LuSearch,
+  LuX,
+  LuUser,
 } from "react-icons/lu";
 import { HiLockClosed, HiLockOpen } from "react-icons/hi2";
 import Swal from "sweetalert2";
@@ -35,6 +38,38 @@ const CourtLists = ({ campData }) => {
   const [activeFilter, setActiveFilter] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const campId = campData?.id;
+  const [assignmentType, setAssignmentType] = useState(() => {
+    return campId ? (localStorage.getItem(`assignment_type_${campId}`) || "referees") : "referees";
+  });
+  const [slotOverrides, setSlotOverrides] = useState({});
+
+  useEffect(() => {
+    if (campId) {
+      setAssignmentType(localStorage.getItem(`assignment_type_${campId}`) || "referees");
+      setSlotOverrides({});
+    }
+  }, [campId]);
+
+  const handleToggleSlotMode = (slotId) => {
+    setSlotOverrides((prev) => {
+      const currentMode = prev[slotId] || assignmentType;
+      const nextMode = currentMode === "crews" ? "referees" : "crews";
+      return { ...prev, [slotId]: nextMode };
+    });
+  };
+
+  const getSlotAssignmentType = (courtSlot) => {
+    if (!courtSlot) return assignmentType;
+    const assignments = courtSlot.assignments || [];
+    const hasCrew = assignments.some((a) => a.type === "crew");
+    if (hasCrew) return "crews";
+    const hasRefs = assignments.some((a) => a.type === "individual");
+    if (hasRefs) return "referees";
+    return slotOverrides[courtSlot.slot_id] || assignmentType;
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState(null);
@@ -124,7 +159,7 @@ const CourtLists = ({ campData }) => {
     if (availableLocations.length > 0) {
       const locationId =
         urlLocation &&
-        availableLocations.some((l) => l.location_id.toString() === urlLocation)
+          availableLocations.some((l) => l.location_id.toString() === urlLocation)
           ? parseInt(urlLocation)
           : availableLocations[0].location_id;
 
@@ -163,6 +198,27 @@ const CourtLists = ({ campData }) => {
     return selectedLocationId
       ? slot.courts.filter((court) => court.location_id === selectedLocationId)
       : slot.courts;
+  };
+
+  const matchesSearch = (assignments, searchVal) => {
+    if (!searchVal) return true;
+    const lower = searchVal.toLowerCase();
+    return assignments?.some((a) => {
+      if (a.referee_name && a.referee_name.toLowerCase().includes(lower)) return true;
+      if (a.referee_email && a.referee_email.toLowerCase().includes(lower)) return true;
+      if (a.email && a.email.toLowerCase().includes(lower)) return true;
+      if (a.name && a.name.toLowerCase().includes(lower)) return true;
+      if (a.crew_name && a.crew_name.toLowerCase().includes(lower)) return true;
+      if (a.members && Array.isArray(a.members)) {
+        return a.members.some((m) =>
+          (m.referee_name && m.referee_name.toLowerCase().includes(lower)) ||
+          (m.referee_email && m.referee_email.toLowerCase().includes(lower)) ||
+          (m.email && m.email.toLowerCase().includes(lower)) ||
+          (m.name && m.name.toLowerCase().includes(lower))
+        );
+      }
+      return false;
+    });
   };
 
   // ── Stats for the selected day / location ─────────────────────
@@ -344,11 +400,10 @@ const CourtLists = ({ campData }) => {
                 <button
                   key={loc.location_id}
                   onClick={() => handleLocationClick(loc.location_id)}
-                  className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium transition-all cursor-pointer ${
-                    active
-                      ? "bg-primary border-primary text-white shadow-sm"
-                      : "bg-white border-border text-[#333] hover:border-primary/60 hover:text-primary"
-                  }`}
+                  className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium transition-all cursor-pointer ${active
+                    ? "bg-primary border-primary text-white shadow-sm"
+                    : "bg-white border-border text-[#333] hover:border-primary/60 hover:text-primary"
+                    }`}
                 >
                   <LuMapPin
                     className={`shrink-0 ${active ? "" : "text-primary"}`}
@@ -356,11 +411,10 @@ const CourtLists = ({ campData }) => {
                   />
                   <span className="max-w-44 truncate">{loc.address}</span>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      active
-                        ? "bg-white/20"
-                        : "bg-gray-100 text-[#666]"
-                    }`}
+                    className={`text-xs px-2 py-0.5 rounded-full ${active
+                      ? "bg-white/20"
+                      : "bg-gray-100 text-[#666]"
+                      }`}
                   >
                     {loc.court_count}
                   </span>
@@ -371,32 +425,91 @@ const CourtLists = ({ campData }) => {
         </div>
       )}
 
-      {/* ── Date filter ────────────────────────────────────────── */}
-      <div className="mt-5">
-        <p className="text-xs font-semibold text-[#666] uppercase tracking-wide mb-2">
-          Camp Day
-        </p>
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 hide-scrollbar">
-          {availableDates.map((item) => {
-            const active = activeFilter === item.formatted;
-            return (
-              <button
-                key={item.formatted}
-                onClick={() => handleDateClick(item)}
-                className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium transition-all cursor-pointer ${
-                  active
+      {/* ── Date filter & Search ───────────────────────────────── */}
+      <div className="mt-5 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-[#666] uppercase tracking-wide mb-2">
+            Camp Day
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 hide-scrollbar">
+            {availableDates.map((item) => {
+              const active = activeFilter === item.formatted;
+              return (
+                <button
+                  key={item.formatted}
+                  onClick={() => handleDateClick(item)}
+                  className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium transition-all cursor-pointer ${active
                     ? "bg-primary border-primary text-white shadow-sm"
                     : "bg-white border-border text-[#333] hover:border-primary/60 hover:text-primary"
+                    }`}
+                >
+                  <LuCalendarDays
+                    className={`shrink-0 ${active ? "" : "text-primary"}`}
+                    size={15}
+                  />
+                  {item.formatted}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Switcher + Search Container */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 mb-2">
+          {/* Segmented Assignment Mode Control */}
+          <div className="bg-gray-100 p-0.5 rounded-full flex items-center shrink-0 border border-gray-200 shadow-sm self-start sm:self-auto">
+            <button
+              onClick={() => {
+                setAssignmentType("referees");
+                if (campId) {
+                  localStorage.setItem(`assignment_type_${campId}`, "referees");
+                }
+              }}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${assignmentType === "referees"
+                ? "bg-white text-primary shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
                 }`}
+            >
+              <LuUser size={13} />
+              Individual Refs
+            </button>
+            <button
+              onClick={() => {
+                setAssignmentType("crews");
+                if (campId) {
+                  localStorage.setItem(`assignment_type_${campId}`, "crews");
+                }
+              }}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${assignmentType === "crews"
+                ? "bg-white text-purple-600 shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
+                }`}
+            >
+              <LuUsers size={13} className={assignmentType === "crews" ? "text-purple-600" : ""} />
+              Crews Mode
+            </button>
+          </div>
+
+          {/* Referee search input */}
+          <div className="relative flex-1 sm:w-80 shrink-0">
+            <input
+              id="referee-search"
+              type="text"
+              placeholder="Search referee by name, email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2.5 pl-10 pr-10 rounded-full placeholder-[#8E9093] outline-none text-black border border-[#e2e8f0] bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 text-sm shadow-sm"
+            />
+            <LuSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none" />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer p-1 rounded-full hover:bg-gray-100 flex items-center justify-center"
               >
-                <LuCalendarDays
-                  className={`shrink-0 ${active ? "" : "text-primary"}`}
-                  size={15}
-                />
-                {item.formatted}
+                <LuX className="text-sm" />
               </button>
-            );
-          })}
+            )}
+          </div>
         </div>
       </div>
 
@@ -453,7 +566,7 @@ const CourtLists = ({ campData }) => {
                             startEditing(
                               court.court_number,
                               court.court_name ||
-                                `Court ${court.court_number}`,
+                              `Court ${court.court_number}`,
                             )
                           }
                           className="group inline-flex items-center gap-1.5 font-semibold text-[#333] hover:text-primary transition-colors cursor-pointer"
@@ -499,11 +612,10 @@ const CourtLists = ({ campData }) => {
                         handleBulkBlock(slot.time_24h, selectedDate)
                       }
                       disabled={bulkToggleBlockMutation.isPending}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
-                        allBlocked
-                          ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                          : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
-                      }`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${allBlocked
+                        ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                        : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                        }`}
                     >
                       {bulkToggleBlockMutation.isPending ? (
                         <LuLoaderCircle className="w-3.5 h-3.5 animate-spin" />
@@ -526,6 +638,7 @@ const CourtLists = ({ campData }) => {
                     {filteredCourts.map((court) => {
                       const isBlocked = court?.is_blocked;
                       const referees = court?.assignments || [];
+                      const isDimmed = searchQuery && !matchesSearch(referees, searchQuery);
 
                       return (
                         <CourtSlotBox
@@ -537,6 +650,11 @@ const CourtLists = ({ campData }) => {
                           campId={campData?.id}
                           selectedDate={selectedDate}
                           maxReferees={maxReferees}
+                          sportName={campData?.sport?.sports_name}
+                          isDimmed={isDimmed}
+                          searchQuery={searchQuery}
+                          assignmentType={getSlotAssignmentType(court)}
+                          onToggleSlotMode={handleToggleSlotMode}
                           onClick={handleBoxClick}
                           onUndoBlock={handleUndoBlock}
                           isBlockPending={toggleBlockMutation.isPending}
@@ -582,11 +700,10 @@ const CourtLists = ({ campData }) => {
                 <button
                   onClick={() => handleBulkBlock(slot.time_24h, selectedDate)}
                   disabled={bulkToggleBlockMutation.isPending}
-                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer disabled:opacity-60 ${
-                    allBlocked
-                      ? "bg-green-50 text-green-700 border-green-200"
-                      : "bg-white text-red-500 border-red-200 hover:bg-red-50"
-                  }`}
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer disabled:opacity-60 ${allBlocked
+                    ? "bg-green-50 text-green-700 border-green-200"
+                    : "bg-white text-red-500 border-red-200 hover:bg-red-50"
+                    }`}
                 >
                   {bulkToggleBlockMutation.isPending ? (
                     <LuLoaderCircle className="w-3.5 h-3.5 animate-spin" />
@@ -607,36 +724,44 @@ const CourtLists = ({ campData }) => {
 
               {/* Courts */}
               <div className="divide-y divide-border">
-                {filteredCourts.map((court) => (
-                  <CourtSlotCardMobile
-                    key={court.slot_id}
-                    court={court}
-                    timeSlot={slot}
-                    isBlocked={court?.is_blocked}
-                    campId={campData?.id}
-                    selectedDate={selectedDate}
-                    maxReferees={maxReferees}
-                    address={
-                      filteredCourtHeaders.find(
-                        (h) => h.court_number === court.court_number,
-                      )?.address
-                    }
-                    onOpen={handleBoxClick}
-                    onToggleBlock={handleUndoBlock}
-                    isEditing={editingSlotId === court.court_number}
-                    editValue={editValue}
-                    setEditValue={setEditValue}
-                    inputRef={mobileInputRef}
-                    isTogglePending={toggleBlockMutation.isPending}
-                    onStartEdit={(name) =>
-                      startEditing(court.court_number, name)
-                    }
-                    onSaveEdit={(locationId, courtNumber) =>
-                      saveEditBulk(locationId, courtNumber)
-                    }
-                    onCancelEdit={cancelEdit}
-                  />
-                ))}
+                {filteredCourts.map((court) => {
+                  const isDimmed = searchQuery && !matchesSearch(court?.assignments || [], searchQuery);
+                  return (
+                    <CourtSlotCardMobile
+                      key={court.slot_id}
+                      court={court}
+                      timeSlot={slot}
+                      isBlocked={court?.is_blocked}
+                      campId={campData?.id}
+                      selectedDate={selectedDate}
+                      maxReferees={maxReferees}
+                      sportName={campData?.sport?.sports_name}
+                      isDimmed={isDimmed}
+                      searchQuery={searchQuery}
+                      assignmentType={getSlotAssignmentType(court)}
+                      onToggleSlotMode={handleToggleSlotMode}
+                      address={
+                        filteredCourtHeaders.find(
+                          (h) => h.court_number === court.court_number,
+                        )?.address
+                      }
+                      onOpen={handleBoxClick}
+                      onToggleBlock={handleUndoBlock}
+                      isEditing={editingSlotId === court.court_number}
+                      editValue={editValue}
+                      setEditValue={setEditValue}
+                      inputRef={mobileInputRef}
+                      isTogglePending={toggleBlockMutation.isPending}
+                      onStartEdit={(name) =>
+                        startEditing(court.court_number, name)
+                      }
+                      onSaveEdit={(locationId, courtNumber) =>
+                        saveEditBulk(locationId, courtNumber)
+                      }
+                      onCancelEdit={cancelEdit}
+                    />
+                  );
+                })}
               </div>
             </div>
           );
@@ -655,6 +780,8 @@ const CourtLists = ({ campData }) => {
         campId={campData?.id}
         maxReferees={maxReferees}
         selectedDate={selectedDate}
+        sportName={campData?.sport?.sports_name}
+        assignmentType={getSlotAssignmentType(selectedCourt)}
         isBlocking={toggleBlockMutation.isPending}
         onAssignSuccess={handleAssignSuccess}
       />

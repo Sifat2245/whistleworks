@@ -276,7 +276,7 @@ const EvaluationForm = ({ camp_id, sports_type_name }) => {
           <button
             type="button"
             onClick={() => resetForm()}
-            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border text-[#666] hover:bg-gray-50 transition font-medium cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg border border-border text-[#666] hover:bg-gray-50 transition font-medium cursor-pointer"
           >
             <LuRefreshCw className="text-base" /> Clear
           </button>

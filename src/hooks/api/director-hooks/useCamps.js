@@ -17,8 +17,6 @@ export const useGetMyCamp = (page = 1) => {
       const response = await getMyCamps(page);
       return response?.data?.data || { camp_list: [], pagination: {} };
     },
-    staleTime: 30 * 60 * 1000,
-    gcTime: 60 * 60 * 1000,
   });
 
   return {
@@ -74,8 +72,6 @@ export const useGetAdminFee = () => {
       const response = await getAdminFee();
       return response?.data?.data?.admin_fee || 0;
     },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
   });
 };
 
@@ -191,4 +187,72 @@ export const useInvalidatePreviousCamps = () => {
   return () => {
     queryClient.invalidateQueries({ queryKey: campKeys.all });
   };
+};
+
+// ── Get all directors for assignment ──────────────────────────────
+export const useGetAllDirectors = (search = "", campId = "") => {
+  const { getAllDirectors } = useCampService();
+
+  return useQuery({
+    queryKey: ["all-directors", search, campId],
+    queryFn: async () => {
+      const response = await getAllDirectors(search, campId);
+      return response?.data?.data || [];
+    },
+  });
+};
+
+// ── Assign Assistant Director ─────────────────────────────────────
+export const useAssignAssistantDirector = (options) => {
+  const { assignAssistantDirector } = useCampService();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["assign-assistant-director"],
+    mutationFn: assignAssistantDirector,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["camp-details"] });
+      queryClient.invalidateQueries({ queryKey: ["all-directors"] });
+      queryClient.refetchQueries({ queryKey: ["camp-details"] });
+      queryClient.refetchQueries({ queryKey: ["all-directors"] });
+      if (options?.onSuccess) {
+        options.onSuccess(data);
+      }
+    },
+    ...options,
+  });
+};
+
+// ── Remove Assistant Director ─────────────────────────────────────
+export const useRemoveAssistantDirector = (options) => {
+  const { removeAssistantDirector } = useCampService();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["remove-assistant-director"],
+    mutationFn: ({ assistantId, campId }) => removeAssistantDirector(assistantId, campId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["camp-details"] });
+      queryClient.invalidateQueries({ queryKey: ["all-directors"] });
+      queryClient.refetchQueries({ queryKey: ["camp-details"] });
+      queryClient.refetchQueries({ queryKey: ["all-directors"] });
+      if (options?.onSuccess) {
+        options.onSuccess(data);
+      }
+    },
+    ...options,
+  });
+};
+
+// ── Get assigned camps list (camps where this director is an assistant) ─
+export const useGetAssignedCamps = (page = 1) => {
+  const { assignedCampList } = useCampService();
+
+  return useQuery({
+    queryKey: ["assigned-camps", page],
+    queryFn: async () => {
+      const response = await assignedCampList(page);
+      return response?.data?.data || { camp_list: [], pagination: {} };
+    },
+  });
 };

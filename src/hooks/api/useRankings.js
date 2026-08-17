@@ -2,6 +2,24 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tansta
 import { useRankingService } from "@/services/ranking.service";
 import Swal from "sweetalert2";
 
+const handleRankingError = (error, defaultMsg) => {
+  const errorData = error?.response?.data;
+  const isForbidden =
+    error?.response?.status === 403 || errorData?.code === 403;
+
+  if (isForbidden) {
+    const msg = errorData?.data || errorData?.message || defaultMsg;
+    Swal.fire({
+      icon: "error",
+      title: "Permission Denied",
+      text: msg,
+      confirmButtonColor: "#00AEEF",
+    });
+    return true;
+  }
+  return false;
+};
+
 // ── Query key factory ───────────────────────────────────────────
 export const rankingKeys = {
   all: ["rankings"],
@@ -69,13 +87,23 @@ export const useUpdateRankingSettings = (campId, options) => {
       });
     },
     onError: (error) => {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error?.response?.data?.message || "Failed to save settings",
-        timer: 3000,
-        showConfirmButton: false,
-      });
+      if (
+        !handleRankingError(
+          error,
+          "You do not have permission to manage ranking reports for this camp.",
+        )
+      ) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text:
+            error?.response?.data?.data ||
+            error?.response?.data?.message ||
+            "Failed to save settings",
+          timer: 3000,
+          showConfirmButton: false,
+        });
+      }
     },
     ...options,
   });

@@ -173,7 +173,7 @@ const ScheduleActionButtons = ({ campId }) => {
       <div className="grid grid-cols-2 gap-3 lg:flex lg:gap-3 lg:order-1">
         {/* Delete */}
         <CommonSubmitBtn
-          className="bg-red-500 hover:bg-red-600 text-white px-4 lg:px-8 py-3 rounded-lg transition-colors"
+          className="bg-red-500 hover:bg-red-600 text-white px-4 lg:px-8 rounded-lg transition-colors"
           onClick={handleDelete}
           isLoading={deleteMutation.isPending}
           disabled={deleteMutation.isPending}
@@ -186,7 +186,7 @@ const ScheduleActionButtons = ({ campId }) => {
           onClick={handleClearSchedule}
           isLoading={clearSchedule.isPending}
           disabled={clearSchedule.isPending}
-          className="border border-primary bg-white text-primary px-4 lg:px-8 py-3 hover:bg-gray-50"
+          className="border border-primary bg-white text-primary px-4 lg:px-8 hover:bg-gray-50"
         >
           {clearSchedule.isPending ? <LoaderV2 /> : "Clear Schedule"}
         </CommonSubmitBtn>

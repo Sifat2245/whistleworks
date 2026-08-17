@@ -12,6 +12,7 @@ import {
   useAssignReferees,
   useAssignCrew,
 } from "@/hooks/api/director-hooks/useGameAssingments";
+import { getRefereePositions } from "@/utils/refereePositions";
 
 const { Search } = Input;
 const { TabPane } = Tabs;
@@ -26,11 +27,23 @@ const ScheduleAddModal = ({
   campId,
   maxReferees,
   isBlocking = false,
+  sportName = "",
+  assignmentType = "referees",
 }) => {
-  const [activeTab, setActiveTab] = useState("referees");
+  const [activeTab, setActiveTab] = useState(assignmentType === "crews" ? "crew" : "referees");
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const positionsList = getRefereePositions(campId, sportName, maxReferees);
+
+  const getSelectedRefPosition = (refId) => {
+    const selectedIdx = selectedReferees.findIndex((r) => r.id === refId);
+    if (selectedIdx !== -1) {
+      return positionsList[selectedIdx] || `Position ${selectedIdx + 1}`;
+    }
+    return null;
+  };
 
   // Reset on open
   useEffect(() => {
@@ -38,9 +51,9 @@ const ScheduleAddModal = ({
       setSelectedReferees([]);
       setSelectedCrew(null);
       setSearchTerm("");
-      setActiveTab("referees");
+      setActiveTab(assignmentType === "crews" ? "crew" : "referees");
     }
-  }, [isModalOpen]);
+  }, [isModalOpen, assignmentType]);
 
   // ── Hooks ──────────────────────────────────────────────────────
   const { data: refereeListData = [], isLoading: loadingReferees } =
@@ -270,7 +283,7 @@ const ScheduleAddModal = ({
                   Currently Assigned ({currentlyAssigned.length})
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {currentlyAssigned.map((ref) => (
+                  {currentlyAssigned.map((ref, idx) => (
                     <div
                       key={ref.id}
                       className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border"
@@ -278,13 +291,18 @@ const ScheduleAddModal = ({
                       <img
                         src={ref.avatar || "/default-avatar.png"}
                         alt={ref.name}
-                        className="w-8 h-8 rounded-full object-cover"
+                        className="w-8 h-8 rounded-full object-cover border"
                         onError={(e) => (e.target.src = "/default-avatar.png")}
                       />
-                      <span className="font-medium text-sm">
-                        {ref.name}{" "}
-                        {ref?.jourcy_number ? `#${ref.jourcy_number}` : ""}
-                      </span>
+                      <div className="flex flex-col text-left">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary leading-none">
+                          {positionsList[idx] || `Position ${idx + 1}`}
+                        </span>
+                        <span className="font-medium text-sm mt-0.5 leading-tight">
+                          {ref.name}{" "}
+                          {ref?.jourcy_number ? `#${ref.jourcy_number}` : ""}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -381,6 +399,11 @@ const ScheduleAddModal = ({
                             {ref.is_assigned_to_this_slot && (
                               <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">
                                 Currently Assigned
+                              </span>
+                            )}
+                            {isSelected && (
+                              <span className="text-[10px] font-bold bg-[#00AEEF]/10 text-[#00AEEF] px-2 py-1 rounded-full uppercase tracking-wider">
+                                {getSelectedRefPosition(ref.id)}
                               </span>
                             )}
                             {isHardConflict && (

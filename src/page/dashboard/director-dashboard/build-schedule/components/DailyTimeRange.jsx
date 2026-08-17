@@ -5,8 +5,9 @@ import { useForm, useFieldArray } from "react-hook-form";
 import Swal from "sweetalert2";
 import { useParams } from "react-router-dom";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { useCreateSchedule } from "@/hooks/api/director-hooks/useBuildSchedule";
+import { useGetCampDetails } from "@/hooks/api/director-hooks/useCamps";
 import {
   LuClock,
   LuMapPin,
@@ -47,14 +48,55 @@ const DailyTimeRange = ({ getDateRange }) => {
     control,
     formState: { errors },
     setValue,
+    watch,
+    getValues,
   } = useForm({
     mode: "onChange",
     defaultValues: {
       locations: [
         { location_name: "", court_count: "", latitude: "", longitude: "" },
       ],
+      max_referees_per_slot: "",
+      referee_positions: [],
     },
   });
+
+  const maxRefereesPerSlot = watch("max_referees_per_slot");
+  const { data: campDetails } = useGetCampDetails(id);
+  const sportName = campDetails?.sport?.sports_name || "";
+
+  useEffect(() => {
+    const numReferees = parseInt(maxRefereesPerSlot, 10) || 0;
+    if (numReferees <= 0) {
+      setValue("referee_positions", []);
+      return;
+    }
+
+    const defaults = [];
+    const lowerSport = sportName.toLowerCase();
+    if (lowerSport.includes("basketball")) {
+      defaults.push("Crew Chief", "Referee", "Umpire");
+    } else if (lowerSport.includes("soccer") || lowerSport.includes("football") || lowerSport.includes("scocer")) {
+      defaults.push("Center Referee", "Assistant Referee 1", "Assistant Referee 2", "Fourth Official");
+    } else if (lowerSport.includes("volleyball") || lowerSport.includes("volyball")) {
+      defaults.push("First Referee (R1)", "Second Referee (R2)", "Line Judge 1", "Line Judge 2");
+    }
+
+    const currentPositions = getValues("referee_positions") || [];
+    if (currentPositions.length !== numReferees) {
+      const newPositions = [];
+      for (let i = 0; i < numReferees; i++) {
+        if (currentPositions[i] !== undefined && currentPositions[i] !== "") {
+          newPositions.push(currentPositions[i]);
+        } else if (defaults[i]) {
+          newPositions.push(defaults[i]);
+        } else {
+          newPositions.push(`Referee Position ${i + 1}`);
+        }
+      }
+      setValue("referee_positions", newPositions);
+    }
+  }, [maxRefereesPerSlot, sportName, setValue, getValues]);
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -94,6 +136,9 @@ const DailyTimeRange = ({ getDateRange }) => {
       return;
     }
 
+    const refereePositions = data.referee_positions || [];
+    localStorage.setItem(`referee_positions_${id}`, JSON.stringify(refereePositions));
+
     const body = {
       game_duration: Number(data.game_duration),
       time_ranges: (data.time_ranges || []).filter(
@@ -107,6 +152,7 @@ const DailyTimeRange = ({ getDateRange }) => {
         address: loc.address,
       })),
       max_referees_per_slot: Number(data.max_referees_per_slot),
+      referee_positions: refereePositions,
     };
     createScheduleMutation.mutate(body);
   };
@@ -198,30 +244,80 @@ const DailyTimeRange = ({ getDateRange }) => {
           description="Configure game length and referee coverage per time slot"
         >
           <div className="p-5 sm:p-7 grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-            <CommonInputWrapper
-              label="Game Duration (minutes)"
-              type="number"
-              placeholder="e.g. 60"
-              register={register}
-              register_as="game_duration"
-              errors={flatErrors}
-              validationRules={{
-                required: "Game duration required",
-                min: { value: 1, message: "Minimum 1 minute" },
-              }}
-            />
-            <CommonInputWrapper
-              label="Referees per Slot"
-              type="number"
-              placeholder="e.g. 3"
-              register={register}
-              register_as="max_referees_per_slot"
-              errors={flatErrors}
-              validationRules={{
-                required: "Required",
-                min: { value: 1, message: "At least 1" },
-              }}
-            />
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
+              <CommonInputWrapper
+                label="Game Duration (minutes)"
+                type="number"
+                placeholder="e.g. 60"
+                register={register}
+                register_as="game_duration"
+                errors={flatErrors}
+                validationRules={{
+                  required: "Game duration required",
+                  min: { value: 1, message: "Minimum 1 minute" },
+                }}
+              />
+
+              <CommonInputWrapper
+                label="Referees per Slot"
+                type="number"
+                placeholder="e.g. 3"
+                register={register}
+                register_as="max_referees_per_slot"
+                errors={flatErrors}
+                validationRules={{
+                  required: "Required",
+                  min: { value: 1, message: "At least 1" },
+                }}
+              />
+            </div>
+
+            {/* Referee Positions dynamic fields */}
+            {parseInt(maxRefereesPerSlot, 10) > 0 && (
+              <div className="md:col-span-2 border-t border-border pt-5 mt-2">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-sm font-semibold text-[#333]">
+                      Referee Positions
+                    </h4>
+                    <p className="text-xs text-[#666] mt-0.5">
+                      Define the title/role for each of the {maxRefereesPerSlot} referees
+                      {sportName ? ` in this ${sportName} camp` : ""}
+                    </p>
+                  </div>
+                  {sportName && (
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-full capitalize">
+                      {sportName}
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Array.from({ length: parseInt(maxRefereesPerSlot, 10) }).map(
+                    (_, index) => (
+                      <div key={index} className="space-y-1.5">
+                        <label htmlFor={`referee-position-${index}`} className="text-xs font-medium text-[#666]">
+                          Position {index + 1}
+                        </label>
+                        <input
+                          id={`referee-position-${index}`}
+                          type="text"
+                          placeholder={`e.g. Position ${index + 1}`}
+                          className="w-full px-4 py-2.5 rounded-lg placeholder-[#8E9093] outline-none text-black border border-black/20 bg-white focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all duration-200 text-sm"
+                          {...register(`referee_positions.${index}`, {
+                            required: "Position name is required",
+                          })}
+                        />
+                        {errors.referee_positions?.[index] && (
+                          <p className="text-red-600 text-xs">
+                            {errors.referee_positions[index].message}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </SectionCard>
 

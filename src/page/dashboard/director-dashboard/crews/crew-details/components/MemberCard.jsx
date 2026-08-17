@@ -5,6 +5,10 @@ import { LuTrash2, LuMail, LuPhone } from "react-icons/lu";
 
 const MemberCard = ({ member, crewId }) => {
   const removeMemberMutation = useRemoveMemberFromCrew(crewId);
+  const crewPositions = JSON.parse(
+    localStorage.getItem(`crew_positions_${crewId}`) || "{}"
+  );
+  const positionName = crewPositions[member.id] || member.position_name;
 
   const handleRemove = (e) => {
     e.stopPropagation();
@@ -61,6 +65,12 @@ const MemberCard = ({ member, crewId }) => {
       <h3 className="mt-4 font-semibold text-[#333] text-base line-clamp-1 w-full">
         {member?.name || "Unnamed Referee"}
       </h3>
+
+      {positionName && (
+        <span className="mt-2.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary uppercase tracking-wider">
+          {positionName}
+        </span>
+      )}
 
       {/* Contact info */}
       <div className="mt-2.5 space-y-1.5 w-full text-left">

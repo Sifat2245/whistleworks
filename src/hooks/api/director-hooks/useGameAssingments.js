@@ -3,6 +3,23 @@ import { useGameAssignmentService } from "@/services/director-services/gameAssin
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 
+const handleAssignmentError = (error, defaultMsg) => {
+  const errorData = error?.response?.data;
+  const isForbidden = error?.response?.status === 403 || errorData?.code === 403;
+
+  if (isForbidden) {
+    const msg = errorData?.data || errorData?.message || defaultMsg;
+    Swal.fire({
+      icon: "error",
+      title: "Permission Denied",
+      text: msg,
+      confirmButtonColor: "#00AEEF",
+    });
+    return true;
+  }
+  return false;
+};
+
 export const useAvailableDates = (campId) => {
   const { getAvailableDates } = useGameAssignmentService();
 
@@ -78,9 +95,11 @@ export const useBulkUpdateCourtNames = (campId, selectedDate, callbacks = {}) =>
       if (onSuccessCb) onSuccessCb(data, variables, context);
     },
     onError: (error) => {
-      toast.error(
-        error?.response?.data?.message || "Failed to update court name",
-      );
+      if (!handleAssignmentError(error, "You do not have permission to update court name.")) {
+        toast.error(
+          error?.response?.data?.message || "Failed to update court name",
+        );
+      }
       if (onErrorCb) onErrorCb(error);
     },
   });
@@ -102,9 +121,11 @@ export const useToggleBlockSlot = (campId, selectedDate, callbacks = {}) => {
       });
       if (onSuccessCb) onSuccessCb(data, variables, context);
     },
-    onError: () => {
-      toast.error("Failed to update block status");
-      if (onErrorCb) onErrorCb();
+    onError: (error) => {
+      if (!handleAssignmentError(error, "You do not have permission to update block status.")) {
+        toast.error("Failed to update block status");
+      }
+      if (onErrorCb) onErrorCb(error);
     },
   });
 };
@@ -127,9 +148,11 @@ export const useBulkToggleBlock = (campId, selectedDate, callbacks = {}) => {
       if (onSuccessCb) onSuccessCb(data, variables, context);
     },
     onError: (error) => {
-      toast.error(
-        error?.response?.data?.message || "Failed to update time slot",
-      );
+      if (!handleAssignmentError(error, "You do not have permission to update time slot.")) {
+        toast.error(
+          error?.response?.data?.message || "Failed to update time slot",
+        );
+      }
       if (onErrorCb) onErrorCb(error);
     },
   });
@@ -155,9 +178,11 @@ export const useAutoAssign = (campId, callbacks = {}) => {
       if (onSuccessCb) onSuccessCb(data, variables, context);
     },
     onError: (error) => {
-      toast.error(
-        error?.response?.data?.message || "Failed to auto-assign referees",
-      );
+      if (!handleAssignmentError(error, "You do not have permission to auto-assign referees.")) {
+        toast.error(
+          error?.response?.data?.message || "Failed to auto-assign referees",
+        );
+      }
       if (onErrorCb) onErrorCb(error);
     },
   });
@@ -176,8 +201,10 @@ export const useRemoveAssignment = (campId, selectedDate) => {
         queryKey: ["court-info", campId, selectedDate],
       });
     },
-    onError: () => {
-      toast.error("Failed to remove assignment");
+    onError: (error) => {
+      if (!handleAssignmentError(error, "You do not have permission to remove assignment.")) {
+        toast.error("Failed to remove assignment");
+      }
     },
   });
 };
@@ -198,9 +225,11 @@ export const useAssignReferees = (callbacks = {}) => {
       if (onSuccessCb) onSuccessCb(data, variables, context);
     },
     onError: (error) => {
-      toast.error(
-        error?.response?.data?.message || "Failed to assign referees",
-      );
+      if (!handleAssignmentError(error, "You do not have permission to assign referee for this schedule.")) {
+        toast.error(
+          error?.response?.data?.message || "Failed to assign referees",
+        );
+      }
       if (onErrorCb) onErrorCb(error);
     },
   });
@@ -219,6 +248,11 @@ export const useAssignCrew = (callbacks = {}) => {
       if (onSuccessCb) onSuccessCb(data, variables, context);
     },
     onError: (error) => {
+      if (handleAssignmentError(error, "You do not have permission to assign crew for this schedule.")) {
+        if (onErrorCb) onErrorCb(error);
+        return;
+      }
+
       const response = error?.response?.data;
 
       // Handle crew time conflict with detailed info

@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal } from "antd";
-import toast from "react-hot-toast";
 import {
   FiSearch,
   FiCheck,
@@ -8,10 +7,13 @@ import {
   FiUserPlus,
   FiX,
   FiArrowLeft,
+  FiEdit2,
 } from "react-icons/fi";
 import { LuShieldCheck, LuInbox, LuUsers } from "react-icons/lu";
-import { dummyDirectors } from "./dummyDirectors";
+import { useGetAllDirectors } from "@/hooks/api/director-hooks/useCamps";
 import { ASSISTANT_PERMISSIONS } from "@/lib/assistantPermissions";
+
+const parseBool = (val) => val === true || val === 1 || val === "1" || val === "true";
 
 const AVATAR_COLORS = [
   "#0ea5e9",
@@ -64,10 +66,17 @@ const SectionHeading = ({ title, right }) => (
   </div>
 );
 
-const AssignedAssistantRow = ({ assistant, onRemove }) => {
+const AssignedAssistantRow = ({ assistant, onRemove, onEdit, isSelected }) => {
   const permissionCount = assistant?.permissions?.length || 0;
   return (
-    <div className="group flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/[0.03] p-3 transition-all duration-200 hover:border-primary/30">
+    <div
+      onClick={() => onEdit?.(assistant)}
+      className={`group flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all duration-200 ${
+        isSelected
+          ? "border-primary bg-primary/[0.08] shadow-sm"
+          : "border-primary/15 bg-primary/[0.03] hover:border-primary/30 hover:bg-primary/[0.06] hover:shadow-sm"
+      }`}
+    >
       <DirectorAvatar name={assistant.name} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-gray-800">
@@ -90,7 +99,22 @@ const AssignedAssistantRow = ({ assistant, onRemove }) => {
 
       <button
         type="button"
-        onClick={() => onRemove?.(assistant.id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit?.(assistant);
+        }}
+        title={`Edit permissions for ${assistant.name}`}
+        className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-primary/10 hover:text-primary"
+      >
+        <FiEdit2 className="text-sm" />
+      </button>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove?.(assistant.id);
+        }}
         title={`Remove ${assistant.name}`}
         className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
       >
@@ -151,36 +175,90 @@ const ManageCampModal = ({
   open,
   onClose,
   campName,
+  campId,
   assistants = [],
   onAssign,
   onRemove,
 }) => {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [granted, setGranted] = useState({});
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const { data: directorsList = [] } = useGetAllDirectors(debouncedSearch, campId);
+
+  const formattedDirectors = useMemo(() => {
+    return (directorsList || []).map((director) => ({
+      id: director.id,
+      name: `${director.first_name || ""} ${director.last_name || ""}`.trim() || director.email,
+      email: director.email,
+      phone: director.phone,
+      is_assigned: director.is_assigned,
+      permissions: director.permissions,
+    }));
+  }, [directorsList]);
+
   const selectedDirector =
-    dummyDirectors.find((director) => director.id === selectedId) || null;
+    formattedDirectors.find((director) => director.id === selectedId) ||
+    assistants.find((assistant) => assistant.id === selectedId) ||
+    null;
   const assignedIds = assistants.map((assistant) => assistant.id);
 
   const filteredDirectors = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return dummyDirectors;
-    return dummyDirectors.filter(
+    if (!query) return formattedDirectors;
+    return formattedDirectors.filter(
       (director) =>
-        director.name.toLowerCase().includes(query) ||
-        director.email.toLowerCase().includes(query)
+        (director.name || "").toLowerCase().includes(query) ||
+        (director.email || "").toLowerCase().includes(query)
     );
-  }, [search]);
+  }, [search, formattedDirectors]);
 
   const selectDirector = (director) => {
     setSelectedId(director.id);
-    setGranted({});
+    
+    // Determine existing permissions from either the API response or props
+    const existingAssistant = assistants.find((a) => a.id === director.id);
+    const existingPerms = existingAssistant?.permissions || (Array.isArray(director.permissions) ? director.permissions : []);
+
+    const initialGranted = {};
+    if (director.permissions && !Array.isArray(director.permissions)) {
+      const permObj = director.permissions;
+      initialGranted["manage_schedule"] = parseBool(permObj.build_schedule) || parseBool(permObj.manage_schedule);
+      initialGranted["assign_referee"] = parseBool(permObj.assign_referees) || parseBool(permObj.assign_referee);
+      initialGranted["publish_camp"] = parseBool(permObj.publish_camp);
+      initialGranted["manage_ranking"] = parseBool(permObj.manage_ranking_reports) || parseBool(permObj.manage_ranking);
+      initialGranted["manage_roster_referees"] = parseBool(permObj.manage_roster_referees);
+      initialGranted["manage_roster_evaluators"] = parseBool(permObj.manage_roster_evaluators);
+      initialGranted["manage_roster_crews"] = parseBool(permObj.manage_roster_crews);
+      initialGranted["manage_announcement"] = parseBool(permObj.manage_announcements) || parseBool(permObj.manage_announcement);
+    } else if (existingPerms.length > 0) {
+      existingPerms.forEach((key) => {
+        const uiKey = key === "build_schedule" ? "manage_schedule" : key;
+        initialGranted[uiKey] = true;
+      });
+    }
+    setGranted(initialGranted);
   };
 
   const changeDirector = () => {
     setSelectedId(null);
     setGranted({});
+  };
+
+  const handleRemove = (assistantId) => {
+    if (selectedId === assistantId) {
+      setSelectedId(null);
+      setGranted({});
+    }
+    onRemove(assistantId);
   };
 
   const togglePermission = (key) =>
@@ -203,11 +281,6 @@ const ManageCampModal = ({
     ).map((permission) => permission.key);
 
     onAssign(selectedDirector, permissionKeys);
-    toast.success(
-      permissionKeys.length
-        ? `${selectedDirector.name} is now an assistant director for this camp`
-        : `${selectedDirector.name} added with view-only access`
-    );
     onClose();
   };
 
@@ -265,7 +338,9 @@ const ManageCampModal = ({
                   <AssignedAssistantRow
                     key={assistant.id}
                     assistant={assistant}
-                    onRemove={onRemove}
+                    onRemove={handleRemove}
+                    onEdit={selectDirector}
+                    isSelected={selectedId === assistant.id}
                   />
                 ))}
               </div>
@@ -304,20 +379,20 @@ const ManageCampModal = ({
                       <div
                         key={director.id}
                         role="button"
-                        tabIndex={isAssigned ? -1 : 0}
+                        tabIndex={0}
                         aria-pressed={isSelected}
-                        onClick={() => !isAssigned && selectDirector(director)}
+                        onClick={() => selectDirector(director)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
-                            if (!isAssigned) selectDirector(director);
+                            selectDirector(director);
                           }
                         }}
-                        className={`flex items-center gap-3 rounded-xl border p-3 transition-all duration-200 ${
+                        className={`group flex items-center gap-3 rounded-xl border p-3 transition-all duration-200 ${
                           isSelected
                             ? "border-primary/50 bg-primary/[0.06] shadow-sm"
                             : isAssigned
-                              ? "cursor-not-allowed border-gray-200 bg-gray-50 opacity-55"
+                              ? "cursor-pointer border-primary/20 bg-primary/[0.01] hover:border-primary/40 hover:shadow-sm"
                               : "cursor-pointer border-gray-200 bg-white hover:border-primary/40 hover:shadow-sm"
                         }`}
                       >
@@ -336,7 +411,7 @@ const ManageCampModal = ({
                             <FiCheck className="text-sm" />
                           </span>
                         ) : isAssigned ? (
-                          <span className="shrink-0 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
+                          <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                             Assigned
                           </span>
                         ) : (
@@ -441,7 +516,7 @@ const ManageCampModal = ({
         <div className="flex items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/70 px-5 py-4 sm:px-7">
           <p className="hidden text-xs text-gray-500 sm:block">
             {selectedDirector
-              ? `Assigning ${selectedDirector.name} with ${grantedCount} permission${grantedCount === 1 ? "" : "s"}.`
+              ? `${assignedIds.includes(selectedDirector.id) ? "Updating" : "Assigning"} ${selectedDirector.name} with ${grantedCount} permission${grantedCount === 1 ? "" : "s"}.`
               : "Assigned assistants get access based on the permissions you grant."}
           </p>
           <div className="ml-auto flex items-center gap-3">
@@ -459,7 +534,7 @@ const ManageCampModal = ({
               className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-all hover:bg-[#0099d4] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
             >
               <LuShieldCheck className="text-base" />
-              Assign Assistant
+              {selectedDirector && assignedIds.includes(selectedDirector.id) ? "Update Permissions" : "Assign Assistant"}
             </button>
           </div>
         </div>

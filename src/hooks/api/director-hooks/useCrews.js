@@ -6,6 +6,25 @@ import {
 } from "@tanstack/react-query";
 import { useCrewService } from "@/services/director-services/crew.service";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
+
+const handleCrewError = (error, defaultMsg) => {
+  const errorData = error?.response?.data;
+  const isForbidden =
+    error?.response?.status === 403 || errorData?.code === 403;
+
+  if (isForbidden) {
+    const msg = errorData?.data || errorData?.message || defaultMsg;
+    Swal.fire({
+      icon: "error",
+      title: "Permission Denied",
+      text: msg,
+      confirmButtonColor: "#00AEEF",
+    });
+    return true;
+  }
+  return false;
+};
 
 // Query key factory
 export const crewKeys = {
@@ -98,9 +117,18 @@ export const useCreateCrew = (campId) => {
       });
     },
     onError: (error) => {
+      // Permission errors → SweetAlert (no toast)
+      if (
+        handleCrewError(
+          error,
+          "You do not have permission to create crew for this camp.",
+        )
+      ) {
+        return;
+      }
       const errData = error?.response?.data;
       const errorMessage =
-        errData?.message || errData?.data || "Failed to create crew.";
+        errData?.data || errData?.message || "Failed to create crew.";
       toast.error(errorMessage);
     },
   });
@@ -124,8 +152,19 @@ export const useAddMembersToCrew = (crewId, campId) => {
       });
     },
     onError: (err) => {
+      // Permission errors → SweetAlert (no toast)
+      if (
+        handleCrewError(
+          err,
+          "You do not have permission to add members to this crew.",
+        )
+      ) {
+        return;
+      }
       toast.error(
-        err?.response?.data?.message || "Failed to add members.",
+        err?.response?.data?.data ||
+          err?.response?.data?.message ||
+          "Failed to add members.",
       );
     },
   });
@@ -165,8 +204,19 @@ export const useRemoveMemberFromCrew = (crewId) => {
       if (context?.previousCrew) {
         queryClient.setQueryData(CREW_QUERY_KEY, context.previousCrew);
       }
+      // Permission errors → SweetAlert (no toast)
+      if (
+        handleCrewError(
+          err,
+          "You do not have permission to remove members from this crew.",
+        )
+      ) {
+        return;
+      }
       toast.error(
-        err?.response?.data?.message || "Failed to remove member",
+        err?.response?.data?.data ||
+          err?.response?.data?.message ||
+          "Failed to remove member",
       );
     },
   });
@@ -198,8 +248,19 @@ export const useDeleteCrew = () => {
       }
     },
     onError: (error) => {
+      // Permission errors → SweetAlert (no toast)
+      if (
+        handleCrewError(
+          error,
+          "You do not have permission to delete this crew.",
+        )
+      ) {
+        return;
+      }
       toast.error(
-        error?.response?.data?.message || "Failed to delete crew",
+        error?.response?.data?.data ||
+          error?.response?.data?.message ||
+          "Failed to delete crew",
       );
     },
   });

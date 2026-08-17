@@ -1,22 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import BackBtn from "@/components/common/BackBtn";
 import CommonSectionTitle from "@/components/common/CommonSectionTitle";
 import MyCampCartSkeleton from "@/page/dashboard/director-dashboard/dashboard/components/MyCampCartSkeleton";
 import AssignedCampCard from "./components/AssignedCampCard";
-import { dummyAssignedCamps } from "./components/dummyAssignedCamps";
+import { useGetAssignedCamps } from "@/hooks/api/director-hooks/useCamps";
 import { LuShieldCheck, LuInbox } from "react-icons/lu";
 
 const AssignedCamps = () => {
-  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useGetAssignedCamps(page);
 
-  // Simulate a short fetch so the skeleton is visible — remove when
-  // wired to the real "assigned camps" API.
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const camps = dummyAssignedCamps;
+  const camps = data?.camp_list || [];
 
   return (
     <div className="w-full pb-12">
@@ -28,7 +22,7 @@ const AssignedCamps = () => {
           text="My Assigned Camps"
           subText="Camps where another director assigned you as an assistant"
         />
-        {!loading && (
+        {!isLoading && (
           <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-violet-50 px-3.5 py-1.5 text-xs font-semibold text-violet-700 border border-violet-200">
             <LuShieldCheck className="text-sm" />
             {camps.length} assigned camp{camps.length !== 1 ? "s" : ""}
@@ -37,7 +31,7 @@ const AssignedCamps = () => {
       </div>
 
       {/* Content */}
-      {loading ? (
+      {isLoading ? (
         <div className="mt-6 space-y-5">
           {[...Array(2)].map((_, index) => (
             <MyCampCartSkeleton key={index} />
