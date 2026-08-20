@@ -235,10 +235,14 @@ const RELEASES_DATA = [
 const WhatsNew = () => {
   const { userData } = useAuth();
   const userRole = userData?.role;
-  const [selectedVersion, setSelectedVersion] = useState(RELEASES_DATA[0].version);
+  const [selectedVersion, setSelectedVersion] = useState(
+    RELEASES_DATA[0].version,
+  );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const activeRelease = RELEASES_DATA.find((r) => r.version === selectedVersion) || RELEASES_DATA[0];
+  const activeRelease =
+    RELEASES_DATA.find((r) => r.version === selectedVersion) ||
+    RELEASES_DATA[0];
 
   const dashboardPath =
     {
@@ -253,7 +257,8 @@ const WhatsNew = () => {
     if (element) {
       const headerOffset = 100;
       const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - headerOffset;
       window.scrollTo({
         top: offsetPosition,
         behavior: "smooth",
@@ -337,10 +342,8 @@ const WhatsNew = () => {
 
   return (
     <div className="bg-white min-h-screen text-slate-900 border-t border-slate-100">
-      
       {/* Documentation Wrapper matching exactly Navbar width */}
       <div className="container max-w-screen-2xl py-6 sm:py-12">
-
         {/* Mobile Sub-Header & Menu Toggle Button */}
         <div className="lg:hidden flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl mb-6">
           <button
@@ -350,7 +353,9 @@ const WhatsNew = () => {
             <FiMenu className="size-4" />
             <span>Navigate Docs</span>
           </button>
-          <span className="text-xs font-semibold text-primary truncate max-w-[180px]">{activeRelease.title.split(" & ")[0]}</span>
+          <span className="text-xs font-semibold text-primary truncate max-w-[180px]">
+            {activeRelease.title.split(" & ")[0]}
+          </span>
         </div>
 
         {/* Mobile Navigation Drawer */}
@@ -392,7 +397,6 @@ const WhatsNew = () => {
 
         {/* Desktop Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
-          
           {/* DESKTOP SIDEBAR (hidden on mobile, sticky on desktop) */}
           <aside className="hidden lg:block lg:col-span-3 lg:sticky lg:top-28 h-fit space-y-8">
             {renderSidebarContent()}
@@ -400,7 +404,6 @@ const WhatsNew = () => {
 
           {/* RIGHT CONTENT: Documentation Page */}
           <main className="lg:col-span-9 space-y-10 lg:pl-6">
-            
             {/* Header / Meta */}
             <div className="space-y-4 pb-6 border-b border-slate-100">
               <div className="flex items-center gap-2.5 text-xs text-slate-400 font-medium">
@@ -408,7 +411,9 @@ const WhatsNew = () => {
                 <span>/</span>
                 <span>What&apos;s New</span>
                 <span>/</span>
-                <span className="text-slate-900 font-semibold">{activeRelease.title}</span>
+                <span className="text-slate-900 font-semibold">
+                  {activeRelease.title}
+                </span>
               </div>
 
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -530,7 +535,10 @@ const WhatsNew = () => {
                           {sect.permissions.map((perm) => {
                             const Icon = perm.icon;
                             return (
-                              <tr key={perm.name} className="hover:bg-slate-50/50">
+                              <tr
+                                key={perm.name}
+                                className="hover:bg-slate-50/50"
+                              >
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 flex items-center gap-2">
                                   <span className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                                     <Icon className="size-4" />
@@ -571,7 +579,6 @@ const WhatsNew = () => {
                       </div>
                     </div>
                   )}
-
                 </section>
               ))}
             </div>
@@ -581,9 +588,7 @@ const WhatsNew = () => {
               <span>Whistle Works Technical Documentation</span>
               <span>&copy; {new Date().getFullYear()} Whistle Works</span>
             </div>
-
           </main>
-
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 // Header.jsx
-import { useState } from "react";
-import { Link, NavLink } from "react-router-dom"; // ← changed to NavLink
+import { useState, useEffect } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Popover } from "antd";
 import { FaBars, FaTimes } from "react-icons/fa";
@@ -13,7 +13,23 @@ import userImage from "@/assets/dashboard/userImage.png";
 const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
   const { userData } = useAuth();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const isTransparent = !isScrolled && isHome;
 
   const navItems = [
     { name: "Home", path: "/" },
@@ -27,7 +43,13 @@ const Header = () => {
 
   return (
     <>
-      <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isTransparent
+            ? "bg-transparent shadow-none py-2"
+            : "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 py-0"
+        }`}
+      >
         <div className="container max-w-screen-2xl">
           <div className="flex h-16 sm:h-20 items-center justify-between">
             {/* Logo + Title */}
@@ -48,6 +70,8 @@ const Header = () => {
                     `font-medium transition-colors ${
                       isActive
                         ? "text-primary font-semibold"
+                        : isTransparent
+                        ? "text-white/90 hover:text-primary drop-shadow-xs"
                         : "text-gray-700 hover:text-primary"
                     }`
                   }
@@ -61,7 +85,11 @@ const Header = () => {
             <div className="flex items-center gap-4 sm:gap-6">
               {userData ? (
                 <>
-                  <div className="hidden sm:block">
+                  <div
+                    className={`hidden sm:block ${
+                      isTransparent ? "[&_button]:text-white [&_button:hover]:bg-white/10" : ""
+                    }`}
+                  >
                     <NotificationBell />
                   </div>
 
@@ -74,7 +102,11 @@ const Header = () => {
                     className="cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 sm:gap-3">
-                      <div className="size-9 sm:size-10 rounded-full ring-2 ring-gray-200 overflow-hidden flex-shrink-0">
+                      <div
+                        className={`size-9 sm:size-10 rounded-full ring-2 transition-all overflow-hidden flex-shrink-0 ${
+                          isTransparent ? "ring-white/60" : "ring-gray-200"
+                        }`}
+                      >
                         <img
                           src={userData?.avatar || userImage}
                           alt={userData?.first_name || "User"}
@@ -82,7 +114,11 @@ const Header = () => {
                         />
                       </div>
                       <div className="hidden md:block">
-                        <p className="font-medium text-gray-900 text-sm leading-tight">
+                        <p
+                          className={`font-medium text-sm leading-tight transition-colors ${
+                            isTransparent ? "text-white" : "text-gray-900"
+                          }`}
+                        >
                           {userData?.first_name || "User"}
                         </p>
                       </div>
@@ -90,7 +126,11 @@ const Header = () => {
                   </Popover>
 
                   {/* Mobile-only notification bell */}
-                  <div className="sm:hidden">
+                  <div
+                    className={`sm:hidden ${
+                      isTransparent ? "[&_button]:text-white [&_button:hover]:bg-white/10" : ""
+                    }`}
+                  >
                     <NotificationBell />
                   </div>
                 </>
@@ -107,7 +147,11 @@ const Header = () => {
               {/* Mobile menu button */}
               <button
                 onClick={toggleSidebar}
-                className="lg:hidden text-gray-700 text-2xl focus:outline-none"
+                className={`lg:hidden text-2xl focus:outline-none transition-colors ${
+                  isTransparent
+                    ? "text-white hover:text-primary"
+                    : "text-gray-700 hover:text-primary"
+                }`}
                 aria-label="Toggle menu"
               >
                 {isSidebarOpen ? <FaTimes /> : <FaBars />}
@@ -208,8 +252,8 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Spacer to prevent content jump under fixed header */}
-      <div className="h-16 sm:h-20" />
+      {/* Spacer to prevent content jump under fixed header on non-home pages */}
+      {!isHome && <div className="h-16 sm:h-20" />}
     </>
   );
 };

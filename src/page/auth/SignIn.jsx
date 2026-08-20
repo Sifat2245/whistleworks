@@ -101,10 +101,16 @@ const SignIn = () => {
 
   // Note: main ui component
   return (
-    <div className="w-full max-w-2xl">
-      <div className="text-center space-y-3 mb-8">
-        <CommonTitle text="Welcome Back" />
-        <CommonText text="Sign in to access your dashboard" />
+    <div className="w-full">
+      <div className="text-center space-y-1 mb-6">
+        <CommonTitle
+          text="Welcome Back"
+          className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
+        />
+        <CommonText
+          text="Sign in to access your Whistle Works dashboard"
+          className="text-xs sm:text-sm text-gray-500"
+        />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

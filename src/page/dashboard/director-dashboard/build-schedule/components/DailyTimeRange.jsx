@@ -141,17 +141,21 @@ const DailyTimeRange = ({ getDateRange }) => {
 
     const body = {
       game_duration: Number(data.game_duration),
-      time_ranges: (data.time_ranges || []).filter(
-        (r) => r.start_time && r.end_time,
-      ),
+      max_referees_per_slot: Number(data.max_referees_per_slot),
+      time_ranges: (data.time_ranges || [])
+        .filter((r) => r.start_time && r.end_time)
+        .map((r, idx) => ({
+          date: r.date || dates[idx]?.date,
+          start_time: r.start_time,
+          end_time: r.end_time,
+        })),
       locations: validLocations.map((loc) => ({
         location_name: loc.location_name,
+        latitude: String(loc.latitude),
+        longitude: String(loc.longitude),
         court_count: Number(loc.court_count),
-        latitude: Number(loc.latitude),
-        longitude: Number(loc.longitude),
-        address: loc.address,
+        address: loc.address || loc.location_name || "",
       })),
-      max_referees_per_slot: Number(data.max_referees_per_slot),
       referee_positions: refereePositions,
     };
     createScheduleMutation.mutate(body);
