@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Modal, Input, Tabs, Radio, Spin, Select } from "antd";
+import { Modal, Input, Tabs, Radio, Spin } from "antd";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { BiSearch } from "react-icons/bi";
 import toast from "react-hot-toast";
@@ -28,7 +28,6 @@ const ScheduleAddModal = ({
   campId,
   maxReferees,
   isBlocking = false,
-  sportName = "",
   assignmentType = "referees",
 }) => {
   const [activeTab, setActiveTab] = useState(assignmentType === "crews" ? "crew" : "referees");
@@ -38,18 +37,6 @@ const ScheduleAddModal = ({
   const [focusedTargetPosId, setFocusedTargetPosId] = useState(selectedPosition?.id || null);
 
   const courtPositions = getCourtPositions(selectedCourt, maxReferees);
-
-  const getSelectedRefPositionName = (ref) => {
-    if (ref.assignedPositionId) {
-      const posObj = courtPositions.find((p) => p.id === ref.assignedPositionId);
-      if (posObj) return posObj.position;
-    }
-    const selectedIdx = selectedReferees.findIndex((r) => r.id === ref.id);
-    if (selectedIdx !== -1) {
-      return courtPositions[selectedIdx]?.position || `Position ${selectedIdx + 1}`;
-    }
-    return null;
-  };
 
   // Reset on open
   useEffect(() => {
@@ -104,7 +91,7 @@ const ScheduleAddModal = ({
         });
       setSelectedReferees(assigned);
     }
-  }, [refereeListData, activeTab, selectedCourt]);
+  }, [refereeListData, activeTab, selectedCourt, courtPositions]);
 
   // Search filter — always include currently assigned
   const filteredReferees = useMemo(() => {
@@ -280,10 +267,6 @@ const ScheduleAddModal = ({
       payload,
     });
   };
-
-  const currentlyAssigned = refereeListData.filter(
-    (ref) => ref.is_assigned_to_this_slot,
-  );
 
   return (
     <Modal

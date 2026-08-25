@@ -18,7 +18,6 @@ const CourtSlotBox = ({
   selectedDate,
   maxReferees = 2,
   isBlockPending = false,
-  sportName = "",
   isDimmed = false,
   searchQuery = "",
   assignmentType = "referees",

@@ -159,7 +159,7 @@ const NotFound = () => {
           </h2>
 
           <p className="text-gray-400 text-base sm:text-lg leading-relaxed">
-            The page or route you are looking for doesn't exist, has been moved,
+            The page or route you are looking for doesn&apos;t exist, has been moved,
             or was whistled out of bounds by the ref.
           </p>
         </motion.div>

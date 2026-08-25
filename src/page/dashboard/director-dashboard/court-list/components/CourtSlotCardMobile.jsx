@@ -25,7 +25,6 @@ const CourtSlotCardMobile = ({
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
-  sportName = "",
   isDimmed = false,
   searchQuery = "",
   assignmentType = "referees",
