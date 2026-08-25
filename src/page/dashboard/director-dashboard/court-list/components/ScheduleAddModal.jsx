@@ -35,6 +35,7 @@ const ScheduleAddModal = ({
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [focusedTargetPosId, setFocusedTargetPosId] = useState(selectedPosition?.id || null);
 
   const courtPositions = getCourtPositions(selectedCourt, maxReferees);
 
@@ -57,8 +58,9 @@ const ScheduleAddModal = ({
       setSelectedCrew(null);
       setSearchTerm("");
       setActiveTab(assignmentType === "crews" ? "crew" : "referees");
+      setFocusedTargetPosId(selectedPosition?.id || null);
     }
-  }, [isModalOpen, assignmentType]);
+  }, [isModalOpen, assignmentType, selectedPosition]);
 
   // ── Hooks ──────────────────────────────────────────────────────
   const { data: refereeListData = [], isLoading: loadingReferees } =
@@ -155,6 +157,11 @@ const ScheduleAddModal = ({
       // Determine position ID for newly selected referee
       let targetPosId = null;
       if (
+        focusedTargetPosId &&
+        !prev.some((r) => r.assignedPositionId === focusedTargetPosId)
+      ) {
+        targetPosId = focusedTargetPosId;
+      } else if (
         selectedPosition?.id &&
         !prev.some((r) => r.assignedPositionId === selectedPosition.id)
       ) {
@@ -170,9 +177,25 @@ const ScheduleAddModal = ({
   };
 
   const handlePositionChangeForReferee = (refId, newPosId) => {
-    setSelectedReferees((prev) =>
-      prev.map((r) => (r.id === refId ? { ...r, assignedPositionId: newPosId } : r)),
-    );
+    setSelectedReferees((prev) => {
+      const currentRef = prev.find((r) => r.id === refId);
+      if (!currentRef) return prev;
+      const oldPosId = currentRef.assignedPositionId;
+
+      const occupant = prev.find(
+        (r) => r.assignedPositionId === newPosId && r.id !== refId,
+      );
+
+      return prev.map((r) => {
+        if (r.id === refId) {
+          return { ...r, assignedPositionId: newPosId };
+        }
+        if (occupant && r.id === occupant.id) {
+          return { ...r, assignedPositionId: oldPosId };
+        }
+        return r;
+      });
+    });
   };
 
   // Conflict detection
@@ -328,44 +351,94 @@ const ScheduleAddModal = ({
               </div>
             )}
 
-            {currentlyAssigned.length > 0 && (
-              <div className="p-4 bg-green-50 border border-green-300 rounded-lg">
-                <p className="font-medium text-green-800 mb-3">
-                  Currently Assigned ({currentlyAssigned.length})
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  {currentlyAssigned.map((ref, idx) => {
-                    const posName =
-                      getSelectedRefPositionName(ref) ||
-                      courtPositions[idx]?.position ||
-                      `Position ${idx + 1}`;
-
-                    return (
-                      <div
-                        key={ref.id}
-                        className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border"
-                      >
-                        <img
-                          src={ref.avatar || "/default-avatar.png"}
-                          alt={ref.name}
-                          className="w-8 h-8 rounded-full object-cover border"
-                          onError={(e) => (e.target.src = "/default-avatar.png")}
-                        />
-                        <div className="flex flex-col text-left">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-primary leading-none">
-                            {posName}
-                          </span>
-                          <span className="font-medium text-sm mt-0.5 leading-tight">
-                            {ref.name}{" "}
-                            {ref?.jourcy_number ? `#${ref.jourcy_number}` : ""}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Position Allocation Roster Bar */}
+            <div className="bg-slate-50 border border-gray-200 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-1.5">
+                  Court Positions ({selectedReferees.length}/{courtPositions.length || maxReferees})
+                </span>
+                {selectedPosition && (
+                  <span className="text-xs font-semibold text-[#00AEEF] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                    Target Slot: {selectedPosition.position}
+                  </span>
+                )}
               </div>
-            )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {courtPositions.map((pos) => {
+                  const assignedRef = selectedReferees.find(
+                    (r) => r.assignedPositionId === pos.id
+                  );
+                  const isTarget =
+                    selectedPosition?.id === pos.id ||
+                    focusedTargetPosId === pos.id;
+
+                  return (
+                    <div
+                      key={pos.id}
+                      onClick={() => {
+                        if (!assignedRef) setFocusedTargetPosId(pos.id);
+                      }}
+                      className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                        assignedRef
+                          ? "bg-white border-blue-200 shadow-sm"
+                          : isTarget
+                            ? "bg-[#00AEEF]/5 border-[#00AEEF] ring-2 ring-[#00AEEF]/20 cursor-pointer"
+                            : "bg-white/60 border-dashed border-gray-300 hover:border-[#00AEEF] cursor-pointer"
+                      }`}
+                    >
+                      {assignedRef ? (
+                        <>
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <img
+                              src={assignedRef.avatar || "/default-avatar.png"}
+                              alt={assignedRef.name}
+                              className="w-9 h-9 rounded-full object-cover border border-blue-200 shrink-0"
+                              onError={(e) =>
+                                (e.target.src = "/default-avatar.png")
+                              }
+                            />
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-[10px] font-bold text-[#00AEEF] uppercase tracking-wider truncate">
+                                {pos.position}
+                              </span>
+                              <span className="text-xs font-semibold text-gray-800 truncate">
+                                {assignedRef.name}
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRefereeToggle(assignedRef);
+                            }}
+                            title="Remove assignment"
+                            className="w-6 h-6 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-600 text-gray-400 flex items-center justify-center transition-colors cursor-pointer text-sm font-bold shrink-0"
+                          >
+                            ×
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium py-0.5">
+                          <div className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-sm font-bold">
+                            +
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                              {pos.position}
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                              {isTarget ? "Target Slot" : "Unassigned"}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             <Search
               placeholder="Search by name or email..."
@@ -418,7 +491,7 @@ const ScheduleAddModal = ({
                         handleRefereeToggle(ref)
                       }
                       className={`
-                        border rounded-xl p-4 flex items-center justify-between transition-all
+                        border rounded-2xl p-4 flex flex-col transition-all
                         ${
                           hasCrewAssigned || disabled || isHardConflict
                             ? "opacity-60 cursor-not-allowed"
@@ -427,8 +500,8 @@ const ScheduleAddModal = ({
                         ${
                           isSelected
                             ? isSoftRisk
-                              ? "border-orange-400 bg-orange-50 ring-2 ring-orange-200 shadow-md"
-                              : "border-[#00AEEF] bg-blue-50 shadow-md"
+                              ? "border-orange-400 bg-orange-50/80 ring-2 ring-orange-200 shadow-md"
+                              : "border-[#00AEEF] bg-blue-50/70 shadow-md"
                             : isHardConflict
                               ? "border-red-400 bg-red-50"
                               : isSoftRisk
@@ -437,86 +510,115 @@ const ScheduleAddModal = ({
                         }
                       `}
                     >
-                      <div className="flex items-center gap-4 flex-1">
-                        <img
-                          src={ref.avatar || "/default-avatar.png"}
-                          alt={ref.name}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                          onError={(e) =>
-                            (e.target.src = "/default-avatar.png")
-                          }
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium">
-                              {ref.name || "Unnamed Referee"}{" "}
-                              {ref?.jourcy_number
-                                ? `#${ref.jourcy_number}`
-                                : ""}
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 flex-1">
+                          <img
+                            src={ref.avatar || "/default-avatar.png"}
+                            alt={ref.name}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                            onError={(e) =>
+                              (e.target.src = "/default-avatar.png")
+                            }
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold text-gray-900">
+                                {ref.name || "Unnamed Referee"}{" "}
+                                {ref?.jourcy_number
+                                  ? `#${ref.jourcy_number}`
+                                  : ""}
+                              </p>
+                              {ref.is_assigned_to_this_slot && (
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                                  Currently Assigned
+                                </span>
+                              )}
+                              {isHardConflict && (
+                                <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+                                  Conflicting Assignment
+                                </span>
+                              )}
+                              {isSoftRisk && (
+                                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+                                  Fatigue Risk
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-500 mt-0.5">
+                              Contact: {ref.phone}
                             </p>
-                            {ref.is_assigned_to_this_slot && (
-                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">
-                                Currently Assigned
-                              </span>
-                            )}
-                            {isSelected && (
-                              <div
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-block"
+                            <p className="text-xs font-semibold text-gray-500">
+                              Total Games Assigned: {ref.total_assignments}
+                            </p>
+                            {ref.status_message && (
+                              <p
+                                className={`text-xs mt-1 ${isHardConflict ? "text-red-600" : "text-orange-600"}`}
                               >
-                                <Select
-                                  size="small"
-                                  value={selectedObj?.assignedPositionId}
-                                  onChange={(val) =>
-                                    handlePositionChangeForReferee(ref.id, val)
-                                  }
-                                  className="min-w-[140px]"
-                                  options={courtPositions.map((cp) => ({
-                                    value: cp.id,
-                                    label: cp.position,
-                                  }))}
-                                />
-                              </div>
-                            )}
-                            {isHardConflict && (
-                              <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
-                                Conflicting Assignment
-                              </span>
-                            )}
-                            {isSoftRisk && (
-                              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">
-                                Fatigue Risk
-                              </span>
+                                {ref.status_message}
+                              </p>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500">
-                            Contact: {ref.phone}
-                          </p>
-                          <p className="text-xs font-semibold text-gray-500">
-                            Total Games Assigned: {ref.total_assignments}
-                          </p>
-                          {ref.status_message && (
-                            <p
-                              className={`text-xs mt-1 ${isHardConflict ? "text-red-600" : "text-orange-600"}`}
-                            >
-                              {ref.status_message}
-                            </p>
-                          )}
                         </div>
+
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          readOnly
+                          className={`w-5 h-5 rounded ${
+                            isHardConflict
+                              ? "text-red-500"
+                              : isSoftRisk
+                                ? "text-orange-500"
+                                : "text-[#00AEEF]"
+                          } focus:ring-2`}
+                        />
                       </div>
 
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        readOnly
-                        className={`w-5 h-5 rounded ${
-                          isHardConflict
-                            ? "text-red-500"
-                            : isSoftRisk
-                              ? "text-orange-500"
-                              : "text-[#00AEEF]"
-                        } focus:ring-2`}
-                      />
+                      {/* Interactive Position Pill Buttons */}
+                      {isSelected && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-3 pt-3 border-t border-blue-200/60 flex flex-wrap items-center gap-2"
+                        >
+                          <span className="text-xs font-semibold text-gray-600 mr-1">
+                            Assign Position:
+                          </span>
+                          {courtPositions.map((cp) => {
+                            const isThisPos = selectedObj?.assignedPositionId === cp.id;
+                            const occupant = selectedReferees.find(
+                              (r) => r.assignedPositionId === cp.id && r.id !== ref.id
+                            );
+
+                            return (
+                              <button
+                                key={cp.id}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePositionChangeForReferee(ref.id, cp.id);
+                                }}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                  isThisPos
+                                    ? "bg-[#00AEEF] text-white shadow-md ring-2 ring-[#00AEEF]/30"
+                                    : occupant
+                                      ? "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                                      : "bg-white border border-gray-200 text-gray-700 hover:border-[#00AEEF] hover:text-[#00AEEF]"
+                                }`}
+                              >
+                                <span>{cp.position}</span>
+                                {isThisPos && (
+                                  <span className="text-white text-[11px] font-bold">✓</span>
+                                )}
+                                {occupant && !isThisPos && (
+                                  <span className="text-[10px] text-gray-400 font-normal">
+                                    ({occupant.name?.split(" ")[0]})
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })
