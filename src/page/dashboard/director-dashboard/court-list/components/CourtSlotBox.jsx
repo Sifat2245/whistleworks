@@ -5,7 +5,7 @@ import { HiXMark } from "react-icons/hi2";
 import { LuLock, LuUsers, LuUser, LuLoaderCircle } from "react-icons/lu";
 import Swal from "sweetalert2";
 import { useRemoveAssignment } from "@/hooks/api/director-hooks/useGameAssingments";
-import { getRefereePositions } from "@/utils/refereePositions";
+import { getCourtPositions, getPositionReferee } from "@/utils/refereePositions";
 
 const CourtSlotBox = ({
   court,
@@ -28,15 +28,14 @@ const CourtSlotBox = ({
   const removeMutation = useRemoveAssignment(campId, selectedDate);
 
   // Determine if there's a crew assignment
-  const crewAssignment = incomingReferees.find((a) => a.type === "crew");
-  const individualReferees = incomingReferees.filter(
-    (a) => a.type === "individual",
+  const crewAssignment = (court.assignments || incomingReferees || []).find(
+    (a) => a.type === "crew" || a.is_crew || a.crew_id,
   );
   const hasCrew = !!crewAssignment;
   const memberCount =
     crewAssignment?.member_count || crewAssignment?.members?.length || 0;
 
-  const positionsList = getRefereePositions(campId, sportName, maxReferees);
+  const courtPositions = getCourtPositions(court, maxReferees);
 
   const isRefereeMatch = (ref, query) => {
     if (!query) return false;
@@ -71,14 +70,19 @@ const CourtSlotBox = ({
     onUndoBlock(court.slot_id);
   };
 
-  const handleBoxClick = () => {
+  const handleBoxClick = (e, position = null) => {
+    e?.stopPropagation();
     if (isBlocked) return;
-    onClick?.(court, timeSlot);
+    onClick?.(court, timeSlot, position);
   };
+
+  const assignedPositionsCount = courtPositions.filter(
+    (p) => p.is_assigned || getPositionReferee(p, court.assignments || incomingReferees),
+  ).length;
 
   return (
     <div
-      onClick={handleBoxClick}
+      onClick={(e) => handleBoxClick(e, null)}
       className={cn(
         "shrink-0 w-64 rounded-xl border bg-white p-4 min-h-[230px] flex flex-col justify-between transition-all duration-300",
         isBlocked
@@ -128,11 +132,7 @@ const CourtSlotBox = ({
           {(crewAssignment.members || []).length > 0 && (
             <div className="max-h-40 overflow-y-auto w-full mt-3 space-y-1.5 text-left scrollbar-thin scrollbar-thumb-gray-300">
               {crewAssignment.members.map((member) => {
-                const crewId = crewAssignment.crew_id || crewAssignment.id || crewAssignment.assignment_id;
-                const crewPositions = JSON.parse(
-                  localStorage.getItem(`crew_positions_${crewId}`) || "{}"
-                );
-                const posName = member.position_name || crewPositions[member.referee_id || member.id];
+                const posName = member.position_name || member.position;
                 const isMatched = searchQuery && isRefereeMatch(member, searchQuery);
 
                 return (
@@ -178,7 +178,7 @@ const CourtSlotBox = ({
             onClick={(e) =>
               handleRemove(
                 e,
-                crewAssignment.assignment_id,
+                crewAssignment.assignment_id || crewAssignment.id,
                 crewAssignment.crew_name,
               )
             }
@@ -195,7 +195,7 @@ const CourtSlotBox = ({
             <span className="text-xs font-semibold uppercase tracking-wide text-[#666]">
               {assignmentType === "crews" ? "Crew Assignment" : "Positions"}
             </span>
-            {individualReferees.length === 0 ? (
+            {assignedPositionsCount === 0 ? (
               <div className="bg-gray-100 p-0.5 rounded-full flex items-center shrink-0 border border-gray-200">
                 <button
                   onClick={(e) => {
@@ -204,10 +204,11 @@ const CourtSlotBox = ({
                       onToggleSlotMode?.(court.slot_id);
                     }
                   }}
-                  className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${assignmentType === "referees"
+                  className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    assignmentType === "referees"
                       ? "bg-white text-primary shadow-sm"
                       : "text-gray-400 hover:text-gray-600"
-                    }`}
+                  }`}
                   title="Switch to Individual Referees"
                 >
                   <LuUser size={13} />
@@ -219,10 +220,11 @@ const CourtSlotBox = ({
                       onToggleSlotMode?.(court.slot_id);
                     }
                   }}
-                  className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${assignmentType === "crews"
+                  className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    assignmentType === "crews"
                       ? "bg-white text-primary shadow-sm"
                       : "text-gray-400 hover:text-gray-600"
-                    }`}
+                  }`}
                   title="Switch to Crew Mode"
                 >
                   <LuUsers size={13} />
@@ -230,7 +232,7 @@ const CourtSlotBox = ({
               </div>
             ) : (
               <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                {individualReferees.length}/{maxReferees}
+                {assignedPositionsCount}/{courtPositions.length}
               </span>
             )}
           </div>
@@ -246,20 +248,22 @@ const CourtSlotBox = ({
           ) : (
             // === Individual Referees & Empty Positions View ===
             <div className="space-y-2.5 flex-1 flex flex-col justify-center">
-              {positionsList.map((positionName, idx) => {
-                const item = individualReferees[idx];
+              {courtPositions.map((pos, idx) => {
+                const assignedRef = getPositionReferee(pos, court.assignments || incomingReferees);
+                const positionName = pos.position || `Position ${idx + 1}`;
 
-                if (item) {
-                  const refereeName = item?.referee_name || "Unknown Referee";
-                  const jerseyNumber = item?.jourcy_number;
-
-                  const isMatched = searchQuery && isRefereeMatch(item, searchQuery);
+                if (assignedRef) {
+                  const refereeName = assignedRef?.referee_name || assignedRef?.name || "Unknown Referee";
+                  const jerseyNumber = assignedRef?.jourcy_number || assignedRef?.jersey_number;
+                  const isMatched = searchQuery && isRefereeMatch(assignedRef, searchQuery);
+                  const removeId = pos.game_slot_assignment_id || assignedRef?.assignment_id || assignedRef?.id;
 
                   return (
                     <div
-                      key={item.assignment_id || idx}
+                      key={pos.id || idx}
+                      onClick={(e) => handleBoxClick(e, pos)}
                       className={cn(
-                        "group flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 border hover:border-primary/30 transition-all",
+                        "group flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 border hover:border-primary/30 transition-all cursor-pointer",
                         isMatched
                           ? "bg-primary/15 border-primary ring-2 ring-primary/20 shadow-xs"
                           : "bg-gray-50 border-border"
@@ -267,7 +271,7 @@ const CourtSlotBox = ({
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <img
-                          src={item?.avatar || "/default-avatar.png"}
+                          src={assignedRef?.avatar || "/default-avatar.png"}
                           alt={refereeName}
                           onError={(e) => {
                             e.target.src = "/default-avatar.png";
@@ -290,9 +294,7 @@ const CourtSlotBox = ({
                       </div>
 
                       <button
-                        onClick={(e) =>
-                          handleRemove(e, item?.assignment_id, refereeName)
-                        }
+                        onClick={(e) => handleRemove(e, removeId, refereeName)}
                         disabled={removeMutation.isPending}
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 p-0.5 cursor-pointer shrink-0"
                         title={`Unassign ${positionName}`}
@@ -306,8 +308,9 @@ const CourtSlotBox = ({
                 // Position is empty
                 return (
                   <div
-                    key={idx}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-gray-200 px-2.5 py-2 hover:border-primary/50 hover:bg-primary/[0.01] transition-all group/empty"
+                    key={pos.id || idx}
+                    onClick={(e) => handleBoxClick(e, pos)}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-gray-200 px-2.5 py-2 hover:border-primary/50 hover:bg-primary/[0.01] transition-all group/empty cursor-pointer"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-gray-400 group-hover/empty:text-primary group-hover/empty:bg-primary/10 transition-colors">

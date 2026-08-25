@@ -219,7 +219,8 @@ export const useAssignReferees = (callbacks = {}) => {
 
   return useMutation({
     mutationKey: ["assign-referees"],
-    mutationFn: ({ slotId, formData }) => assignReferees(slotId, formData),
+    mutationFn: ({ slotId, payload, formData }) =>
+      assignReferees(slotId, payload || formData),
     onSuccess: (data, variables, context) => {
       toast.success("Referees assigned successfully");
       if (onSuccessCb) onSuccessCb(data, variables, context);

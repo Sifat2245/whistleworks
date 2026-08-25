@@ -4,7 +4,7 @@ import { LuPencil, LuLock, LuPlus, LuUsers, LuUser, LuLoaderCircle } from "react
 import { HiXMark } from "react-icons/hi2";
 import Swal from "sweetalert2";
 import { useRemoveAssignment } from "@/hooks/api/director-hooks/useGameAssingments";
-import { getRefereePositions } from "@/utils/refereePositions";
+import { getCourtPositions, getPositionReferee } from "@/utils/refereePositions";
 import { cn } from "@/lib/utils";
 
 const CourtSlotCardMobile = ({
@@ -36,16 +36,15 @@ const CourtSlotCardMobile = ({
 
   const courtName = court.court_name || `Court ${court.court_number}`;
   const crewAssignment = (court.assignments || []).find(
-    (a) => a.type === "crew",
-  );
-  const individualReferees = (court.assignments || []).filter(
-    (a) => a.type === "individual",
+    (a) => a.type === "crew" || a.is_crew || a.crew_id,
   );
   const hasCrew = !!crewAssignment;
   const memberCount =
     crewAssignment?.member_count ||
     crewAssignment?.members?.length ||
     0;
+
+  const courtPositions = getCourtPositions(court, maxReferees);
 
   const stop = (e) => e.stopPropagation();
 
@@ -77,10 +76,14 @@ const CourtSlotCardMobile = ({
     return name.toLowerCase().includes(lower) || email.toLowerCase().includes(lower);
   };
 
-  const handleCardClick = () => {
+  const handleCardClick = (position = null) => {
     if (isBlocked) return;
-    onOpen?.(court, timeSlot);
+    onOpen?.(court, timeSlot, position);
   };
+
+  const assignedPositionsCount = courtPositions.filter(
+    (p) => p.is_assigned || getPositionReferee(p, court.assignments),
+  ).length;
 
   // ── Blocked state ─────────────────────────────────────────
   if (isBlocked) {
@@ -114,7 +117,7 @@ const CourtSlotCardMobile = ({
 
   return (
     <div
-      onClick={handleCardClick}
+      onClick={() => handleCardClick(null)}
       className={cn(
         "px-4 py-4 cursor-pointer active:bg-primary/[0.03] transition-all duration-300",
         isDimmed && "opacity-25 pointer-events-none scale-98"
@@ -181,7 +184,7 @@ const CourtSlotCardMobile = ({
 
       {/* Body */}
       <div className="mt-3">
-        {individualReferees.length === 0 && !hasCrew ? (
+        {assignedPositionsCount === 0 && !hasCrew ? (
           // === Unassigned/Empty Slot View ===
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -227,7 +230,7 @@ const CourtSlotCardMobile = ({
 
             {assignmentType === "crews" ? (
               <div
-                onClick={handleCardClick}
+                onClick={() => handleCardClick(null)}
                 className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-200 px-4 py-4 text-sm font-medium text-gray-400 hover:border-purple-300 hover:bg-purple-50/10 transition-all cursor-pointer"
               >
                 <LuPlus size={16} className="text-purple-600 animate-pulse" />
@@ -235,10 +238,14 @@ const CourtSlotCardMobile = ({
               </div>
             ) : (
               <div className="space-y-2.5">
-                {getRefereePositions(campId, sportName, maxReferees).map((positionName, idx) => (
+                {courtPositions.map((pos, idx) => (
                   <div
-                    key={idx}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-gray-200 px-3.5 py-3 hover:border-primary/50 hover:bg-primary/[0.01] transition-all"
+                    key={pos.id || idx}
+                    onClick={(e) => {
+                      stop(e);
+                      handleCardClick(pos);
+                    }}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-gray-200 px-3.5 py-3 hover:border-primary/50 hover:bg-primary/[0.01] transition-all cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-gray-400">
@@ -246,7 +253,7 @@ const CourtSlotCardMobile = ({
                       </span>
                       <div className="min-w-0">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 leading-none">
-                          {positionName}
+                          {pos.position || `Position ${idx + 1}`}
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
                           Unassigned
@@ -298,7 +305,7 @@ const CourtSlotCardMobile = ({
                 onClick={(e) =>
                   handleRemove(
                     e,
-                    crewAssignment.assignment_id,
+                    crewAssignment.assignment_id || crewAssignment.id,
                     crewAssignment.crew_name,
                   )
                 }
@@ -313,11 +320,7 @@ const CourtSlotCardMobile = ({
             {(crewAssignment.members || []).length > 0 && (
               <div className="rounded-xl bg-gray-50 border border-border divide-y divide-border overflow-hidden">
                 {crewAssignment.members.map((member) => {
-                  const crewId = crewAssignment.crew_id || crewAssignment.id || crewAssignment.assignment_id;
-                  const crewPositions = JSON.parse(
-                    localStorage.getItem(`crew_positions_${crewId}`) || "{}"
-                  );
-                  const posName = member.position_name || crewPositions[member.referee_id || member.id];
+                  const posName = member.position_name || member.position;
                   const isMatched = searchQuery && isRefereeMatch(member, searchQuery);
 
                   return (
@@ -367,23 +370,28 @@ const CourtSlotCardMobile = ({
                 Positions
               </span>
               <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                {individualReferees.length}/{maxReferees}
+                {assignedPositionsCount}/{courtPositions.length}
               </span>
             </div>
-            {getRefereePositions(campId, sportName, maxReferees).map((positionName, idx) => {
-              const item = individualReferees[idx];
+            {courtPositions.map((pos, idx) => {
+              const assignedRef = getPositionReferee(pos, court.assignments);
+              const positionName = pos.position || `Position ${idx + 1}`;
 
-              if (item) {
-                const refereeName = item?.referee_name || "Unknown Referee";
-                const jerseyNumber = item?.jourcy_number;
-
-                const isMatched = searchQuery && isRefereeMatch(item, searchQuery);
+              if (assignedRef) {
+                const refereeName = assignedRef?.referee_name || assignedRef?.name || "Unknown Referee";
+                const jerseyNumber = assignedRef?.jourcy_number || assignedRef?.jersey_number;
+                const isMatched = searchQuery && isRefereeMatch(assignedRef, searchQuery);
+                const removeId = pos.game_slot_assignment_id || assignedRef?.assignment_id || assignedRef?.id;
 
                 return (
                   <div
-                    key={item.assignment_id || idx}
+                    key={pos.id || idx}
+                    onClick={(e) => {
+                      stop(e);
+                      handleCardClick(pos);
+                    }}
                     className={cn(
-                      "flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 transition-all duration-200",
+                      "flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 transition-all duration-200 cursor-pointer",
                       isMatched
                         ? "bg-primary/15 border-primary ring-2 ring-primary/20 shadow-xs"
                         : "bg-gray-50 border-border"
@@ -391,7 +399,7 @@ const CourtSlotCardMobile = ({
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <img
-                        src={item?.avatar || "/default-avatar.png"}
+                        src={assignedRef?.avatar || "/default-avatar.png"}
                         alt={refereeName}
                         onError={(e) => {
                           e.target.src = "/default-avatar.png";
@@ -413,9 +421,7 @@ const CourtSlotCardMobile = ({
                       )}
                     </div>
                     <button
-                      onClick={(e) =>
-                        handleRemove(e, item?.assignment_id, refereeName)
-                      }
+                      onClick={(e) => handleRemove(e, removeId, refereeName)}
                       disabled={removeMutation.isPending}
                       className="shrink-0 text-gray-400 hover:text-red-500 p-1.5 cursor-pointer transition-colors"
                       title={`Unassign ${positionName}`}
@@ -429,8 +435,12 @@ const CourtSlotCardMobile = ({
               // Position is empty
               return (
                 <div
-                  key={idx}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-gray-200 px-3.5 py-3 hover:border-primary/50 hover:bg-primary/[0.01] transition-all"
+                  key={pos.id || idx}
+                  onClick={(e) => {
+                    stop(e);
+                    handleCardClick(pos);
+                  }}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-gray-200 px-3.5 py-3 hover:border-primary/50 hover:bg-primary/[0.01] transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-gray-400">

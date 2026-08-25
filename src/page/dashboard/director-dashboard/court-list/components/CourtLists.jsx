@@ -108,6 +108,8 @@ const CourtLists = ({ campData }) => {
   // ── React Query client for cache invalidation ────────────────
   const queryClient = useQueryClient();
 
+  const [selectedPosition, setSelectedPosition] = useState(null);
+
   // ── Helper callbacks (defined before mutation hooks that reference them) ──
   const cancelEdit = () => {
     setEditingSlotId(null);
@@ -118,6 +120,7 @@ const CourtLists = ({ campData }) => {
     setIsModalOpen(false);
     setSelectedCourt(null);
     setSelectedTimeSlot(null);
+    setSelectedPosition(null);
   };
 
   const handleAssignSuccess = () => {
@@ -294,10 +297,11 @@ const CourtLists = ({ campData }) => {
     });
   };
 
-  const handleBoxClick = (court, timeSlot) => {
+  const handleBoxClick = (court, timeSlot, position = null) => {
     if (court?.is_blocked) return;
     setSelectedCourt(court);
     setSelectedTimeSlot(timeSlot);
+    setSelectedPosition(position);
     setIsModalOpen(true);
   };
 
@@ -782,6 +786,7 @@ const CourtLists = ({ campData }) => {
         handleCloseModal={handleCloseModal}
         selectedCourt={selectedCourt}
         selectedTimeSlot={selectedTimeSlot}
+        selectedPosition={selectedPosition}
         handleBlockCourt={handleBlockCourt}
         campId={campData?.id}
         maxReferees={maxReferees}

@@ -1,18 +1,45 @@
-export const getRefereePositions = (campId, sportName, maxReferees) => {
-  try {
-    const stored = localStorage.getItem(`referee_positions_${campId}`);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const result = [...parsed];
-        while (result.length < maxReferees) {
-          result.push(`Referee Position ${result.length + 1}`);
-        }
-        return result.slice(0, maxReferees);
-      }
-    }
-  } catch (e) {
-    console.error("Failed to parse referee positions from local storage", e);
+/**
+ * Normalizes court positions array from the API response or generates fallback position objects.
+ */
+export const getCourtPositions = (court, maxReferees = 2) => {
+  if (Array.isArray(court?.positions) && court.positions.length > 0) {
+    return court.positions;
+  }
+
+  const limit = maxReferees || 2;
+  return Array.from({ length: limit }, (_, i) => ({
+    id: i + 1,
+    position: `Referee Position ${i + 1}`,
+    is_assigned: false,
+    referee: null,
+    game_slot_assignment_id: null,
+  }));
+};
+
+/**
+ * Extracts assigned referee object for a position item.
+ */
+export const getPositionReferee = (pos, courtAssignments = []) => {
+  if (!pos) return null;
+  if (pos.referee) return pos.referee;
+  if (pos.is_assigned && pos.game_slot_assignment_id && Array.isArray(courtAssignments)) {
+    const match = courtAssignments.find(
+      (a) =>
+        a.assignment_id === pos.game_slot_assignment_id ||
+        a.id === pos.game_slot_assignment_id,
+    );
+    if (match) return match;
+  }
+  return null;
+};
+
+/**
+ * Legacy helper for extracting position names list.
+ */
+export const getRefereePositions = (courtOrCampId, sportName, maxReferees) => {
+  if (typeof courtOrCampId === "object" && courtOrCampId !== null) {
+    const positions = getCourtPositions(courtOrCampId, maxReferees);
+    return positions.map((p) => p.position);
   }
 
   // Fallback defaults
@@ -20,14 +47,32 @@ export const getRefereePositions = (campId, sportName, maxReferees) => {
   const lowerSport = String(sportName || "").toLowerCase();
   if (lowerSport.includes("basketball")) {
     defaults.push("Crew Chief", "Referee", "Umpire");
-  } else if (lowerSport.includes("soccer") || lowerSport.includes("football") || lowerSport.includes("scocer")) {
-    defaults.push("Center Referee", "Assistant Referee 1", "Assistant Referee 2", "Fourth Official");
-  } else if (lowerSport.includes("volleyball") || lowerSport.includes("volyball")) {
-    defaults.push("First Referee (R1)", "Second Referee (R2)", "Line Judge 1", "Line Judge 2");
+  } else if (
+    lowerSport.includes("soccer") ||
+    lowerSport.includes("football") ||
+    lowerSport.includes("scocer")
+  ) {
+    defaults.push(
+      "Center Referee",
+      "Assistant Referee 1",
+      "Assistant Referee 2",
+      "Fourth Official",
+    );
+  } else if (
+    lowerSport.includes("volleyball") ||
+    lowerSport.includes("volyball")
+  ) {
+    defaults.push(
+      "First Referee (R1)",
+      "Second Referee (R2)",
+      "Line Judge 1",
+      "Line Judge 2",
+    );
   }
 
+  const limit = maxReferees || 2;
   const result = [];
-  for (let i = 0; i < maxReferees; i++) {
+  for (let i = 0; i < limit; i++) {
     if (defaults[i]) {
       result.push(defaults[i]);
     } else {

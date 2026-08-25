@@ -45,6 +45,7 @@ import StripeConnectionSuccess from "@/page/dashboard/director-dashboard/strip-c
 import DirectorPreviousCamps from "@/page/dashboard/director-dashboard/previous-camps/PreviousCamps";
 import AssignedCamps from "@/page/dashboard/director-dashboard/assigned-camps/AssignedCamps";
 import WhatsNew from "@/page/whats-new/WhatsNew";
+import NotFound from "@/page/not-found/NotFound";
 
 const router = createBrowserRouter([
   {
@@ -280,7 +281,7 @@ const router = createBrowserRouter([
 
   {
     path: "*",
-    element: () => <h1>Page Not Found</h1>,
+    element: <NotFound />,
   },
 ]);
 
