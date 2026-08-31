@@ -311,3 +311,53 @@ export const useAssignCrew = (callbacks = {}) => {
     },
   });
 };
+
+export const useCourtModeChange = (campId, selectedDate, callbacks = {}) => {
+  const queryClient = useQueryClient();
+  const { courtModeChange } = useGameAssignmentService();
+  const { onSuccess: onSuccessCb, onError: onErrorCb } = callbacks;
+
+  return useMutation({
+    mutationKey: ["court-mode-change"],
+    mutationFn: ({ slotId, mode }) => courtModeChange(slotId, mode),
+    onSuccess: (data, variables, context) => {
+      toast.success(data?.data?.message || "Court mode updated successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["court-info", campId, selectedDate],
+      });
+      if (onSuccessCb) onSuccessCb(data, variables, context);
+    },
+    onError: (error) => {
+      if (!handleAssignmentError(error, "Failed to switch court mode.")) {
+        const msg = error?.response?.data?.message || "Failed to switch court mode";
+        toast.error(msg);
+      }
+      if (onErrorCb) onErrorCb(error);
+    },
+  });
+};
+
+export const useBulkModeChange = (campId, selectedDate, callbacks = {}) => {
+  const queryClient = useQueryClient();
+  const { bulkModeChange } = useGameAssignmentService();
+  const { onSuccess: onSuccessCb, onError: onErrorCb } = callbacks;
+
+  return useMutation({
+    mutationKey: ["bulk-mode-change", campId],
+    mutationFn: ({ scheduleId, mode }) => bulkModeChange(campId, scheduleId, mode),
+    onSuccess: (data, variables, context) => {
+      toast.success(data?.data?.message || "All court modes updated successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["court-info", campId, selectedDate],
+      });
+      if (onSuccessCb) onSuccessCb(data, variables, context);
+    },
+    onError: (error) => {
+      if (!handleAssignmentError(error, "Failed to switch bulk mode.")) {
+        const msg = error?.response?.data?.message || "Failed to bulk switch mode";
+        toast.error(msg);
+      }
+      if (onErrorCb) onErrorCb(error);
+    },
+  });
+};

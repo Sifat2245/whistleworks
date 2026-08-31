@@ -71,5 +71,11 @@ export const useGameAssignmentService = () => {
       axiosSecure.post(
         `/v1/director/court-assign/camp/${campId}/auto-assign`,
       ),
+
+    courtModeChange: (slotId, mode) =>
+      axiosSecure.post(`/v1/director/court-assign/slot/${slotId}/switch-mode`, { mode }),
+
+    bulkModeChange: (campId, scheduleId, mode) =>
+      axiosSecure.post(`/v1/director/court-assign/camp/${campId}/schedule/${scheduleId}/bulk-switch-mode`, { mode }),
   };
 };

@@ -27,7 +27,7 @@ const CourtSlotCardMobile = ({
   onCancelEdit,
   isDimmed = false,
   searchQuery = "",
-  assignmentType = "referees",
+  assignmentType = "individual",
   onToggleSlotMode,
 }) => {
   // ── Remove assignment mutation ────────────────────────────
@@ -188,19 +188,19 @@ const CourtSlotCardMobile = ({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wide text-[#666]">
-                {assignmentType === "crews" ? "Crew Assignment" : "Positions"}
+                {assignmentType === "crew" ? "Crew Assignment" : "Positions"}
               </span>
               {/* Switcher Pill */}
               <div className="bg-gray-100 p-0.5 rounded-full flex items-center shrink-0 border border-gray-200 shadow-sm">
                 <button
                   onClick={(e) => {
                     stop(e);
-                    if (assignmentType !== "referees") {
-                      onToggleSlotMode?.(court.slot_id);
+                    if (assignmentType !== "individual") {
+                      onToggleSlotMode?.(court.slot_id, assignmentType);
                     }
                   }}
                   className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                    assignmentType === "referees"
+                    assignmentType === "individual"
                       ? "bg-white text-primary shadow-sm"
                       : "text-gray-400 hover:text-gray-600"
                   }`}
@@ -211,12 +211,12 @@ const CourtSlotCardMobile = ({
                 <button
                   onClick={(e) => {
                     stop(e);
-                    if (assignmentType !== "crews") {
-                      onToggleSlotMode?.(court.slot_id);
+                    if (assignmentType !== "crew") {
+                      onToggleSlotMode?.(court.slot_id, assignmentType);
                     }
                   }}
                   className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                    assignmentType === "crews"
+                    assignmentType === "crew"
                       ? "bg-white text-primary shadow-sm"
                       : "text-gray-400 hover:text-gray-600"
                   }`}
@@ -227,7 +227,7 @@ const CourtSlotCardMobile = ({
               </div>
             </div>
 
-            {assignmentType === "crews" ? (
+            {assignmentType === "crew" ? (
               <div
                 onClick={() => handleCardClick(null)}
                 className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-200 px-4 py-4 text-sm font-medium text-gray-400 hover:border-purple-300 hover:bg-purple-50/10 transition-all cursor-pointer"

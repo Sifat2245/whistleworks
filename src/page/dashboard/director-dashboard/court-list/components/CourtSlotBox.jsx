@@ -20,7 +20,7 @@ const CourtSlotBox = ({
   isBlockPending = false,
   isDimmed = false,
   searchQuery = "",
-  assignmentType = "referees",
+  assignmentType = "individual",
   onToggleSlotMode,
 }) => {
   // ── Remove assignment mutation ────────────────────────────
@@ -192,19 +192,19 @@ const CourtSlotBox = ({
         <div className="w-full flex flex-col h-full justify-between">
           <div className="flex items-center justify-between mb-3 shrink-0">
             <span className="text-xs font-semibold uppercase tracking-wide text-[#666]">
-              {assignmentType === "crews" ? "Crew Assignment" : "Positions"}
+              {assignmentType === "crew" ? "Crew Assignment" : "Positions"}
             </span>
             {assignedPositionsCount === 0 ? (
               <div className="bg-gray-100 p-0.5 rounded-full flex items-center shrink-0 border border-gray-200">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (assignmentType !== "referees") {
-                      onToggleSlotMode?.(court.slot_id);
+                    if (assignmentType !== "individual") {
+                      onToggleSlotMode?.(court.slot_id, assignmentType);
                     }
                   }}
                   className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                    assignmentType === "referees"
+                    assignmentType === "individual"
                       ? "bg-white text-primary shadow-sm"
                       : "text-gray-400 hover:text-gray-600"
                   }`}
@@ -215,12 +215,12 @@ const CourtSlotBox = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (assignmentType !== "crews") {
-                      onToggleSlotMode?.(court.slot_id);
+                    if (assignmentType !== "crew") {
+                      onToggleSlotMode?.(court.slot_id, assignmentType);
                     }
                   }}
                   className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                    assignmentType === "crews"
+                    assignmentType === "crew"
                       ? "bg-white text-primary shadow-sm"
                       : "text-gray-400 hover:text-gray-600"
                   }`}
@@ -236,7 +236,7 @@ const CourtSlotBox = ({
             )}
           </div>
 
-          {assignmentType === "crews" ? (
+          {assignmentType === "crew" ? (
             // === Empty Crew Slot ===
             <div className="flex flex-col items-center justify-center gap-3 py-6 flex-1 w-full my-auto">
               <button className="w-14 h-14 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all cursor-pointer">

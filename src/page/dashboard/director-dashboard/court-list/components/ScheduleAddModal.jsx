@@ -28,9 +28,10 @@ const ScheduleAddModal = ({
   campId,
   maxReferees,
   isBlocking = false,
-  assignmentType = "referees",
+  assignmentType = "individual",
 }) => {
-  const [activeTab, setActiveTab] = useState(assignmentType === "crews" ? "crew" : "referees");
+  const isCrewMode = assignmentType === "crew" || assignmentType === "crews";
+  const [activeTab, setActiveTab] = useState(isCrewMode ? "crew" : "referees");
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,10 +45,10 @@ const ScheduleAddModal = ({
       setSelectedReferees([]);
       setSelectedCrew(null);
       setSearchTerm("");
-      setActiveTab(assignmentType === "crews" ? "crew" : "referees");
+      setActiveTab(isCrewMode ? "crew" : "referees");
       setFocusedTargetPosId(selectedPosition?.id || null);
     }
-  }, [isModalOpen, assignmentType, selectedPosition]);
+  }, [isModalOpen, assignmentType, selectedPosition, isCrewMode]);
 
   // ── Hooks ──────────────────────────────────────────────────────
   const { data: refereeListData = [], isLoading: loadingReferees } =
@@ -110,13 +111,23 @@ const ScheduleAddModal = ({
 
   // Conflict type detection
   const getConflictType = (ref) => {
-    if (ref.can_assign !== false) return "none";
     if (
+      ref.status === "time_conflict" ||
       ref.status_message?.toLowerCase().includes("another court at this time")
     ) {
       return "hard";
     }
-    return "soft";
+    if (
+      ref.status === "needs_rest" ||
+      ref.status_message?.toLowerCase().includes("needs rest") ||
+      ref.status_message?.toLowerCase().includes("consecutive")
+    ) {
+      return "soft";
+    }
+    if (ref.can_assign === false) {
+      return "hard";
+    }
+    return "none";
   };
 
   const handleRefereeToggle = (referee) => {
@@ -210,12 +221,12 @@ const ScheduleAddModal = ({
       return "Individuals Already Assigned";
 
     if (activeTab === "referees") {
-      const hasSoftRisk = selectedReferees.some(
-        (r) => getConflictType(r) === "soft",
+      const hasRisk = selectedReferees.some(
+        (r) => getConflictType(r) === "soft" || r.is_assigned_to_this_court || r.status === "needs_rest",
       );
       const limit = courtPositions.length || maxReferees;
       const base = `Assign Referees (${selectedReferees.length}/${limit})`;
-      return hasSoftRisk ? `${base} Fatigue Risk` : base;
+      return hasRisk ? `${base} Fatigue Risk` : base;
     }
     return selectedCrew ? "Assign Selected Crew" : "Select a Crew";
   };
@@ -229,21 +240,21 @@ const ScheduleAddModal = ({
       return;
     }
 
-    const softRiskRefs = selectedReferees.filter(
-      (r) => getConflictType(r) === "soft",
+    const restOrCourtRiskRefs = selectedReferees.filter(
+      (r) => r.is_assigned_to_this_court || r.status === "needs_rest" || getConflictType(r) === "soft",
     );
-    if (softRiskRefs.length > 0) {
-      const names = softRiskRefs
+    if (restOrCourtRiskRefs.length > 0) {
+      const names = restOrCourtRiskRefs
         .map((r) => `<strong>${r.name}</strong>`)
         .join(", ");
       const result = await Swal.fire({
-        title: "Back-to-Back Fatigue Risk",
-        html: `<p>The following referee(s) just finished a previous game:</p><div class="mt-2">${names}</div><p class="mt-3">This may cause fatigue. Assign anyway?</p>`,
+        title: "Fatigue & Rest Restriction Warning",
+        html: `<p>The following referee(s) require rest or were assigned to this court previously:</p><div class="mt-2 text-yellow-800 font-semibold">${names}</div><p class="mt-3">Do you want to assign anyway?</p>`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Yes, Assign Anyway",
         cancelButtonText: "Cancel",
-        confirmButtonColor: "#f97316",
+        confirmButtonColor: "#eab308",
       });
       if (!result.isConfirmed) return;
     }
@@ -460,6 +471,8 @@ const ScheduleAddModal = ({
                   const conflictType = getConflictType(ref);
                   const isHardConflict = conflictType === "hard";
                   const isSoftRisk = conflictType === "soft";
+                  const isAssignedToThisCourt = !!ref.is_assigned_to_this_court;
+                  const isNeedsRest = ref.status === "needs_rest" || isSoftRisk;
                   const disabled =
                     !isSelected &&
                     selectedReferees.length >= (courtPositions.length || maxReferees);
@@ -482,14 +495,18 @@ const ScheduleAddModal = ({
                         }
                         ${
                           isSelected
-                            ? isSoftRisk
+                            ? isNeedsRest
                               ? "border-orange-400 bg-orange-50/80 ring-2 ring-orange-200 shadow-md"
-                              : "border-[#00AEEF] bg-blue-50/70 shadow-md"
+                              : isAssignedToThisCourt
+                                ? "border-yellow-400 bg-yellow-100/90 ring-2 ring-yellow-300 shadow-md"
+                                : "border-[#00AEEF] bg-blue-50/70 shadow-md"
                             : isHardConflict
                               ? "border-red-400 bg-red-50"
-                              : isSoftRisk
+                              : isNeedsRest
                                 ? "border-orange-300 bg-orange-50/60 hover:border-orange-400"
-                                : "border-gray-200 hover:border-[#00AEEF]"
+                                : isAssignedToThisCourt
+                                  ? "border-yellow-300 bg-yellow-50/80 hover:border-yellow-400"
+                                  : "border-gray-200 hover:border-[#00AEEF]"
                         }
                       `}
                     >
@@ -516,12 +533,22 @@ const ScheduleAddModal = ({
                                   Currently Assigned
                                 </span>
                               )}
+                              {isAssignedToThisCourt && (
+                                <span className="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 px-2 py-0.5 rounded-full font-semibold">
+                                  Assigned to this Court Previously
+                                </span>
+                              )}
+                              {ref.status === "needs_rest" && (
+                                <span className="text-xs bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full font-medium">
+                                  Needs Rest
+                                </span>
+                              )}
                               {isHardConflict && (
                                 <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
                                   Conflicting Assignment
                                 </span>
                               )}
-                              {isSoftRisk && (
+                              {isSoftRisk && !isAssignedToThisCourt && ref.status !== "needs_rest" && (
                                 <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
                                   Fatigue Risk
                                 </span>
@@ -535,7 +562,15 @@ const ScheduleAddModal = ({
                             </p>
                             {ref.status_message && (
                               <p
-                                className={`text-xs mt-1 ${isHardConflict ? "text-red-600" : "text-orange-600"}`}
+                                className={`text-xs mt-1 font-medium ${
+                                  isHardConflict
+                                    ? "text-red-600"
+                                    : isNeedsRest
+                                      ? "text-orange-600 font-semibold"
+                                      : isAssignedToThisCourt
+                                        ? "text-yellow-700 font-semibold"
+                                        : "text-green-600"
+                                }`}
                               >
                                 {ref.status_message}
                               </p>
@@ -550,9 +585,11 @@ const ScheduleAddModal = ({
                           className={`w-5 h-5 rounded ${
                             isHardConflict
                               ? "text-red-500"
-                              : isSoftRisk
+                              : isNeedsRest
                                 ? "text-orange-500"
-                                : "text-[#00AEEF]"
+                                : isAssignedToThisCourt
+                                  ? "text-yellow-600"
+                                  : "text-[#00AEEF]"
                           } focus:ring-2`}
                         />
                       </div>

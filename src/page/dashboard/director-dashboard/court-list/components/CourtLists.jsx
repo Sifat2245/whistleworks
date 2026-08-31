@@ -30,6 +30,8 @@ import {
   useBulkUpdateCourtNames,
   useToggleBlockSlot,
   useBulkToggleBlock,
+  useCourtModeChange,
+  useBulkModeChange,
 } from "@/hooks/api/director-hooks/useGameAssingments";
 
 const CourtLists = ({ campData }) => {
@@ -41,33 +43,44 @@ const CourtLists = ({ campData }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const campId = campData?.id;
-  const [assignmentType, setAssignmentType] = useState(() => {
-    return campId ? (localStorage.getItem(`assignment_type_${campId}`) || "referees") : "referees";
-  });
+  const [assignmentType, setAssignmentType] = useState("individual");
   const [slotOverrides, setSlotOverrides] = useState({});
 
   useEffect(() => {
     if (campId) {
-      setAssignmentType(localStorage.getItem(`assignment_type_${campId}`) || "referees");
+      setAssignmentType("individual");
       setSlotOverrides({});
     }
   }, [campId]);
 
-  const handleToggleSlotMode = (slotId) => {
-    setSlotOverrides((prev) => {
-      const currentMode = prev[slotId] || assignmentType;
-      const nextMode = currentMode === "crews" ? "referees" : "crews";
-      return { ...prev, [slotId]: nextMode };
-    });
+  const handleToggleSlotMode = (slotId, currentMode) => {
+    const activeMode = currentMode || slotOverrides[slotId] || assignmentType;
+    const nextMode = activeMode === "crew" ? "individual" : "crew";
+
+    setSlotOverrides((prev) => ({
+      ...prev,
+      [slotId]: nextMode,
+    }));
+
+    courtModeChangeMutation.mutate({ slotId, mode: nextMode });
+  };
+
+  const handleBulkModeToggle = (mode) => {
+    setAssignmentType(mode);
+    if (scheduleId) {
+      bulkModeChangeMutation.mutate({ scheduleId, mode });
+    }
   };
 
   const getSlotAssignmentType = (courtSlot) => {
     if (!courtSlot) return assignmentType;
+    if (courtSlot.mode === "crew" || courtSlot.assignment_mode === "crew") return "crew";
+    if (courtSlot.mode === "individual" || courtSlot.assignment_mode === "individual") return "individual";
     const assignments = courtSlot.assignments || [];
     const hasCrew = assignments.some((a) => a.type === "crew");
-    if (hasCrew) return "crews";
+    if (hasCrew) return "crew";
     const hasRefs = assignments.some((a) => a.type === "individual");
-    if (hasRefs) return "referees";
+    if (hasRefs) return "individual";
     return slotOverrides[courtSlot.slot_id] || assignmentType;
   };
 
@@ -103,7 +116,7 @@ const CourtLists = ({ campData }) => {
   const courtHeaders = data?.court_headers || [];
   const maxReferees = data?.schedule?.max_referees_per_slot;
   const scheduleId = data?.schedule?.schedule_id;
-  const timeSlots = data?.time_slots || [];
+  const timeSlots = useMemo(() => data?.time_slots || [], [data?.time_slots]);
 
   // ── React Query client for cache invalidation ────────────────
   const queryClient = useQueryClient();
@@ -144,6 +157,16 @@ const CourtLists = ({ campData }) => {
   );
 
   const bulkToggleBlockMutation = useBulkToggleBlock(
+    campData?.id,
+    selectedDate,
+  );
+
+  const courtModeChangeMutation = useCourtModeChange(
+    campData?.id,
+    selectedDate,
+  );
+
+  const bulkModeChangeMutation = useBulkModeChange(
     campData?.id,
     selectedDate,
   );
@@ -469,13 +492,9 @@ const CourtLists = ({ campData }) => {
           {/* Segmented Assignment Mode Control */}
           <div className="bg-gray-100 p-0.5 rounded-full flex items-center shrink-0 border border-gray-200 shadow-sm self-start sm:self-auto">
             <button
-              onClick={() => {
-                setAssignmentType("referees");
-                if (campId) {
-                  localStorage.setItem(`assignment_type_${campId}`, "referees");
-                }
-              }}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${assignmentType === "referees"
+              onClick={() => handleBulkModeToggle("individual")}
+              disabled={bulkModeChangeMutation.isPending}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${assignmentType === "individual"
                 ? "bg-white text-primary shadow-sm"
                 : "text-gray-500 hover:text-gray-800"
                 }`}
@@ -484,18 +503,14 @@ const CourtLists = ({ campData }) => {
               Individual Refs
             </button>
             <button
-              onClick={() => {
-                setAssignmentType("crews");
-                if (campId) {
-                  localStorage.setItem(`assignment_type_${campId}`, "crews");
-                }
-              }}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${assignmentType === "crews"
+              onClick={() => handleBulkModeToggle("crew")}
+              disabled={bulkModeChangeMutation.isPending}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${assignmentType === "crew"
                 ? "bg-white text-purple-600 shadow-sm"
                 : "text-gray-500 hover:text-gray-800"
                 }`}
             >
-              <LuUsers size={13} className={assignmentType === "crews" ? "text-purple-600" : ""} />
+              <LuUsers size={13} className={assignmentType === "crew" ? "text-purple-600" : ""} />
               Crews Mode
             </button>
           </div>
