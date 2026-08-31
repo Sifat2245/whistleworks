@@ -26,6 +26,10 @@ export const useCrewService = () => {
     createCrew: (campId, payload) =>
       axiosSecure.post(`/v1/camp/${campId}/crew/create`, payload),
 
+    /** Update an existing crew */
+    updateCrew: (crewId, payload) =>
+      axiosSecure.post(`/v1/crew/update/${crewId}`, payload),
+
     /** Add members to an existing crew */
     addMembersToCrew: (crewId, payload) =>
       axiosSecure.post(`/v1/crew/${crewId}/add-members`, payload),

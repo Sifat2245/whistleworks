@@ -11,6 +11,7 @@ import { useGetCampDetails } from "@/hooks/api/director-hooks/useCamps";
 
 const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
   const [crewName, setCrewName] = useState("");
+  const [description, setDescription] = useState("");
   const [slots, setSlots] = useState([]);
 
   const createCrewMutation = useCreateCrew(campId);
@@ -59,6 +60,7 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
   useEffect(() => {
     if (openModal) {
       setCrewName("");
+      setDescription("");
       const defaults = getDefaultPositions(sportName);
       setSlots(
         defaults.map((pos, index) => ({
@@ -143,24 +145,13 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
 
     const payload = {
       name: crewName.trim(),
+      ...(description.trim() ? { description: description.trim() } : {}),
       referee_ids: validSlots.map((s) => s.refereeId),
+      positions: validSlots.map((s) => s.position.trim()),
     };
 
     try {
-      const response = await createCrewMutation.mutateAsync(payload);
-      // Save positions mapping locally
-      const crewId =
-        response?.data?.data?.id ||
-        response?.data?.data?.crew?.id ||
-        response?.data?.id;
-
-      if (crewId) {
-        const positionsMap = {};
-        validSlots.forEach((s) => {
-          positionsMap[s.refereeId] = s.position.trim();
-        });
-        localStorage.setItem(`crew_positions_${crewId}`, JSON.stringify(positionsMap));
-      }
+      await createCrewMutation.mutateAsync(payload);
       handleCloseModal();
     } catch {
       // Handled by react-query mutation
@@ -203,6 +194,21 @@ const CreateCrewModal = ({ openModal, handleCloseModal, campId }) => {
               {crewName.length}/50
             </span>
           </div>
+        </div>
+
+        {/* Description (Optional) */}
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wider">
+            Description <span className="text-gray-400 font-normal font-sans lowercase">(optional)</span>
+          </label>
+          <Input.TextArea
+            placeholder="e.g., Main referee crew for field 1"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            maxLength={200}
+            className="rounded-lg border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+          />
         </div>
 
         {/* Positions & Referees Setup */}

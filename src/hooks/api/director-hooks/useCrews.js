@@ -134,6 +134,47 @@ export const useCreateCrew = (campId) => {
   });
 };
 
+// Update Crew (mutation)
+export const useUpdateCrew = (crewId, campId) => {
+  const { updateCrew } = useCrewService();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["update-crew", crewId],
+    mutationFn: (payload) => updateCrew(crewId, payload),
+    onSuccess: (data) => {
+      toast.success(data?.message || "Crew updated successfully!");
+      if (crewId) {
+        queryClient.invalidateQueries({
+          queryKey: crewKeys.details(crewId),
+        });
+      }
+      if (campId) {
+        queryClient.invalidateQueries({
+          queryKey: crewKeys.campCrews(campId),
+        });
+      }
+      queryClient.invalidateQueries({
+        queryKey: crewKeys.all,
+      });
+    },
+    onError: (error) => {
+      if (
+        handleCrewError(
+          error,
+          "You do not have permission to update this crew."
+        )
+      ) {
+        return;
+      }
+      const errData = error?.response?.data;
+      const errorMessage =
+        errData?.data || errData?.message || "Failed to update crew.";
+      toast.error(errorMessage);
+    },
+  });
+};
+
 // Add Members to Crew (mutation)
 export const useAddMembersToCrew = (crewId, campId) => {
   const { addMembersToCrew } = useCrewService();

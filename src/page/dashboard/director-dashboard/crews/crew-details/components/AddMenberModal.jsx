@@ -80,20 +80,11 @@ const AddMemberModal = ({ open, onClose, crewId, campId }) => {
 
     const payload = {
       referee_ids: selectedMembers.map((m) => m.id),
+      positions: selectedMembers.map((m) => m.position?.trim() || "Referee"),
     };
 
     try {
       await addMembersMutation.mutateAsync(payload);
-      // Save positions for newly added members
-      const crewPositions = JSON.parse(
-        localStorage.getItem(`crew_positions_${crewId}`) || "{}"
-      );
-      selectedMembers.forEach((m) => {
-        if (m.position?.trim()) {
-          crewPositions[m.id] = m.position.trim();
-        }
-      });
-      localStorage.setItem(`crew_positions_${crewId}`, JSON.stringify(crewPositions));
       onClose();
     } catch {
       // Error toast handled in hook

@@ -86,8 +86,8 @@ const CrewCard = ({ group }) => {
                   <p className="text-sm font-medium text-[#333] truncate">
                     {m.name} {m.jersey_number ? `#${m.jersey_number}` : ""}
                   </p>
-                  <p className="text-xs text-[#666] truncate">
-                    {m.role || "Crew Member"}
+                  <p className="text-xs text-[#666] truncate font-medium">
+                    {m.position || m.role || "Crew Member"}
                   </p>
                 </div>
               </div>

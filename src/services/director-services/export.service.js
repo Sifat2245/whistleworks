@@ -17,13 +17,13 @@ export const useExportService = () => {
       axiosSecure.get(`/roster/export/referees/camp/${campId}`, {
         responseType: 'blob'
       }),
-      
+
     exportEvaluators: (campId) =>
       axiosSecure.get(`/evaluator-registrations/export/camp/${campId}`, {
         responseType: 'blob'
       }),
-      
-    exportCrews: (campId) => 
-      axiosSecure.get(`/crews/export/camp/${campId}`)  
+
+    exportCrews: (campId) =>
+      axiosSecure.get(`/crews/export/camp/${campId}`)
   };
 };

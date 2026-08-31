@@ -8,7 +8,8 @@ const MemberCard = ({ member, crewId }) => {
   const crewPositions = JSON.parse(
     localStorage.getItem(`crew_positions_${crewId}`) || "{}"
   );
-  const positionName = crewPositions[member.id] || member.position_name;
+  const positionName =
+    member?.position || member?.position_name || crewPositions[member?.id];
 
   const handleRemove = (e) => {
     e.stopPropagation();

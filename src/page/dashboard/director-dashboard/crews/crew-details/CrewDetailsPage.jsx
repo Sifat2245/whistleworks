@@ -9,10 +9,12 @@ import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import Swal from "sweetalert2";
 import AddMemberModal from "@/page/dashboard/director-dashboard/crews/crew-details/components/AddMenberModal";
+import EditCrewModal from "@/page/dashboard/director-dashboard/crews/components/EditCrewModal";
 import { useState } from "react";
 import {
   LuUserPlus,
   LuTrash2,
+  LuPencil,
   LuUsers,
   LuTrophy,
   LuShieldCheck,
@@ -29,6 +31,7 @@ const CrewDetailsPage = () => {
   const navigate = useNavigate();
 
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const {
     crewDetails: crewData,
@@ -153,6 +156,13 @@ const CrewDetailsPage = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium transition cursor-pointer"
+          >
+            <LuPencil className="w-4 h-4" /> Edit Crew
+          </button>
+
           <CommonSubmitBtn
             variant="primary"
             className="px-5"
@@ -252,6 +262,15 @@ const CrewDetailsPage = () => {
           open={isAddMemberModalOpen}
           onClose={handleCloseAddMemberModal}
           crewId={crewId}
+          campId={camp?.id}
+        />
+      )}
+
+      {isEditModalOpen && (
+        <EditCrewModal
+          openModal={isEditModalOpen}
+          handleCloseModal={() => setIsEditModalOpen(false)}
+          crewData={crewData}
           campId={camp?.id}
         />
       )}
