@@ -4,9 +4,10 @@ import { MdClose, MdPeople, MdEmail } from "react-icons/md";
 import { Avatar, Spin } from "antd";
 import ScheduleRefereeModal from "./ScheduleRefereeModal";
 import { useCrewDetails } from "@/hooks/api/director-hooks/useCrews";
+import { formatRefereePosition } from "@/utils/refereePositions";
 
 const CrewDetailsModal = ({ isOpen, onClose, crewId, crewName = "Crew", campId, userRole = "evaluator" }) => {
- const {crewDetails, isLoading} = useCrewDetails(crewId);
+  const {crewDetails, isLoading} = useCrewDetails(crewId);
   const [selectedReferee, setSelectedReferee] = useState(null);
   const [isRefereeModalOpen, setIsRefereeModalOpen] = useState(false);
 
@@ -147,14 +148,19 @@ const CrewDetailsModal = ({ isOpen, onClose, crewId, crewName = "Crew", campId, 
                                 <h4 className="text-base font-semibold text-gray-900 truncate">
                                   {member.name || "Unnamed Referee"}
                                 </h4>
-                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                                   <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                                     <MdEmail className="w-3.5 h-3.5 shrink-0" />
                                     {member.email || "N/A"}
                                   </span>
-                                  {member.jersey_number && (
+                                  {(member.position || member.position_name) && (
+                                    <span className="inline-flex items-center text-xs font-semibold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full border border-purple-200">
+                                      {formatRefereePosition(member.position || member.position_name)}
+                                    </span>
+                                  )}
+                                  {(member.jersey_number || member.jourcy_number) && (
                                     <span className="inline-flex items-center gap-1 text-xs font-medium text-[#00AEEF]">
-                                      #{member.jersey_number}
+                                      #{member.jersey_number || member.jourcy_number}
                                     </span>
                                   )}
                                 </div>
@@ -169,6 +175,7 @@ const CrewDetailsModal = ({ isOpen, onClose, crewId, crewName = "Crew", campId, 
                         </div>
                       )}
                     </div>
+
 
                     {/* Note about clicking members */}
                     {members.length > 0 && userRole !== "referee" && (

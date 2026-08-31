@@ -3,6 +3,7 @@ import { MdClose, MdEmail, MdPhone, MdLocationOn, MdPerson } from "react-icons/m
 import { Tag, Spin } from "antd";
 import { useGetRefereeDetails } from "@/hooks/api/useRefereeDetails";
 import { format } from "date-fns";
+import { formatRefereePosition } from "@/utils/refereePositions";
 
 const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
   const { refereeDetails, isLoading } = useGetRefereeDetails(campId, referee?.id);
@@ -94,6 +95,13 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
                         ? `${refData.first_name} ${refData.last_name}`
                         : referee.name || "Unnamed Referee"}
                     </h3>
+                    {referee?.position && (
+                      <div className="mt-1.5">
+                        <Tag color="purple" className="text-xs font-semibold px-3 py-0.5 rounded-full border-0 bg-purple-100 text-purple-700">
+                          {formatRefereePosition(referee.position)}
+                        </Tag>
+                      </div>
+                    )}
                     {refData?.jersey_number && (
                       <p className="text-sm text-gray-500 mt-1">
                         Jersey #: {refData.jersey_number}
@@ -108,6 +116,7 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
                       </p>
                     )}
                   </div>
+
 
                   {/* Contact & Info */}
                   <div className="space-y-4">

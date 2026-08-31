@@ -1,4 +1,4 @@
-// MyGameCard.jsx
+import { formatRefereePosition } from "@/utils/refereePositions";
 import { useState } from "react";
 import locationIcon from "@/assets/svg/location.svg";
 import messageIcon from "@/assets/svg/message.svg";
@@ -133,17 +133,25 @@ export default function MyGameCard({ game, camp }) {
             </Tag>
           </div>
 
-          {/* Court Info */}
-          <div className="text-center py-4 bg-linear-to-r from-blue-50 to-[#E6F7FD] rounded-xl">
+          {/* Court Info & My Position */}
+          <div className="text-center py-4 bg-linear-to-r from-blue-50 to-[#E6F7FD] rounded-xl px-3">
             <p className="text-xl font-bold text-gray-800">
               {game.location?.address}
             </p>
             <p className="text-sm text-gray-600 mt-1">
               {game.game_details.court_name} •{" "}
-              <Tag color="green" className="ml-1">
+              <Tag color="green" className="ml-1 font-semibold">
                 {game.game_details.status.toUpperCase()}
               </Tag>
             </p>
+            {game?.my_position && (
+              <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 bg-white/90 rounded-full border border-blue-200/80 shadow-xs">
+                <span className="text-xs font-medium text-gray-500">My Position:</span>
+                <span className="text-xs font-bold text-[#00AEEF]">
+                  {formatRefereePosition(game.my_position)}
+                </span>
+              </div>
+            )}
           </div>
 
           <Divider className="my-4 border-black/15" />
@@ -161,6 +169,11 @@ export default function MyGameCard({ game, camp }) {
                   title={
                     <div className="text-center">
                       <p className="font-medium">{ref.name}</p>
+                      {ref.position && (
+                        <p className="text-xs text-sky-300 font-semibold mt-0.5">
+                          {formatRefereePosition(ref.position)}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-300">{ref.phone}</p>
                       {ref.is_me && (
                         <Tag color="green" className="mt-2">
@@ -171,7 +184,7 @@ export default function MyGameCard({ game, camp }) {
                   }
                 >
                   <div
-                    className={`text-center ${
+                    className={`text-center flex flex-col items-center max-w-[110px] ${
                       !ref.is_me
                         ? "cursor-pointer hover:opacity-80 transition-opacity"
                         : ""
@@ -189,13 +202,23 @@ export default function MyGameCard({ game, camp }) {
                     >
                       {ref.name.charAt(0).toUpperCase()}
                     </Avatar>
+                    {ref.position && (
+                      <div className="mt-2">
+                        <Tag
+                          color={ref.is_me ? "blue" : "purple"}
+                          className="text-[11px] font-semibold px-2 py-0.5 rounded-full border-0 shadow-2xs whitespace-normal max-w-full text-center"
+                        >
+                          {formatRefereePosition(ref.position)}
+                        </Tag>
+                      </div>
+                    )}
                     {ref.is_me && (
-                      <div className="mt-2 text-xs font-bold text-green-600">
+                      <div className="mt-1 text-xs font-bold text-green-600">
                         YOU
                       </div>
                     )}
                     {!ref.is_me && (
-                      <div className="mt-2 text-xs font-medium text-[#00AEEF]">
+                      <div className="mt-1 text-xs font-medium text-[#00AEEF]">
                         View Details
                       </div>
                     )}
@@ -204,6 +227,7 @@ export default function MyGameCard({ game, camp }) {
               ))}
             </div>
           </div>
+
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-black/15">

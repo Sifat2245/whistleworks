@@ -81,3 +81,35 @@ export const getRefereePositions = (courtOrCampId, sportName, maxReferees) => {
   }
   return result;
 };
+
+/**
+ * Formats a position string (e.g. "assistent", "main refeeree") into a clean display title.
+ */
+export const formatRefereePosition = (pos) => {
+  if (!pos || typeof pos !== "string") return "";
+  const cleaned = pos.trim().toLowerCase();
+
+  if (
+    cleaned === "assistent" ||
+    cleaned === "assistant" ||
+    cleaned === "assistant_referee" ||
+    cleaned === "assistant referee"
+  ) {
+    return "Assistant Referee";
+  }
+  if (
+    cleaned === "main refeeree" ||
+    cleaned === "main referee" ||
+    cleaned === "main_referee" ||
+    cleaned === "mainrefeeree"
+  ) {
+    return "Main Referee";
+  }
+
+  return pos
+    .replace(/_/g, " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+

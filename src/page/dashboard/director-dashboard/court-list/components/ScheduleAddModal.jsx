@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Modal, Input, Tabs, Radio, Spin } from "antd";
+import { Modal, Input, Tabs, Radio, Spin, Tooltip } from "antd";
+
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import { BiSearch } from "react-icons/bi";
 import toast from "react-hot-toast";
@@ -12,7 +13,12 @@ import {
   useAssignReferees,
   useAssignCrew,
 } from "@/hooks/api/director-hooks/useGameAssingments";
-import { getCourtPositions, getPositionReferee } from "@/utils/refereePositions";
+import {
+  getCourtPositions,
+  getPositionReferee,
+  formatRefereePosition,
+} from "@/utils/refereePositions";
+
 
 const { Search } = Input;
 const { TabPane } = Tabs;
@@ -779,16 +785,28 @@ const ScheduleAddModal = ({
                               {(crew.members || [])
                                 .slice(0, 10)
                                 .map((member) => (
-                                  <img
+                                  <Tooltip
                                     key={member.id}
-                                    src={member.avatar || "/default-avatar.png"}
-                                    alt={member.name}
-                                    title={member.name}
-                                    className="w-11 h-11 rounded-full border-3 border-white shadow-md object-cover"
-                                    onError={(e) =>
-                                      (e.target.src = "/default-avatar.png")
+                                    title={
+                                      <div className="text-center">
+                                        <p className="font-medium">{member.name}</p>
+                                        {(member.position || member.position_name) && (
+                                          <p className="text-xs text-sky-300 font-semibold mt-0.5">
+                                            {formatRefereePosition(member.position || member.position_name)}
+                                          </p>
+                                        )}
+                                      </div>
                                     }
-                                  />
+                                  >
+                                    <img
+                                      src={member.avatar || "/default-avatar.png"}
+                                      alt={member.name}
+                                      className="w-11 h-11 rounded-full border-3 border-white shadow-md object-cover"
+                                      onError={(e) =>
+                                        (e.target.src = "/default-avatar.png")
+                                      }
+                                    />
+                                  </Tooltip>
                                 ))}
                               {(crew.members || []).length > 10 && (
                                 <div className="w-11 h-11 rounded-full bg-gray-200 border-3 border-white flex items-center justify-center text-sm font-bold text-gray-600 shadow-md">
@@ -797,7 +815,7 @@ const ScheduleAddModal = ({
                               )}
                             </div>
 
-                            {/* Crew members with names & jersey numbers */}
+                            {/* Crew members with names, positions & jersey numbers */}
                             {(crew.members || []).length > 0 && (
                               <div className="mt-4 rounded-xl bg-white border border-border divide-y divide-border overflow-hidden max-h-48 overflow-y-auto">
                                 {crew.members.map((member) => (
@@ -816,6 +834,11 @@ const ScheduleAddModal = ({
                                     <span className="text-sm font-medium text-[#333] truncate flex-1">
                                       {member.name || "Unnamed Referee"}
                                     </span>
+                                    {(member.position || member.position_name) && (
+                                      <span className="shrink-0 text-[11px] font-semibold text-purple-700 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-full">
+                                        {formatRefereePosition(member.position || member.position_name)}
+                                      </span>
+                                    )}
                                     {(member.jersey_number ||
                                       member.jourcy_number) && (
                                       <span className="shrink-0 text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
@@ -828,6 +851,7 @@ const ScheduleAddModal = ({
                                 ))}
                               </div>
                             )}
+
                           </div>
                         </div>
                       </div>
