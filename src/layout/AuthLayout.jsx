@@ -1,7 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 import authLogo from "@/assets/logo4x.png";
-import bgImage from "@/assets/banner-images/photo-1634306320577-eb8f44e6ab96.jpeg";
+import bgImage from "@/assets/banner-images/photo-1634306320577-eb8f44e6ab96.webp";
 import { FaArrowLeft } from "react-icons/fa6";
 
 const AuthLayout = () => {

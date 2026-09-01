@@ -1,28 +1,47 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { LuUserCheck, LuUsers, LuShieldCheck } from "react-icons/lu";
 
-export default function RosterTabs() {
-    const [queryParams] = useSearchParams();
-    const subTab = queryParams.get("subTab");
+export default function RosterTabs({ activeSubTab }) {
+  const [queryParams] = useSearchParams();
+  const subTab = activeSubTab || queryParams.get("subTab") || "evaluator";
+
+  const tabs = [
+    {
+      id: "evaluator",
+      label: "Evaluators",
+      icon: <LuUserCheck className="text-base shrink-0" />,
+    },
+    {
+      id: "referee",
+      label: "Referees",
+      icon: <LuUsers className="text-base shrink-0" />,
+    },
+    {
+      id: "crews",
+      label: "Referee Crews",
+      icon: <LuShieldCheck className="text-base shrink-0" />,
+    },
+  ];
+
   return (
-    <div className="bg-[#F5F5F5] p-3 rounded-2xl w-fit flex items-center gap-3">
-      <Link
-        to={`?tab=roster&subTab=evaluator`}
-        className={`text[14px] px-1.5 py-2 ${subTab === "evaluator" ? "bg-primary text-white rounded-md" : ""}`}
-      >
-        Evaluator
-      </Link>
-      <Link
-        to={`?tab=roster&subTab=referee`}
-        className={`text[14px] px-1.5 py-2 ${subTab === "referee" ? "bg-primary text-white rounded-md" : ""}`}
-      >
-        Referee
-      </Link>
-      <Link
-        to={`?tab=roster&subTab=crews`}
-        className={`text[14px] px-1.5 py-2 ${subTab === "crews" ? "bg-primary text-white rounded-md" : ""}`}
-      >
-        Crews
-      </Link>
+    <div className="bg-white p-1.5 rounded-xl border border-[#E8E8E8] shadow-xs flex items-center gap-1.5">
+      {tabs.map((tab) => {
+        const isActive = subTab === tab.id;
+
+        return (
+          <Link
+            key={tab.id}
+            to={`?tab=roster&subTab=${tab.id}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 ${isActive
+                ? "bg-[#00AEEF] text-white shadow-sm shadow-[#00AEEF]/30 font-bold"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              }`}
+          >
+            {tab.icon}
+            <span>{tab.label}</span>
+          </Link>
+        );
+      })}
     </div>
   );
 }

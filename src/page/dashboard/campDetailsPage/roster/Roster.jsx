@@ -6,21 +6,19 @@ import Crews from "./components/Crews";
 
 export default function Roster({ camp_id }) {
   const [searchParams] = useSearchParams();
-  const subTab = searchParams.get("subTab");
+  const subTab = searchParams.get("subTab") || "evaluator";
+
   return (
-    <section>
-      <div className="flex justify-end mb-5">
-        <RosterTabs />
+    <section className="w-full space-y-6 font-sans">
+      {/* Roster Navigation Sub-Tabs */}
+      <div className="flex justify-end">
+        <RosterTabs activeSubTab={subTab} />
       </div>
+
+      {/* Sub-Tab Content Views */}
       {subTab === "evaluator" && <Evaluator camp_id={camp_id} />}
-      {subTab === "referee" && (
-        <div className="border border-border rounded-xl p-5 min-h-[calc(100vh-400px)]">
-          <EvaluatorRefereeList camp_id={camp_id} />
-        </div>
-      )}
-      {subTab === "crews" && (
-      <Crews camp_id={camp_id}/>
-      )}
+      {subTab === "referee" && <EvaluatorRefereeList camp_id={camp_id} />}
+      {subTab === "crews" && <Crews camp_id={camp_id} />}
     </section>
   );
-};
+}

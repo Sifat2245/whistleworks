@@ -1,9 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { MdClose, MdEmail, MdPhone, MdLocationOn, MdPerson } from "react-icons/md";
-import { Tag, Spin } from "antd";
+import { Spin } from "antd";
 import { useGetRefereeDetails } from "@/hooks/api/useRefereeDetails";
 import { format } from "date-fns";
 import { formatRefereePosition } from "@/utils/refereePositions";
+import { LuUser } from "react-icons/lu";
 
 const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
   const { refereeDetails, isLoading } = useGetRefereeDetails(campId, referee?.id);
@@ -24,17 +25,6 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
     return `(${areaCode}) ${part1}-${part2}`;
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "checked_in":
-        return <Tag color="green">Checked In</Tag>;
-      case "registered":
-        return <Tag color="blue">Registered</Tag>;
-      default:
-        return <Tag color="default">{status || "—"}</Tag>;
-    }
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -43,33 +33,33 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 font-sans"
           onClick={onClose}
         >
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.96 }}
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.96 }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-              duration: 0.4,
-            }}
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+            exit={{ opacity: 0, y: 15, scale: 0.97 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-[#E8E8E8]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Referee Details
-              </h2>
+            <div className="flex justify-between items-center p-6 border-b border-[#E8E8E8]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#00AEEF] flex items-center justify-center text-lg">
+                  <LuUser />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Co-Referee Details
+                </h2>
+              </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer"
                 aria-label="Close modal"
               >
-                <MdClose className="w-6 h-6" />
+                <MdClose className="w-5 h-5" />
               </button>
             </div>
 
@@ -82,49 +72,46 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
                 {/* Profile Section */}
                 <div className="p-6 space-y-6">
                   <div className="flex flex-col items-center text-center">
-                    <motion.img
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ type: "spring", stiffness: 400 }}
+                    <img
                       src={refData?.avatar || referee.avatar || "/default-avatar.png"}
                       alt={refData ? `${refData.first_name} ${refData.last_name}` : referee.name}
-                      className="w-28 h-28 rounded-full object-cover border-4 border-[#00AEEF]/20 mb-4 shadow-lg"
+                      className="w-24 h-24 rounded-full object-cover border-4 border-[#00AEEF]/20 mb-3 shadow-md"
                       onError={(e) => (e.target.src = "/default-avatar.png")}
                     />
-                    <h3 className="text-xl font-semibold text-gray-900">
+                    <h3 className="text-lg font-bold text-gray-900">
                       {refData
                         ? `${refData.first_name} ${refData.last_name}`
                         : referee.name || "Unnamed Referee"}
                     </h3>
+
                     {referee?.position && (
-                      <div className="mt-1.5">
-                        <Tag color="purple" className="text-xs font-semibold px-3 py-0.5 rounded-full border-0 bg-purple-100 text-purple-700">
-                          {formatRefereePosition(referee.position)}
-                        </Tag>
-                      </div>
+                      <span className="mt-1 inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#00AEEF] border border-blue-100">
+                        {formatRefereePosition(referee.position)}
+                      </span>
                     )}
+
                     {refData?.jersey_number && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 font-mono mt-1">
                         Jersey #: {refData.jersey_number}
                       </p>
                     )}
-                    <div className="mt-3">
-                      {getStatusBadge(refData?.registration_status)}
-                    </div>
+
                     {refData?.checked_in_at && (
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-emerald-600 mt-2 font-medium">
                         Checked in: {format(new Date(refData.checked_in_at), "MMM d, yyyy h:mm a")}
                       </p>
                     )}
                   </div>
 
-
-                  {/* Contact & Info */}
-                  <div className="space-y-4">
+                  {/* Contact Details */}
+                  <div className="space-y-4 pt-2 border-t border-[#E8E8E8]">
                     <div className="flex items-center gap-3">
-                      <MdEmail className="text-gray-400 text-xl shrink-0" />
+                      <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 shrink-0">
+                        <MdEmail className="text-base" />
+                      </div>
                       <div>
-                        <p className="text-sm text-gray-500">Email</p>
-                        <p className="font-medium text-gray-900 break-all">
+                        <p className="text-xs text-gray-500">Email Address</p>
+                        <p className="font-medium text-gray-900 text-sm break-all">
                           {refData?.email || referee.email || "N/A"}
                         </p>
                       </div>
@@ -132,10 +119,12 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
 
                     {(refData?.phone || referee.phone) && (
                       <div className="flex items-center gap-3">
-                        <MdPhone className="text-gray-400 text-xl shrink-0" />
+                        <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 shrink-0">
+                          <MdPhone className="text-base" />
+                        </div>
                         <div>
-                          <p className="text-sm text-gray-500">Phone</p>
-                          <p className="font-medium text-gray-900 tracking-wide">
+                          <p className="text-xs text-gray-500">Phone Number</p>
+                          <p className="font-medium text-gray-900 text-sm tracking-wide">
                             {formatPhone(refData?.phone || referee.phone)}
                           </p>
                         </div>
@@ -144,10 +133,12 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
 
                     {refData?.address && (
                       <div className="flex items-center gap-3">
-                        <MdLocationOn className="text-gray-400 text-xl shrink-0" />
+                        <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 shrink-0">
+                          <MdLocationOn className="text-base" />
+                        </div>
                         <div>
-                          <p className="text-sm text-gray-500">Address</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="text-xs text-gray-500">Location</p>
+                          <p className="font-medium text-gray-900 text-sm">
                             {refData.address}
                           </p>
                         </div>
@@ -156,10 +147,12 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
 
                     {refData?.biography && (
                       <div className="flex items-start gap-3">
-                        <MdPerson className="text-gray-400 text-xl shrink-0 mt-0.5" />
+                        <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 shrink-0 mt-0.5">
+                          <MdPerson className="text-base" />
+                        </div>
                         <div>
-                          <p className="text-sm text-gray-500">Biography</p>
-                          <p className="font-medium text-gray-900 text-sm leading-relaxed">
+                          <p className="text-xs text-gray-500">Biography</p>
+                          <p className="font-normal text-gray-700 text-xs sm:text-sm leading-relaxed mt-0.5">
                             {refData.biography}
                           </p>
                         </div>
@@ -169,12 +162,12 @@ const RefereeDetailsPopup = ({ isOpen, onClose, campId, referee }) => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200">
+                <div className="p-4 bg-gray-50 border-t border-[#E8E8E8]">
                   <button
                     onClick={onClose}
-                    className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition cursor-pointer"
+                    className="w-full py-2.5 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold text-sm rounded-xl transition cursor-pointer"
                   >
-                    Close
+                    Close Details
                   </button>
                 </div>
               </>

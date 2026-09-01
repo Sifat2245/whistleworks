@@ -1,107 +1,140 @@
+import Marquee from "react-fast-marquee";
+import { FaStar, FaCircleCheck } from "react-icons/fa6";
 import CommonTitle from "../../../components/common/CommonTitle";
-import CommonText from "../../../components/common/CommonText";
 
-const Reviews = ({ testimonialTitle, testimonials = [] }) => {
-  const title = testimonialTitle?.title || "What Our Users Say";
-  const subtitle =
-    testimonialTitle?.description ||
-    "Trusted by directors, referees, and administrators worldwide";
-
-  // Use the real field names from your JSON data
-  const displayedTestimonials = testimonials.length > 0 ? testimonials : [];
+const ReviewCard = ({ review }) => {
+  const authorName = review.author_name || review.name || review.title || "Verified Official";
+  const authorRole = review.designation || review.role || review.position || "Official Member";
+  const avatarUrl = review.author_avatar || review.avatar || review.image;
+  const reviewContent =
+    review.review_text || review.feedback || review.description || review.content || "";
+  const ratingCount = parseInt(review.rating || review.star || 5);
+  const postedDate = review.date || review.created_at || "Whistle Works Member";
 
   return (
-    <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
-      {/* Header */}
-      <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14 lg:mb-16">
-        <CommonTitle text={title} />
-        <CommonText
-          text={subtitle}
-          className="text-neutral-600 mt-3 md:mt-4 text-base md:text-lg"
-        />
+    <div className="w-[360px] sm:w-[420px] shrink-0 mx-3 my-2.5 flex flex-col justify-between bg-slate-800/90 backdrop-blur-md rounded-2xl p-6 sm:p-7 border border-slate-700/80 shadow-xl hover:border-[#00AEEF]/60 hover:shadow-2xl hover:shadow-[#00AEEF]/10 transition-all duration-300">
+      <div>
+        {/* Author Header Row */}
+        <div className="flex items-center gap-3.5 mb-4">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={authorName}
+              className="w-12 h-12 rounded-full object-cover border-2 border-primary/40 shadow-sm shrink-0"
+              onError={(e) => {
+                e.target.style.display = "none";
+                if (e.target.nextSibling) e.target.nextSibling.style.display = "flex";
+              }}
+            />
+          ) : null}
+          <div
+            className="w-12 h-12 rounded-full bg-slate-700 text-primary font-bold text-base border border-slate-600 flex items-center justify-center shrink-0"
+            style={{ display: avatarUrl ? "none" : "flex" }}
+          >
+            {authorName[0]?.toUpperCase() || "O"}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <h4 className="font-bold text-white text-sm sm:text-base truncate">
+                {authorName}
+              </h4>
+              <FaCircleCheck className="text-[#00AEEF] text-xs shrink-0" title="Verified Review" />
+            </div>
+            <p className="text-xs text-slate-400 truncate">
+              {authorRole}
+            </p>
+          </div>
+        </div>
+
+        {/* Full Review Content (No line clamp!) */}
+        <p className="text-slate-200 text-xs sm:text-sm leading-relaxed mb-4 font-normal whitespace-pre-line">
+          {`"${reviewContent}"`}
+        </p>
       </div>
 
-      {/* Testimonials Grid */}
-      {displayedTestimonials.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
-          {displayedTestimonials.map((review) => (
-            <div
-              key={review.id}
-              className={`
-                bg-white rounded-xl shadow-sm border border-neutral-200 
-                p-5 sm:p-6 lg:p-7 
-                flex flex-col 
-                transition-all duration-300 
-                hover:shadow-md hover:border-primary/30 
-                hover:-translate-y-1
-              `}
-            >
-              {/* Review Text */}
-              <div className="grow">
-                <p className="text-neutral-700 leading-relaxed text-base sm:text-[15px] lg:text-base">
-                  {review.review_text ||
-                    review.feedback ||
-                    review.description ||
-                    review.content ||
-                    "No review text provided"}
-                </p>
-              </div>
+      {/* Footer Info Row */}
+      <div className="pt-3.5 border-t border-slate-700/70 flex items-center justify-between text-xs text-slate-400 font-medium">
+        <div className="flex items-center gap-1">
+          <span className="text-amber-400 flex items-center gap-0.5">
+            {[...Array(ratingCount)].map((_, i) => (
+              <FaStar key={i} className="text-xs" />
+            ))}
+          </span>
+        </div>
+        <span className="text-[11px] text-slate-400">{postedDate}</span>
+      </div>
+    </div>
+  );
+};
 
-              {/* Author Info */}
-              <div className="flex items-center gap-3 sm:gap-4 mt-6 pt-4 border-t border-neutral-100">
-                {/* Avatar with fallback */}
-                <div className="shrink-0">
-                  {review.author_avatar ||
-                  review.avatar ||
-                  review.image ? (
-                    <img
-                      src={
-                        review.author_avatar ||
-                        review.avatar ||
-                        review.image
-                      }
-                      alt={review.author_name || "User"}
-                      className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                      loading="lazy"
-                      onError={(e) => {
-                        e.target.src =
-                          "https://via.placeholder.com/64?text=User";
-                        e.target.onerror = null;
-                      }}
-                    />
-                  ) : (
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-600 font-semibold text-lg sm:text-xl shadow-sm">
-                      {(review.author_name || "?")[0]?.toUpperCase()}
-                    </div>
-                  )}
-                </div>
+const Reviews = ({ testimonialTitle, testimonials = [] }) => {
+  const title = testimonialTitle?.title || "Trusted by Officials & Directors Worldwide";
+  const subtitle =
+    testimonialTitle?.description ||
+    "See how Whistle Works simplifies camp administration, crew scheduling, and referee evaluations.";
 
-                {/* Name & Designation */}
-                <div>
-                  <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
-                    {review.author_name || "Anonymous User"}
-                  </h3>
-                  <p className="text-xs text-neutral-500 mt-0.5">
-                    {review.designation ||
-                      review.role ||
-                      review.position ||
-                      "User"}
-                  </p>
-                </div>
-              </div>
-            </div>
+  const realTestimonials = Array.isArray(testimonials) ? testimonials : [];
+
+  if (realTestimonials.length === 0) {
+    return null; // Do not render dummy data if no real testimonials are provided
+  }
+
+  // Duplicate real testimonials for continuous scrolling marquee
+  const row1Items =
+    realTestimonials.length < 6
+      ? [...realTestimonials, ...realTestimonials, ...realTestimonials, ...realTestimonials]
+      : realTestimonials;
+
+  const row2Items = [...row1Items].reverse();
+
+  return (
+    <section className="relative py-16 md:py-24 bg-slate-900 text-white overflow-hidden">
+      {/* Background Decorative Accents */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Decorative Grid Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
+            <FaStar className="text-amber-400 text-xs" />
+            <span>Verified User Reviews</span>
+          </div>
+
+          <CommonTitle
+            text={title}
+            className="text-white text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight"
+          />
+          <p className="mt-4 text-slate-300 text-base sm:text-lg leading-relaxed">
+            {subtitle}
+          </p>
+        </div>
+      </div>
+
+      {/* Dual Row Continuous Marquee Slider */}
+      <div className="relative z-10 space-y-4">
+        {/* Fade gradients on left & right edges */}
+        <div className="absolute top-0 left-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-slate-900 to-transparent z-20 pointer-events-none" />
+        <div className="absolute top-0 right-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-slate-900 to-transparent z-20 pointer-events-none" />
+
+        {/* Row 1: Left scrolling */}
+        <Marquee speed={30} pauseOnHover={true} direction="left" gradient={false}>
+          {row1Items.map((review, idx) => (
+            <ReviewCard key={`r1-${review.id || idx}-${idx}`} review={review} />
           ))}
-        </div>
-      ) : (
-        <div className="text-center py-16 md:py-20 text-neutral-500 bg-neutral-50/50 rounded-xl border border-dashed border-neutral-300">
-          <p className="text-lg md:text-xl font-medium">
-            No testimonials available yet
-          </p>
-          <p className="mt-2 text-sm md:text-base">
-            Be the first to share your experience!
-          </p>
-        </div>
-      )}
+        </Marquee>
+
+        {/* Row 2: Right scrolling */}
+        <Marquee speed={25} pauseOnHover={true} direction="right" gradient={false}>
+          {row2Items.map((review, idx) => (
+            <ReviewCard key={`r2-${review.id || idx}-${idx}`} review={review} />
+          ))}
+        </Marquee>
+      </div>
     </section>
   );
 };

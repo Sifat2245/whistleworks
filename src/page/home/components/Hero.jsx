@@ -3,15 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import CommonSubmitBtn from "../../../components/common/CommonSubmitBtn";
 import { useAuth } from "@/hooks/useAuth";
 
-import img1 from "@/assets/banner-images/photo-1634306320577-eb8f44e6ab96.jpeg";
-import img2 from "@/assets/banner-images/photo-1684707878951-27ff31c7a67f.jpeg";
-import img3 from "@/assets/banner-images/photo-1696507625579-17b76b10d185.jpeg";
-import img4 from "@/assets/banner-images/photo-1734495444942-d96710ba652b.jpeg";
-import img5 from "@/assets/banner-images/photo-1757588102227-1087924bc438.jpeg";
-import img6 from "@/assets/banner-images/photo-1770230511907-c43e39266af3.jpeg";
-import img7 from "@/assets/banner-images/photo-1777997856522-e69683eb7017.jpeg";
+import img1 from "@/assets/banner-images/photo-1634306320577-eb8f44e6ab96.webp";
+import img2 from "@/assets/banner-images/photo-1696507625579-17b76b10d185.webp";
+import img3 from "@/assets/banner-images/photo-1734495444942-d96710ba652b.webp";
+import img4 from "@/assets/banner-images/photo-1757588102227-1087924bc438.webp";
+import img5 from "@/assets/banner-images/photo-1770230511907-c43e39266af3.webp";
+import img6 from "@/assets/banner-images/photo-1777997856522-e69683eb7017.webp";
 
-const bannerImages = [img1, img2, img3, img4, img5, img6, img7];
+const bannerImages = [img1, img2, img3, img4, img5, img6];
 
 const Hero = ({ heroData }) => {
   const { userData } = useAuth();

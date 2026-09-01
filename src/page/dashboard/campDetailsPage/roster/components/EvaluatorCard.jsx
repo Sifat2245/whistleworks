@@ -1,64 +1,74 @@
-import { Card, Avatar } from "antd";
-import profile from "@/assets/dashboard/profile.png";
+import { LuMail, LuPhone, LuUserCheck } from "react-icons/lu";
 
-const EvaluatorCard = ({ evaluator }) => {
-  const formatPhone = (phone) => {
-    if (!phone) return "N/A";
+const formatPhone = (phone) => {
+  if (!phone) return "N/A";
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length !== 10) {
+    return digits.length === 0 ? "N/A" : digits;
+  }
+  const areaCode = digits.slice(0, 3);
+  const part1 = digits.slice(3, 6);
+  const part2 = digits.slice(6, 10);
+  return `(${areaCode}) ${part1}-${part2}`;
+};
 
-    // Remove all non-digit characters
-    const digits = phone.replace(/\D/g, "");
+const EvaluatorCard = ({ evaluator, onCardClick }) => {
+  const isPhoneVisible =
+    (evaluator?.isPhoneShow ?? evaluator?.is_phone_show) !== false &&
+    (evaluator?.phone || evaluator?.evaluatorNumber);
 
-    // If we don't have exactly 10 digits → return original digits or N/A
-    if (digits.length !== 10) {
-      return digits.length === 0 ? "N/A" : digits;
-    }
-
-    // Format as (xxx) xxx-xxxx
-    const areaCode = digits.slice(0, 3);
-    const part1 = digits.slice(3, 6);
-    const part2 = digits.slice(6, 10);
-
-    return `(${areaCode}) ${part1}-${part2}`;
-  };
+  const phoneText = isPhoneVisible
+    ? formatPhone(evaluator?.phone || evaluator?.evaluatorNumber)
+    : "—";
 
   return (
-    <Card
-      hoverable
-      className="group relative overflow-hidden rounded-xl border border-black/10 shadow-sm transition-all duration-300"
+    <div
+      onClick={() => onCardClick?.(evaluator)}
+      className="group bg-white rounded-xl border border-[#E8E8E8] shadow-xs hover:shadow-md hover:border-[#00AEEF]/50 p-5 transition-all duration-300 flex flex-col items-center text-center relative overflow-hidden cursor-pointer"
     >
-      {/* CENTER GRADIENT OVERLAY */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 
-        bg-[radial-gradient(circle_at_center,rgba(0,175,239,0.35),rgba(0,175,239,0.10),transparent_70%)]"
-      />
+      {/* Radial Cyan Glow Hover Effect */}
+      <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_center,rgba(0,175,239,0.25),rgba(0,175,239,0.08),transparent_70%)] z-0" />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center gap-3">
-        <Avatar
-          size={80}
-          src={evaluator?.avatar || profile}
-          alt={evaluator?.name || "Evaluator"}
-        />
+      <div className="relative z-10 w-full flex flex-col items-center">
+        {/* Avatar Box */}
+        <div className="relative mb-3.5 mt-1">
+          <img
+            src={evaluator?.avatar || evaluator?.image || "/default-avatar.png"}
+            alt={evaluator?.name || "Evaluator"}
+            className="w-20 h-20 rounded-full object-cover border-2 border-slate-100 shadow-sm group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              e.target.src = "/default-avatar.png";
+            }}
+          />
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#00AEEF] text-white rounded-full flex items-center justify-center text-xs shadow-xs border-2 border-white">
+            <LuUserCheck />
+          </div>
+        </div>
 
-        <div className="space-y-1">
-          <h3 className="text-lg font-medium text-black">
-            {evaluator?.name || "Unnamed Evaluator"}
-          </h3>
+        {/* Name & Badge */}
+        <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-[#00AEEF] transition-colors leading-snug line-clamp-1 mb-1">
+          {evaluator?.name || "Unnamed Evaluator"}
+        </h3>
 
-          <p className="text-sm text-gray-500">
-            <span className="font-medium text-[#444]">Email:</span>{" "}
-            {evaluator?.email || "N/A"}
-          </p>
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#00AEEF] border border-blue-100 mb-4">
+          Evaluator Staff
+        </span>
 
-          <p className="text-sm text-gray-500">
-            <span className="font-medium text-[#444]">Phone:</span>{" "}
-            <span className="tracking-wide font-medium">
-              {(evaluator?.isPhoneShow ?? evaluator?.is_phone_show) !== false && evaluator?.phone ? formatPhone(evaluator?.phone) : "-"}
-            </span>
-          </p>
+        {/* Contact Details */}
+        <div className="w-full pt-3 border-t border-[#E8E8E8] space-y-1.5 text-xs text-slate-600">
+          <div className="flex items-center justify-center gap-2 truncate">
+            <LuMail className="text-slate-400 text-sm shrink-0" />
+            <span className="truncate">{evaluator?.email || evaluator?.evaluatorMail || "N/A"}</span>
+          </div>
+
+          <div className="flex items-center justify-center gap-2 truncate">
+            <LuPhone className="text-slate-400 text-sm shrink-0" />
+            <span className="tracking-wide font-medium">{phoneText}</span>
+          </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 

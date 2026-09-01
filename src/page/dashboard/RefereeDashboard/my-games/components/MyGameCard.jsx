@@ -1,36 +1,25 @@
 import { formatRefereePosition } from "@/utils/refereePositions";
 import { useState } from "react";
-import locationIcon from "@/assets/svg/location.svg";
-import messageIcon from "@/assets/svg/message.svg";
-import Icon from "@/components/common/Icon";
-import { Avatar, Card, Divider, Tag, Tooltip } from "antd";
 import { format } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
-import { SlCalender } from "react-icons/sl";
+import { LuCalendar, LuMapPin, LuMessageSquare, LuUserCheck, LuClock } from "react-icons/lu";
 import RefereeDetailsPopup from "./RefereeDetailsPopup";
 
 export default function MyGameCard({ game, camp }) {
   const [selectedReferee, setSelectedReferee] = useState(null);
-  // Parse the date part from ISO string (midnight UTC)
-  const gameDateUTC = game?.game_details?.date;
-  // console.log(game, 'game');
 
-  // Timezone from camp (fallback to UTC)
+  const gameDateUTC = game?.game_details?.date;
   const tz = camp?.timezone || "UTC";
 
-  // Local time strings (already in camp timezone)
   const startTimeStr = game.game_details.start_time;
   const endTimeStr = game.game_details.end_time;
 
-  // Build local date-time strings in camp's timezone (no timezone suffix)
   const startLocalStr = `${format(gameDateUTC, "yyyy-MM-dd")}T${startTimeStr}`;
   const endLocalStr = `${format(gameDateUTC, "yyyy-MM-dd")}T${endTimeStr}`;
 
-  // Convert local strings → UTC Date objects using camp timezone
   const startDateInTz = fromZonedTime(startLocalStr, tz);
   const endDateInTz = fromZonedTime(endLocalStr, tz);
 
-  // Format back in camp timezone with short abbreviation (CST/CDT auto-handled)
   const startTimeFormatted = formatInTimeZone(startDateInTz, tz, "h:mm a z");
   const endTimeFormatted = formatInTimeZone(endDateInTz, tz, "h:mm a z");
 
@@ -63,25 +52,18 @@ export default function MyGameCard({ game, camp }) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
 
-    // For multiple recipients
     if (phoneNumbers.length > 1) {
       if (isIOS) {
-        // iOS working format
-        const smsUrl = `sms://open?addresses=${phoneNumbers.join(",")}`;
-        window.location.href = smsUrl;
+        window.location.href = `sms://open?addresses=${phoneNumbers.join(",")}`;
         return;
       } else if (isAndroid) {
-        // Try Android format
-        const smsUrl = `sms:${phoneNumbers.join(";")}`;
-        window.location.href = smsUrl;
-
-        // Give user option if it doesn't work
+        window.location.href = `sms:${phoneNumbers.join(";")}`;
         setTimeout(() => {
           if (document.hasFocus()) {
             const shouldCopy = confirm(
               `Multiple recipients (${phoneNumbers.length}) may not be supported.\n\n` +
-                `Would you like to copy all numbers to clipboard instead?\n\n` +
-                `${phoneNumbers.join(", ")}`,
+              `Would you like to copy all numbers to clipboard instead?\n\n` +
+              `${phoneNumbers.join(", ")}`
             );
             if (shouldCopy) {
               navigator.clipboard.writeText(phoneNumbers.join(", "));
@@ -95,58 +77,67 @@ export default function MyGameCard({ game, camp }) {
       }
     }
 
-    // Single recipient or desktop fallback
     window.location.href = `sms:${phoneNumbers.join(",")}`;
   };
 
   return (
     <>
-      <Card
-        className="rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border-t-4 border-[#00AEEF]"
-        cover={
-          <div className="relative">
+      <div className="bg-white rounded-xl border border-[#E8E8E8] shadow-xs hover:shadow-md hover:border-[#00AEEF]/40 transition-all duration-300 overflow-hidden flex flex-col justify-between font-sans">
+        {/* ── Top Cover Banner ────────────────────────────────── */}
+        <div className="relative h-44 bg-slate-900 overflow-hidden">
+          {camp?.logo ? (
             <img
-              src={camp?.logo || ""}
+              src={camp.logo}
               alt={camp?.name || "Camp"}
-              className="h-62 w-full object-cover rounded-t-xl"
+              className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
             />
-            <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-5">
-              <h3 className="text-white text-xl font-bold">
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center text-slate-600 font-bold text-xl">
+              WhistleWorks Camp
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/40 to-transparent p-4 flex flex-col justify-between">
+            <div className="flex justify-end">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-xs">
+                {game.game_details.status || "Scheduled"}
+              </span>
+            </div>
+            <div>
+              <h4 className="text-white text-lg font-bold truncate drop-shadow-xs">
                 {camp?.name || "Camp Name"}
-              </h3>
-              <p className="text-white/90 text-sm">
-                {game.location?.name || "—"}
+              </h4>
+              <p className="text-slate-300 text-xs truncate flex items-center gap-1 mt-0.5">
+                <LuMapPin className="text-[#00AEEF] text-xs shrink-0" />
+                <span>{game.location?.name || "Venue Location"}</span>
               </p>
             </div>
           </div>
-        }
-      >
-        <div className="space-y-5 -mt-2">
-          {/* Date & Time */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 text-primary">
-              <SlCalender />
-              <span className="font-semibold">{gameDateUTC}</span>
+        </div>
+
+        {/* ── Body Details ────────────────────────────────────── */}
+        <div className="p-4 sm:p-5 space-y-4 flex-1">
+          {/* Date & Time Bar */}
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-slate-800 text-xs sm:text-sm font-semibold">
+              <LuCalendar className="text-[#00AEEF] text-base shrink-0" />
+              <span>{format(new Date(gameDateUTC), "EEEE, MMM d, yyyy")}</span>
             </div>
-            <Tag color="blue" className="text-sm font-medium px-4 py-1">
-              {startTimeFormatted} – {endTimeFormatted}
-            </Tag>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-[#00AEEF] shadow-2xs">
+              <LuClock className="text-xs" />
+              <span>{startTimeFormatted} – {endTimeFormatted}</span>
+            </div>
           </div>
 
-          {/* Court Info & My Position */}
-          <div className="text-center py-4 bg-linear-to-r from-blue-50 to-[#E6F7FD] rounded-xl px-3">
-            <p className="text-xl font-bold text-gray-800">
-              {game.location?.address}
+          {/* Court & My Position Pill */}
+          <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3.5 text-center space-y-2">
+            <p className="text-sm font-bold text-slate-900">
+              {game.game_details.court_name}
             </p>
-            <p className="text-sm text-gray-600 mt-1">
-              {game.game_details.court_name} •{" "}
-              <Tag color="green" className="ml-1 font-semibold">
-                {game.game_details.status.toUpperCase()}
-              </Tag>
-            </p>
+
             {game?.my_position && (
-              <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 bg-white/90 rounded-full border border-blue-200/80 shadow-xs">
-                <span className="text-xs font-medium text-gray-500">My Position:</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-full border border-blue-200 shadow-2xs">
+                <span className="text-xs text-slate-500 font-medium">My Position:</span>
                 <span className="text-xs font-bold text-[#00AEEF]">
                   {formatRefereePosition(game.my_position)}
                 </span>
@@ -154,102 +145,75 @@ export default function MyGameCard({ game, camp }) {
             )}
           </div>
 
-          <Divider className="my-4 border-black/15" />
+          {/* Assigned Referees Crew */}
+          <div className="pt-2">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+              <span>Assigned Crew</span>
+              <span>{game.assigned_referees.total} Referees</span>
+            </div>
 
-          {/* Assigned Referees */}
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-4 text-center md:text-left">
-              Assigned With ({game.assigned_referees.total} Referee
-              {game.assigned_referees.total !== 1 ? "s" : ""})
-            </h4>
-            <div className="flex flex-wrap justify-center md:justify-start gap-5">
+            <div className="flex flex-wrap items-center justify-center gap-3">
               {game.assigned_referees.referees.map((ref) => (
-                <Tooltip
+                <div
                   key={ref.id}
-                  title={
-                    <div className="text-center">
-                      <p className="font-medium">{ref.name}</p>
-                      {ref.position && (
-                        <p className="text-xs text-sky-300 font-semibold mt-0.5">
-                          {formatRefereePosition(ref.position)}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-300">{ref.phone}</p>
-                      {ref.is_me && (
-                        <Tag color="green" className="mt-2">
-                          YOU
-                        </Tag>
-                      )}
-                    </div>
-                  }
-                >
-                  <div
-                    className={`text-center flex flex-col items-center max-w-[110px] ${
-                      !ref.is_me
-                        ? "cursor-pointer hover:opacity-80 transition-opacity"
-                        : ""
+                  onClick={() => handleRefereeClick(ref)}
+                  className={`flex flex-col items-center p-2 rounded-xl border transition-all ${ref.is_me
+                      ? "bg-emerald-50/60 border-emerald-200"
+                      : "bg-slate-50 border-slate-200/80 hover:bg-white hover:border-[#00AEEF]/50 cursor-pointer"
                     }`}
-                    onClick={() => handleRefereeClick(ref)}
-                  >
-                    <Avatar
-                      src={ref.avatar}
-                      size={70}
-                      className={`border-4 shadow-md ${
-                        ref.is_me
-                          ? "border-green-500"
-                          : "border-gray-300 hover:border-[#00AEEF]"
-                      }`}
-                    >
-                      {ref.name.charAt(0).toUpperCase()}
-                    </Avatar>
-                    {ref.position && (
-                      <div className="mt-2">
-                        <Tag
-                          color={ref.is_me ? "blue" : "purple"}
-                          className="text-[11px] font-semibold px-2 py-0.5 rounded-full border-0 shadow-2xs whitespace-normal max-w-full text-center"
-                        >
-                          {formatRefereePosition(ref.position)}
-                        </Tag>
-                      </div>
-                    )}
+                  style={{ minWidth: "90px" }}
+                >
+                  <div className="relative">
+                    <img
+                      src={ref.avatar || "/default-avatar.png"}
+                      alt={ref.name}
+                      className={`w-12 h-12 rounded-full object-cover border-2 ${ref.is_me ? "border-emerald-500 shadow-sm" : "border-slate-200"
+                        }`}
+                      onError={(e) => {
+                        e.target.src = "/default-avatar.png";
+                      }}
+                    />
                     {ref.is_me && (
-                      <div className="mt-1 text-xs font-bold text-green-600">
-                        YOU
-                      </div>
-                    )}
-                    {!ref.is_me && (
-                      <div className="mt-1 text-xs font-medium text-[#00AEEF]">
-                        View Details
+                      <div className="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-full p-0.5 text-[9px] font-bold shadow-xs">
+                        <LuUserCheck />
                       </div>
                     )}
                   </div>
-                </Tooltip>
+
+                  <p className="text-xs font-semibold text-slate-900 mt-1.5 truncate max-w-[85px] text-center">
+                    {ref.name}
+                  </p>
+
+                  {ref.position && (
+                    <span className="text-[10px] font-semibold text-[#00AEEF] bg-white px-2 py-0.5 rounded-md border border-slate-200 mt-1 text-center truncate max-w-[85px]">
+                      {formatRefereePosition(ref.position)}
+                    </span>
+                  )}
+                </div>
               ))}
             </div>
           </div>
-
-
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-black/15">
-            <button
-              onClick={handleViewLocation}
-              className="flex items-center gap-2 text-primary cursor-pointer font-medium"
-            >
-              <Icon src={locationIcon} className="size-5" />
-              View Location
-            </button>
-
-            {/* Message button commented out as before */}
-            <button
-              onClick={handleMessageReferees}
-              className="flex items-center gap-2 text-primary cursor-pointer font-medium"
-            >
-              <Icon src={messageIcon} className="size-5" />
-              Message Referees
-            </button>
-          </div>
         </div>
-      </Card>
+
+        {/* ── Footer Actions ──────────────────────────────────── */}
+        <div className="p-4 bg-slate-50 border-t border-[#E8E8E8] flex items-center justify-between gap-3">
+          <button
+            onClick={handleViewLocation}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 hover:text-[#00AEEF] transition-all cursor-pointer shadow-2xs"
+          >
+            <LuMapPin className="text-slate-400 text-sm" />
+            <span>Location</span>
+          </button>
+
+          <button
+            onClick={handleMessageReferees}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#00AEEF] hover:bg-[#0099d4] rounded-lg transition-all cursor-pointer shadow-xs"
+          >
+            <LuMessageSquare className="text-sm" />
+            <span>Message Crew</span>
+          </button>
+        </div>
+      </div>
 
       {/* Referee Details Popup */}
       {selectedReferee && (

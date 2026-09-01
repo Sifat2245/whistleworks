@@ -193,9 +193,9 @@ export default function Evaluator({ camp_id }) {
                       <p className="font-medium text-gray-900 tracking-wide">
                         {(selectedEvaluator.isPhoneShow ?? selectedEvaluator.is_phone_show) !== false && (selectedEvaluator.phone || selectedEvaluator.evaluatorNumber)
                           ? formatPhone(
-                              selectedEvaluator.phone ||
-                                selectedEvaluator.evaluatorNumber,
-                            )
+                            selectedEvaluator.phone ||
+                            selectedEvaluator.evaluatorNumber,
+                          )
                           : "-"}
                       </p>
                     </div>
@@ -209,7 +209,7 @@ export default function Evaluator({ camp_id }) {
                       <p className="font-medium text-gray-900">
                         {(selectedEvaluator.isAddressShow ?? selectedEvaluator.is_address_show) !== false && (selectedEvaluator.address || selectedEvaluator.evaluatorAddress)
                           ? (selectedEvaluator.address ||
-                              selectedEvaluator.evaluatorAddress)
+                            selectedEvaluator.evaluatorAddress)
                           : "-"}
                       </p>
                     </div>

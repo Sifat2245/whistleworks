@@ -1,42 +1,51 @@
 import FilterCamps from "@/page/all-camps/components/FilterCamps";
-import CommonText from "../../../components/common/CommonText";
 import CommonTitle from "../../../components/common/CommonTitle";
 import CommonSubmitBtn from "../../../components/common/CommonSubmitBtn";
+import { FaTrophy, FaArrowRight } from "react-icons/fa6";
 
 const TrainingCamps = ({ trainingCampData }) => {
   return (
-    <div className="md:pt-16 pt-10">
-      <div className="text-center px-3">
-        <CommonTitle
-          text={`${trainingCampData?.title || "Available Training Camps"}`}
-        />
-        {trainingCampData?.description ? (
-          <CommonText
-            text={`${trainingCampData?.description}`}
-            className={
-              "my-5 md:my-0 md:mt-5 md:mb-12 md:w-1/2 mx-auto text-neutral-500"
-            }
+    <section className="py-16 md:py-24 bg-slate-50/70 border-b border-slate-200/60">
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
+            <FaTrophy className="text-primary text-xs" />
+            <span>Officiating Training Camps</span>
+          </div>
+
+          <CommonTitle
+            text={trainingCampData?.title || "Featured Officiating Camps"}
+            className="text-slate-900 text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight"
           />
-        ) : (
-          <p className="mt-4 max-w-2xl mx-auto text-base sm:text-lg text-neutral-500 text-center px-3">
-            Browse and register for upcoming sports referee training camps and led by experienced conference coordinators.
+
+          <p className="mt-4 text-slate-600 text-base sm:text-lg leading-relaxed">
+            {trainingCampData?.description ||
+              "Browse and register for upcoming referee training clinics led by veteran conference coordinators and elite evaluators."}
           </p>
-        )}
+        </div>
+
+        {/* Camp Cards Grid */}
+        <div className="mb-12">
+          <FilterCamps limit={4} />
+        </div>
+
+        {/* View All CTA */}
+        <div className="text-center">
+          <CommonSubmitBtn
+            variant="primary"
+            type="button"
+            link={true}
+            path="/all-camps"
+            className="group py-3 px-6 text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all inline-flex items-center gap-2"
+          >
+            <span>Explore All Camps</span>
+            <FaArrowRight className="text-xs group-hover:translate-x-1 transition-transform" />
+          </CommonSubmitBtn>
+        </div>
       </div>
-      <div className="my-12 container">
-        <FilterCamps limit={4} />
-      </div>
-      <div className="text-center mb-12">
-        <CommonSubmitBtn
-          variant="primary"
-          type="button"
-          link={true}
-          path="/all-camps"
-        >
-          View All Camps
-        </CommonSubmitBtn>
-      </div>
-    </div>
+    </section>
   );
 };
+
 export default TrainingCamps;

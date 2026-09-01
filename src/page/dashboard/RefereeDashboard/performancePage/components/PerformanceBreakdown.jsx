@@ -10,12 +10,12 @@ const CRITERIA_LABELS = {
 };
 
 const COLORS = [
-  "#34A853", // green
-  "#C49A2F", // gold
-  "#5C3DCC", // purple
-  "#B03035", // red
-  "#2CB8B3", // teal
-  "#4CE78A", // light green
+  "#00AEEF", // WhistleWorks Cyan
+  "#10B981", // Emerald Green
+  "#8B5CF6", // Purple
+  "#F59E0B", // Amber
+  "#3B82F6", // Blue
+  "#EC4899", // Pink
 ];
 
 export default function PerformanceBreakdown({
@@ -24,100 +24,101 @@ export default function PerformanceBreakdown({
   recommendedLevel = [],
   levels = [],
 }) {
-  // Total recommendations (used for percentage calculation)
   const totalRecommendations =
     recommendedLevel.reduce((sum, item) => sum + item.count, 0) || 1;
 
-  // Create a map for quick lookup of counts
   const levelCounts = new Map(
     recommendedLevel.map((item) => [item.level, item.count])
   );
 
-  if (!hasEvaluations) {
-    return (
-      <section className="my-5 border border-border p-5 rounded-[10px]">
-        <h3 className="text-xl font-medium mb-6">Performance Breakdown</h3>
-        <div className="space-y-5">
-          {Object.keys(CRITERIA_LABELS).map((key, idx) => (
-            <div key={key} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700 font-medium">
-                  {CRITERIA_LABELS[key]}
-                </span>
-                <span className="font-bold text-lg">0.0/10</span>
-              </div>
-              <Progress
-                percent={0}
-                showInfo={false}
-                strokeColor={COLORS[idx % COLORS.length]}
-                strokeWidth={12}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="my-5 border border-border p-5 rounded-[10px] space-y-10">
-      {/* 1. Performance Breakdown (criteria scores) */}
+    <div className="w-full bg-white rounded-xl border border-[#E8E8E8] md:p-6 p-4 shadow-xs font-sans space-y-8">
+      {/* ── 1. Criteria Breakdown ─────────────────────────────── */}
       <div>
-        <h3 className="text-xl font-medium mb-6">Performance Breakdown</h3>
-        <div className="space-y-5">
+        <div className="border-b border-[#E8E8E8] pb-3 mb-6">
+          <h3 className="text-xl md:text-2xl font-semibold text-[#333]">
+            Performance Category Breakdown
+          </h3>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+            Detailed scoring metrics across key officiating evaluation criteria.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.keys(CRITERIA_LABELS).map((key, idx) => {
-            const score = breakdown?.[key]?.score || 0;
+            const score = hasEvaluations ? (breakdown?.[key]?.score || 0) : 0;
             const avg = score.toFixed(1);
+            const percent = (score / 10) * 100;
 
             return (
-              <div key={key} className="space-y-2">
+              <div
+                key={key}
+                className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2.5"
+              >
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-700 font-medium">
+                  <span className="text-sm font-semibold text-slate-800">
                     {CRITERIA_LABELS[key]}
                   </span>
-                  <span className="font-bold text-lg">{avg}/10</span>
-                </div>
-                <Progress
-                  percent={(score / 10) * 100}
-                  showInfo={false}
-                  strokeColor={COLORS[idx % COLORS.length]}
-                  trailColor="#e5e7eb"
-                  strokeWidth={12}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-xl font-medium mb-6">Recommended Level</h3>
-        <div className="space-y-5">
-          {levels.map((level, idx) => {
-            // Get count from data or default to 0
-            const count = levelCounts.get(level) || 0;
-            const percent = (count / totalRecommendations) * 100;
-
-            return (
-              <div key={level} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-700 font-medium">{level}</span>
-                  <span className="font-bold text-lg">
-                    {count} evaluation{count !== 1 ? "s" : ""}
+                  <span className="font-bold text-sm sm:text-base text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
+                    {avg} <span className="text-xs font-normal text-slate-400">/ 10</span>
                   </span>
                 </div>
+
                 <Progress
                   percent={percent}
                   showInfo={false}
                   strokeColor={COLORS[idx % COLORS.length]}
-                  trailColor="#e5e7eb"
-                  strokeWidth={12}
+                  trailColor="#e2e8f0"
+                  strokeWidth={10}
+                  className="m-0"
                 />
               </div>
             );
           })}
         </div>
       </div>
-    </section>
+
+      {/* ── 2. Recommended Levels ────────────────────────────── */}
+      <div className="pt-4 border-t border-[#E8E8E8]">
+        <div className="border-b border-[#E8E8E8] pb-3 mb-6">
+          <h3 className="text-xl md:text-2xl font-semibold text-[#333]">
+            Recommended Officiating Level
+          </h3>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+            Evaluator assessment recommendations for competition placement.
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {levels.map((level, idx) => {
+            const count = levelCounts.get(level) || 0;
+            const percent = hasEvaluations ? (count / totalRecommendations) * 100 : 0;
+
+            return (
+              <div
+                key={level}
+                className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="font-semibold text-slate-800">{level}</span>
+                  <span className="font-medium text-slate-600">
+                    {count} evaluation{count !== 1 ? "s" : ""} ({percent.toFixed(0)}%)
+                  </span>
+                </div>
+
+                <Progress
+                  percent={percent}
+                  showInfo={false}
+                  strokeColor={COLORS[idx % COLORS.length]}
+                  trailColor="#e2e8f0"
+                  strokeWidth={10}
+                  className="m-0"
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }

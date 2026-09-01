@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { MdClose, MdEmail, MdPhone, MdLocationOn } from "react-icons/md";
+import { MdClose, MdEmail, MdPhone, MdLocationOn, MdBadge } from "react-icons/md";
 import { IoCheckboxOutline } from "react-icons/io5";
+import { formatRefereePosition } from "@/utils/refereePositions";
 
 const RefereeDetailsModal = ({ isOpen, onClose, referee }) => {
   if (!referee || !isOpen) return null;
@@ -78,6 +79,18 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee }) => {
           </div>
 
           <div className="space-y-4">
+            {referee.position && (
+              <div className="flex items-center gap-3">
+                <MdBadge className="text-gray-400 text-xl" />
+                <div>
+                  <p className="text-sm text-gray-500">Position</p>
+                  <p className="font-medium text-gray-900">
+                    {formatRefereePosition(referee.position)}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-3">
               <MdEmail className="text-gray-400 text-xl" />
               <div>
