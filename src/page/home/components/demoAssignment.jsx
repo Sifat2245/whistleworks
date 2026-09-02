@@ -10,7 +10,6 @@ import {
     LuX,
     LuUser,
     LuRotateCcw,
-    LuSparkles,
 } from "react-icons/lu";
 import { TiPlus } from "react-icons/ti";
 import { HiXMark, HiLockClosed, HiLockOpen } from "react-icons/hi2";

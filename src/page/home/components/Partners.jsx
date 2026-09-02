@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import CommonTitle from "../../../components/common/CommonTitle";
 import Marquee from "react-fast-marquee";
-import { FaHandshake, FaShieldHalved } from "react-icons/fa6";
+import { FaShieldHalved } from "react-icons/fa6";
 
 const Partners = ({ partnerLogos = [], partners = [] }) => {
   return (

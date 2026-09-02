@@ -1,6 +1,6 @@
 import CommonSubmitBtn from "../../../components/common/CommonSubmitBtn";
 import CommonTitle from "../../../components/common/CommonTitle";
-import { FaRocket, FaCircleCheck, FaChevronRight } from "react-icons/fa6";
+import { FaCircleCheck, FaChevronRight } from "react-icons/fa6";
 
 const ReadyToTrasform = ({ operationData }) => {
   return (

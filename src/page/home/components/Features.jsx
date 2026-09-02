@@ -5,8 +5,7 @@ import {
   FaMoneyBillWave,
   FaChartLine,
   FaShieldHalved,
-  FaMobileScreenButton,
-  FaCheck
+  FaMobileScreenButton
 } from "react-icons/fa6";
 import CommonTitle from "../../../components/common/CommonTitle";
 

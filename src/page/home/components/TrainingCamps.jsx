@@ -1,7 +1,7 @@
 import FilterCamps from "@/page/all-camps/components/FilterCamps";
 import CommonTitle from "../../../components/common/CommonTitle";
 import CommonSubmitBtn from "../../../components/common/CommonSubmitBtn";
-import { FaTrophy, FaArrowRight } from "react-icons/fa6";
+import { FaArrowRight } from "react-icons/fa6";
 
 const TrainingCamps = ({ trainingCampData }) => {
   return (
