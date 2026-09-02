@@ -67,13 +67,11 @@ const Roster = () => {
 
   // Dynamic counter label based on active tab
   const counterLabel = isEvaluatorsActive
-    ? `${campData?.evaluators?.length || 0} Evaluator${
-        campData?.evaluators?.length !== 1 ? "s" : ""
-      }`
+    ? `${campData?.evaluators?.length || 0} Evaluator${campData?.evaluators?.length !== 1 ? "s" : ""
+    }`
     : isCrewsActive
-    ? "Crew Groups"
-    : `${displayedCount} of ${totalReferees} Referee${
-        displayedCount !== 1 ? "s" : ""
+      ? "Crew Groups"
+      : `${displayedCount} of ${totalReferees} Referee${displayedCount !== 1 ? "s" : ""
       } Shown`;
 
   if (isLoading) {
@@ -135,7 +133,7 @@ const Roster = () => {
   ];
 
   return (
-    <div className="w-full py-6">
+    <div className="w-full">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-8">
         <div className="flex items-center justify-between w-full lg:w-auto">
@@ -156,9 +154,8 @@ const Roster = () => {
         </div>
 
         <div
-          className={`w-full lg:w-auto ${
-            showMobileMenu ? "block" : "hidden lg:block"
-          }`}
+          className={`w-full lg:w-auto ${showMobileMenu ? "block" : "hidden lg:block"
+            }`}
         >
           <div className="inline-flex flex-col sm:flex-row gap-2 bg-[#FAFAFA] p-1.5 rounded-[10px] border border-border w-full sm:w-auto">
             {tabs.map((tab) => (
@@ -221,38 +218,41 @@ const Roster = () => {
         </div>
       </div>
 
-      {/* Search Bar - works for both Referees and Evaluators tabs */}
-      {!isCrewsActive && (
-        <div className="relative mb-10">
-          <LuSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#999] text-xl" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={
-              isEvaluatorsActive
-                ? "Search evaluators by name, email, or ID..."
-                : "Search referees by name, email, phone, or ID..."
-            }
-            className="w-full pl-12 pr-12 py-4 bg-white border border-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 text-base placeholder-[#999] transition"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition cursor-pointer"
-              aria-label="Clear search"
-            >
-              <LuX className="w-5 h-5" />
-            </button>
-          )}
+      {/* Search Bar - rendered for Evaluators tab */}
+      {isEvaluatorsActive && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-8">
+          <div className="relative flex-1">
+            <LuSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#999] text-xl pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search evaluators by name, email, or ID..."
+              className="w-full pl-12 pr-12 py-3.5 bg-white border border-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 text-base placeholder-[#999] transition shadow-xs"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition cursor-pointer"
+                aria-label="Clear search"
+              >
+                <LuX className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="mt-8">
+      <div className="mt-6">
         {isEvaluatorsActive && <ActiveEvaluate searchQuery={searchQuery} />}
         {isRefereesActive && (
-          <RosterTable referees={filteredReferees} campId={campId} />
+          <RosterTable
+            referees={filteredReferees}
+            campId={campId}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
         )}
         {isCrewsActive && <ActiveCrews campId={campId} />}
       </div>

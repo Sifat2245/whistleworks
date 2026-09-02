@@ -122,11 +122,10 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
       html: `
         <div class="text-center">
           <p class="text-lg text-gray-700 leading-relaxed max-w-md mx-auto">
-            ${
-              isEvaluator
-                ? "I confirm I want to register as an evaluator for this camp."
-                : "I have physically arrived at camp and am ready to begin training."
-            }
+            ${isEvaluator
+          ? "I confirm I want to register as an evaluator for this camp."
+          : "I have physically arrived at camp and am ready to begin training."
+        }
           </p>
         </div>
       `,
@@ -283,21 +282,25 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
       <div className="bg-white border border-border rounded-[10px] overflow-hidden">
         <div className="p-5 sm:p-7 border-b border-border">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-4">
-              <Image
-                src={camp_logo || dummyImage}
-                alt={camp_name}
-                width={60}
-                height={60}
-                preview={false}
-                className="rounded-full object-cover border-2 border-primary/15 shrink-0"
-                fallback={dummyImage}
-              />
-              <div>
-                <h2 className="text-xl sm:text-2xl font-semibold text-[#333] leading-tight">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="shrink-0 w-[60px] h-[60px] min-w-[60px] min-h-[60px] rounded-full overflow-hidden border-2 border-primary/15 flex items-center justify-center bg-gray-50">
+                <Image
+                  src={camp_logo || dummyImage}
+                  alt={camp_name}
+                  width={60}
+                  height={60}
+                  preview={false}
+                  className="rounded-full object-cover w-full h-full"
+                  wrapperClassName="shrink-0 w-full h-full flex items-center justify-center"
+                  wrapperStyle={{ flexShrink: 0, width: "100%", height: "100%" }}
+                  fallback={dummyImage}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-2xl font-semibold text-[#333] leading-tight break-words">
                   {camp_name}
                 </h2>
-                <p className="text-sm text-[#666] mt-1 flex items-center gap-1.5 flex-wrap">
+                <p className="text-xs sm:text-sm text-[#666] mt-1 flex items-center gap-1.5 flex-wrap">
                   <MdOutlineSportsTennis className="text-primary shrink-0" />
                   <span className="capitalize">{sports_type_name}</span>
                   <span className="text-[#ccc]">•</span>
@@ -318,7 +321,7 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
           </div>
 
           {/* At-a-glance stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
             {stats.map((stat) => (
               <div
                 key={stat.label}
@@ -441,17 +444,21 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
           description="Your point of contact for this camp"
         >
           <div className="p-5 sm:p-7">
-            <div className="flex items-center gap-4 mb-6">
-              <Image
-                src={directorAvatar || dummyImage}
-                alt={directorName}
-                width={56}
-                height={56}
-                preview={false}
-                className="rounded-full object-cover border-2 border-primary/15 shrink-0"
-                fallback={dummyImage}
-              />
-              <div className="min-w-0">
+            <div className="flex items-center gap-4 mb-6 min-w-0">
+              <div className="shrink-0 w-[56px] h-[56px] min-w-[56px] min-h-[56px] rounded-full overflow-hidden border-2 border-primary/15 flex items-center justify-center bg-gray-50">
+                <Image
+                  src={directorAvatar || dummyImage}
+                  alt={directorName}
+                  width={56}
+                  height={56}
+                  preview={false}
+                  className="rounded-full object-cover w-full h-full"
+                  wrapperClassName="shrink-0 w-full h-full flex items-center justify-center"
+                  wrapperStyle={{ flexShrink: 0, width: "100%", height: "100%" }}
+                  fallback={dummyImage}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
                 <p className="text-lg font-semibold text-[#333] truncate">
                   {directorName}
                 </p>

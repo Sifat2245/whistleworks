@@ -15,7 +15,6 @@ const Partners = ({ partnerLogos = [], partners = [] }) => {
 
       <div className="relative z-10 text-center container mx-auto px-4 mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
-          <FaHandshake className="text-primary text-xs" />
           <span>Strategic Association Partners</span>
         </div>
 

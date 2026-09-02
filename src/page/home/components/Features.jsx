@@ -64,14 +64,10 @@ const Features = ({ mainFeature, featureItems = [] }) => {
   const displayedFeatures = featureItems.length > 0 ? featureItems : DEFAULT_FEATURES;
 
   return (
-    <section className="py-16 md:py-24 bg-white border-b border-slate-200/60">
+    <section className="py-16 md:py-24 bg-white">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
-            <FaCheck className="text-primary text-xs" />
-            <span>Platform Capabilities</span>
-          </div>
 
           <CommonTitle
             text={title}

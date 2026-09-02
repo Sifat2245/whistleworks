@@ -9,10 +9,6 @@ const TrainingCamps = ({ trainingCampData }) => {
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
-            <FaTrophy className="text-primary text-xs" />
-            <span>Officiating Training Camps</span>
-          </div>
 
           <CommonTitle
             text={trainingCampData?.title || "Featured Officiating Camps"}

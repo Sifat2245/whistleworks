@@ -15,11 +15,6 @@ const ReadyToTrasform = ({ operationData }) => {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
           <div className="relative z-10 max-w-3xl mx-auto text-center">
-            {/* Header Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold uppercase tracking-wider mb-6">
-              <FaRocket className="text-primary text-xs" />
-              <span>Get Started Today</span>
-            </div>
 
             <CommonTitle
               text={operationData?.title || "Ready to Elevate Your Officiating Operations?"}

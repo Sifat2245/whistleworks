@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 const StatsBar = () => {
   const stats = [
-    { label: "Camps Managed", value: "500+", highlight: true },
+    { label: "Camps Managed", value: "30+", highlight: true },
     { label: "Officials Evaluated", value: "10,000+", highlight: false },
     { label: "On-Court Accuracy", value: "99.9%", highlight: true },
     { label: "Coordinator Rating", value: "4.9 / 5", highlight: false },
@@ -22,9 +22,8 @@ const StatsBar = () => {
               className="px-2"
             >
               <div
-                className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${
-                  item.highlight ? "text-[#00AEEF]" : "text-white"
-                }`}
+                className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${item.highlight ? "text-[#00AEEF]" : "text-white"
+                  }`}
               >
                 {item.value}
               </div>

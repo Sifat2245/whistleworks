@@ -19,8 +19,9 @@ import {
   LuInbox,
   LuCheck,
   LuPencil,
-  LuSave,
   LuDownload,
+  LuSearch,
+  LuX,
 } from "react-icons/lu";
 import { cn } from "@/lib/utils";
 import RefereeDetailsModal from "./RefereeDetailsModal";
@@ -31,12 +32,55 @@ import {
   useUpdateJerseyNumber,
 } from "@/hooks/api/director-hooks/useRosterForDirector";
 
-const RosterTable = ({ referees = [], campId }) => {
+// Avatar component with fallback initials
+const RefereeAvatar = ({ src, name, className = "w-10 h-10 text-xs" }) => {
+  const [hasError, setHasError] = useState(false);
+
+  const initials = useMemo(() => {
+    if (!name) return "RF";
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }, [name]);
+
+  if (!src || hasError) {
+    return (
+      <div
+        className={cn(
+          "rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-sky-100 border border-primary/30 text-primary font-bold flex items-center justify-center shrink-0 select-none shadow-xs",
+          className
+        )}
+      >
+        {initials}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={name || "Referee"}
+      className={cn(
+        "rounded-full object-cover border-2 border-primary/20 shrink-0 shadow-xs",
+        className
+      )}
+      onError={() => setHasError(true)}
+    />
+  );
+};
+
+const RosterTable = ({
+  referees = [],
+  campId,
+  searchQuery = "",
+  setSearchQuery,
+}) => {
   // Sorting state
   const [sorting, setSorting] = useState([]);
 
-  // Check-in states
+  // Check-in & Remove states
   const [checkingInId, setCheckingInId] = useState(null);
+  const [removingId, setRemovingId] = useState(null);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,9 +89,6 @@ const RosterTable = ({ referees = [], campId }) => {
   // Jersey state
   const [editingJerseyId, setEditingJerseyId] = useState(null);
   const [jerseyInput, setJerseyInput] = useState("");
-
-  // Remove tracking state
-  const [removingId, setRemovingId] = useState(null);
 
   // Mutation hooks
   const checkInMutation = useCheckInReferee(campId);
@@ -58,16 +99,20 @@ const RosterTable = ({ referees = [], campId }) => {
   const { mutate: exportReferees, isPending: isExporting } =
     useExportReferees(campId);
 
-  const data = useMemo(() => referees, [referees]);
-
-  // Calculate stats
-  const totalReferees = referees.length;
-  const checkedInCount = referees.filter(
-    (ref) => ref.status === "checked_in",
-  ).length;
-  const gamesAssigned = referees.reduce(
-    (sum, ref) => sum + (ref.assigned_games_count || 0),
-    0,
+  // Stats calculation
+  const totalRefereesCount = referees.length;
+  const checkedInCount = useMemo(
+    () => referees.filter((ref) => ref.status === "checked_in").length,
+    [referees]
+  );
+  const notCheckedInCount = totalRefereesCount - checkedInCount;
+  const gamesAssignedCount = useMemo(
+    () =>
+      referees.reduce(
+        (sum, ref) => sum + (ref.assigned_games_count || 0),
+        0
+      ),
+    [referees]
   );
 
   const openModal = (referee) => {
@@ -88,6 +133,7 @@ const RosterTable = ({ referees = [], campId }) => {
       showCancelButton: true,
       confirmButtonText: "Yes, Check In",
       cancelButtonText: "Cancel",
+      confirmButtonColor: "#10b981",
     });
     if (!result.isConfirmed) return;
 
@@ -96,7 +142,7 @@ const RosterTable = ({ referees = [], campId }) => {
     try {
       await checkInMutation.mutateAsync(refereeId);
     } catch {
-      // Error toast is handled inside the hook
+      // Error handled by hook
     } finally {
       setCheckingInId(null);
     }
@@ -111,7 +157,7 @@ const RosterTable = ({ referees = [], campId }) => {
       text: `Are you sure you want to remove ${refereeName}? This cannot be undone.`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
+      confirmButtonColor: "#ef4444",
       confirmButtonText: "Yes, Remove",
     });
 
@@ -129,7 +175,7 @@ const RosterTable = ({ referees = [], campId }) => {
         showConfirmButton: false,
       });
     } catch {
-      // Error toast is handled inside the hook
+      // Error handled by hook
     } finally {
       setRemovingId(null);
     }
@@ -147,7 +193,7 @@ const RosterTable = ({ referees = [], campId }) => {
       });
       Swal.fire({
         title: "Jersey Number Saved",
-        text: `${refereeName}'s jersey number is now set to ${trimmed || "—"}.`,
+        text: `${refereeName}'s jersey number is now set to ${trimmed ? `#${trimmed}` : "—"}.`,
         icon: "success",
         confirmButtonColor: "#00AEEF",
         timer: 1500,
@@ -174,20 +220,13 @@ const RosterTable = ({ referees = [], campId }) => {
 
   const formatPhone = (phone) => {
     if (!phone) return "N/A";
-
-    // Remove all non-digit characters
     const digits = phone.replace(/\D/g, "");
-
-    // If we don't have exactly 10 digits → return original digits or N/A
     if (digits.length !== 10) {
       return digits.length === 0 ? "N/A" : digits;
     }
-
-    // Format as (xxx) xxx-xxxx
     const areaCode = digits.slice(0, 3);
     const part1 = digits.slice(3, 6);
     const part2 = digits.slice(6, 10);
-
     return `(${areaCode}) ${part1}-${part2}`;
   };
 
@@ -196,13 +235,17 @@ const RosterTable = ({ referees = [], campId }) => {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap",
+          "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap shadow-2xs",
           isCheckedIn
-            ? "bg-green-50 text-green-700 border border-green-200"
-            : "bg-blue-50 text-blue-700 border border-blue-200",
+            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+            : "bg-sky-50 text-sky-700 border border-sky-200"
         )}
       >
-        {isCheckedIn ? <LuUserCheck className="w-3.5 h-3.5" /> : <LuClock className="w-3.5 h-3.5" />}
+        {isCheckedIn ? (
+          <LuUserCheck className="w-3.5 h-3.5 text-emerald-600" />
+        ) : (
+          <LuClock className="w-3.5 h-3.5 text-sky-600" />
+        )}
         {isCheckedIn ? "Checked In" : "Registered"}
       </span>
     );
@@ -214,7 +257,10 @@ const RosterTable = ({ referees = [], campId }) => {
 
     if (isEditing) {
       return (
-        <div className="flex items-center justify-center gap-1.5">
+        <div
+          className="flex items-center justify-center gap-1.5"
+          onClick={(e) => e.stopPropagation()}
+        >
           <input
             type="text"
             autoFocus
@@ -229,39 +275,47 @@ const RosterTable = ({ referees = [], campId }) => {
                 setJerseyInput("");
               }
             }}
-            onBlur={() => {
-              setEditingJerseyId(null);
-              setJerseyInput("");
-            }}
-            className="w-20 px-2 py-1.5 text-center border-2 border-primary rounded-lg focus:outline-none focus:ring-4 focus:ring-primary/20 font-mono text-sm transition-all"
+            className="w-16 px-2 py-1 text-center border-2 border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono text-xs font-semibold bg-white shadow-xs"
             placeholder="23"
           />
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => handleUpdateJersey(referee.id, jerseyInput)}
-            className="p-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-white transition cursor-pointer"
-            title="Save"
+            className="p-1.5 rounded-md bg-primary text-white hover:bg-primary/90 transition cursor-pointer shadow-xs"
+            title="Save Jersey"
           >
-            <LuSave className="w-4 h-4" />
+            <LuCheck className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setEditingJerseyId(null);
+              setJerseyInput("");
+            }}
+            className="p-1.5 rounded-md bg-gray-100 text-gray-500 hover:bg-gray-200 transition cursor-pointer"
+            title="Cancel"
+          >
+            <LuX className="w-3.5 h-3.5" />
           </button>
         </div>
       );
     }
 
     return (
-      <div
+      <button
+        type="button"
         onClick={() => {
           setEditingJerseyId(referee.id);
           setJerseyInput(jersey);
         }}
-        className="text-center cursor-pointer group"
-        title="Click to edit"
+        className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition cursor-pointer group"
+        title="Click to edit jersey number"
       >
-        <span className="font-mono text-sm text-[#333] group-hover:text-primary transition-colors">
-          {jersey || "-"}
+        <span className="font-mono text-xs font-semibold text-gray-700 group-hover:text-primary transition-colors">
+          {jersey ? `#${jersey}` : "—"}
         </span>
-        <LuPencil className="w-3 h-3 text-gray-300 group-hover:text-primary inline-block ml-1.5" />
-      </div>
+        <LuPencil className="w-3 h-3 text-gray-300 group-hover:text-primary transition-colors" />
+      </button>
     );
   };
 
@@ -273,20 +327,23 @@ const RosterTable = ({ referees = [], campId }) => {
         enableSorting: true,
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <img
-              src={row.original.avatar || "/default-avatar.png"}
-              alt={row.original.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-primary/20 shrink-0"
-              onError={(e) => (e.target.src = "/default-avatar.png")}
+            <RefereeAvatar
+              src={row.original.avatar}
+              name={row.original.name}
+              className="w-10 h-10 text-xs"
             />
             <div>
               <button
                 onClick={() => openModal(row.original)}
-                className="font-medium text-[#333] hover:text-primary hover:underline cursor-pointer focus:outline-none transition-colors"
+                className="font-semibold text-gray-900 hover:text-primary hover:underline cursor-pointer focus:outline-none transition-colors text-left text-sm"
               >
                 {row.original.name || "Unnamed Referee"}
               </button>
-              <div className="text-xs text-[#666]">{row.original.address}</div>
+              {row.original.address && (
+                <div className="text-xs text-gray-500 truncate max-w-[200px]">
+                  {row.original.address}
+                </div>
+              )}
             </div>
           </div>
         ),
@@ -296,9 +353,9 @@ const RosterTable = ({ referees = [], campId }) => {
         header: "Contact",
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="flex items-center gap-2 text-[#444]">
-            <BiPhone className="text-[#999] text-lg" />
-            <span className="text-sm font-medium tracking-wide">
+          <div className="flex items-center gap-2 text-gray-700">
+            <BiPhone className="text-gray-400 text-base shrink-0" />
+            <span className="text-xs sm:text-sm font-medium tracking-wide">
               {formatPhone(row.original.phone)}
             </span>
           </div>
@@ -309,7 +366,9 @@ const RosterTable = ({ referees = [], campId }) => {
         header: "Jersey ID",
         enableSorting: true,
         sortingFn: "alphanumeric",
-        cell: ({ row }) => jerseyEditor(row.original),
+        cell: ({ row }) => (
+          <div className="text-center">{jerseyEditor(row.original)}</div>
+        ),
       },
       {
         accessorKey: "assigned_games_count",
@@ -318,7 +377,7 @@ const RosterTable = ({ referees = [], campId }) => {
         sortingFn: "alphanumeric",
         cell: ({ row }) => (
           <div className="text-center">
-            <span className="inline-flex items-center gap-1.5 min-w-7 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
               <LuTrophy className="w-3.5 h-3.5" />
               {row.original.assigned_games_count ?? 0}
             </span>
@@ -347,32 +406,30 @@ const RosterTable = ({ referees = [], campId }) => {
                 <button
                   onClick={() => handleCheckIn(row.original.id)}
                   disabled={isLoading}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
                     isLoading
                       ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                      : "bg-green-50 hover:bg-green-100 text-green-700 border border-green-200"
+                      : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200"
                   }`}
                   title="Check In"
                 >
-                  <MdCheckCircle className="text-base" />
-                  <span className="hidden sm:inline">
-                    {isLoading ? "Checking..." : "Check In"}
-                  </span>
+                  <MdCheckCircle className="text-sm" />
+                  <span>{isLoading ? "Checking..." : "Check In"}</span>
                 </button>
               )}
 
               <button
                 onClick={() => handleRemove(row.original.id)}
                 disabled={removingId === row.original.id}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
                   removingId === row.original.id
                     ? "bg-gray-100 text-gray-500 cursor-not-allowed"
                     : "bg-red-50 hover:bg-red-100 text-red-600 border border-red-200"
                 }`}
                 title="Remove from Roster"
               >
-                <MdDelete className="text-base" />
-                <span className="hidden sm:inline">
+                <MdDelete className="text-sm" />
+                <span>
                   {removingId === row.original.id ? "Removing..." : "Remove"}
                 </span>
               </button>
@@ -382,11 +439,11 @@ const RosterTable = ({ referees = [], campId }) => {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [checkingInId, removingId, editingJerseyId, jerseyInput],
+    [checkingInId, removingId, editingJerseyId, jerseyInput]
   );
 
   const table = useReactTable({
-    data,
+    data: referees,
     columns,
     state: {
       sorting,
@@ -398,7 +455,7 @@ const RosterTable = ({ referees = [], campId }) => {
 
   const stats = [
     {
-      value: totalReferees,
+      value: totalRefereesCount,
       label: "Total Referees",
       icon: <LuUsers />,
     },
@@ -408,12 +465,12 @@ const RosterTable = ({ referees = [], campId }) => {
       icon: <LuUserCheck />,
     },
     {
-      value: totalReferees - checkedInCount,
+      value: notCheckedInCount,
       label: "Not Checked In",
       icon: <LuClock />,
     },
     {
-      value: gamesAssigned,
+      value: gamesAssignedCount,
       label: "Games Assigned",
       icon: <LuTrophy />,
     },
@@ -421,37 +478,62 @@ const RosterTable = ({ referees = [], campId }) => {
 
   return (
     <div className="w-full">
-      {/* Export + Stats Cards */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 flex-1">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="bg-white border border-border rounded-[10px] px-4 py-3.5 flex items-center gap-3 hover:shadow-sm transition-shadow"
+      {/* Search Input Bar + Export CSV Button */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+        <div className="relative flex-1">
+          <LuSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
+            placeholder="Search referees by name, email, phone, or ID..."
+            className="w-full pl-11 pr-10 py-3 bg-white border border-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 text-sm sm:text-base text-gray-800 placeholder-gray-400 transition shadow-xs"
+          />
+          {searchQuery && setSearchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition cursor-pointer"
+              aria-label="Clear search"
             >
-              <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
-                {stat.icon}
-              </span>
-              <div className="min-w-0">
-                <p className="text-lg font-medium text-[#333]">{stat.value}</p>
-                <p className="text-xs text-[#666]">{stat.label}</p>
-              </div>
-            </div>
-          ))}
+              <LuX className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         <button
           onClick={() => exportReferees()}
           disabled={isExporting}
-          className="inline-flex shrink-0 items-center gap-2 px-5 py-3 rounded-[10px] border border-border bg-white text-[#333] font-semibold text-sm whitespace-nowrap transition-all duration-300 hover:border-primary hover:text-primary hover:shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex shrink-0 items-center justify-center gap-2 px-5 py-3 rounded-xl border border-border bg-white text-gray-800 font-semibold text-sm whitespace-nowrap transition-all duration-300 hover:border-primary hover:text-primary hover:shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <LuDownload className="text-base" />
+          <LuDownload className="text-base text-primary" />
           {isExporting ? "Exporting..." : "Export CSV"}
         </button>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden md:block bg-white border border-border rounded-[10px] overflow-hidden">
+      {/* Stat Cards Display */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="bg-white border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 shadow-xs"
+          >
+            <span className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
+              {stat.icon}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-base sm:text-lg font-bold leading-tight text-gray-900">
+                {stat.value}
+              </p>
+              <p className="text-xs font-medium text-gray-500 truncate mt-0.5">
+                {stat.label}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white border border-border rounded-xl overflow-hidden shadow-xs">
         <div className="max-h-[600px] overflow-y-auto hide-scrollbar">
           <table className="w-full min-w-[900px]">
             <thead className="sticky top-0 bg-[#FAFAFA] border-b border-border z-10">
@@ -460,7 +542,7 @@ const RosterTable = ({ referees = [], campId }) => {
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-5 py-3.5 text-left text-xs font-semibold text-[#666] uppercase tracking-wider"
+                      className="px-5 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider"
                     >
                       {header.column.getCanSort() ? (
                         <button
@@ -469,22 +551,22 @@ const RosterTable = ({ referees = [], campId }) => {
                         >
                           {flexRender(
                             header.column.columnDef.header,
-                            header.getContext(),
+                            header.getContext()
                           )}
                           {header.column.getIsSorted() ? (
                             header.column.getIsSorted() === "asc" ? (
-                              <LuArrowUp className="w-4 h-4 text-primary" />
+                              <LuArrowUp className="w-3.5 h-3.5 text-primary" />
                             ) : (
-                              <LuArrowDown className="w-4 h-4 text-primary" />
+                              <LuArrowDown className="w-3.5 h-3.5 text-primary" />
                             )
                           ) : (
-                            <LuArrowUpDown className="w-4 h-4 opacity-25" />
+                            <LuArrowUpDown className="w-3.5 h-3.5 opacity-30" />
                           )}
                         </button>
                       ) : (
                         flexRender(
                           header.column.columnDef.header,
-                          header.getContext(),
+                          header.getContext()
                         )
                       )}
                     </th>
@@ -496,26 +578,36 @@ const RosterTable = ({ referees = [], campId }) => {
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-16 px-6">
-                    <LuInbox className="w-14 h-14 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-[#333] mb-2">
+                    <LuInbox className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-base font-semibold text-gray-800 mb-1">
                       No Referees Found
                     </h3>
-                    <p className="text-sm text-[#666]">
-                      Try adjusting your search or check back later.
+                    <p className="text-xs text-gray-500 max-w-sm mx-auto mb-4">
+                      {searchQuery
+                        ? "No referees matched your current search."
+                        : "No referees available in this camp roster."}
                     </p>
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery && setSearchQuery("")}
+                        className="px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white font-medium text-xs transition cursor-pointer"
+                      >
+                        Clear Search
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (
                 table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="hover:bg-primary/[0.03] transition-colors"
+                    className="hover:bg-slate-50/80 transition-colors"
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-5 py-4">
+                      <td key={cell.id} className="px-5 py-3.5">
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext(),
+                          cell.getContext()
                         )}
                       </td>
                     ))}
@@ -527,72 +619,85 @@ const RosterTable = ({ referees = [], campId }) => {
         </div>
       </div>
 
-      {/* Mobile Cards */}
+      {/* Mobile Responsive Cards */}
       <div className="md:hidden flex flex-col gap-3">
         {referees.length === 0 ? (
-          <div className="bg-white border border-border rounded-[10px] py-16 text-center">
-            <LuInbox className="w-14 h-14 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#333] mb-2">
+          <div className="bg-white border border-border rounded-xl py-12 px-4 text-center">
+            <LuInbox className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-gray-800 mb-1">
               No Referees Found
             </h3>
-            <p className="text-sm text-[#666]">
-              Try adjusting your search or check back later.
+            <p className="text-xs text-gray-500 mb-4">
+              {searchQuery
+                ? "No referees match your search."
+                : "No referees found."}
             </p>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery && setSearchQuery("")}
+                className="px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white font-medium text-xs transition cursor-pointer"
+              >
+                Clear Search
+              </button>
+            )}
           </div>
         ) : (
           referees.map((referee) => (
             <div
               key={referee.id}
-              className="bg-white border border-border rounded-[10px] p-4"
+              className="bg-white border border-border rounded-xl p-4 shadow-xs"
             >
               {/* Header */}
               <div className="flex items-center gap-3">
-                <img
-                  src={referee.avatar || "/default-avatar.png"}
-                  alt={referee.name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-primary/20 shrink-0"
-                  onError={(e) => (e.target.src = "/default-avatar.png")}
+                <RefereeAvatar
+                  src={referee.avatar}
+                  name={referee.name}
+                  className="w-11 h-11 text-sm shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   <button
                     onClick={() => openModal(referee)}
-                    className="font-medium text-[#333] hover:text-primary truncate block w-full text-left transition-colors"
+                    className="font-semibold text-gray-900 hover:text-primary truncate block w-full text-left transition-colors text-sm"
                   >
                     {referee.name || "Unnamed Referee"}
                   </button>
-                  <p className="text-xs text-[#666] truncate">
-                    {referee.address}
+                  <p className="text-xs text-gray-500 truncate">
+                    {referee.address || "No location specified"}
                   </p>
                 </div>
                 {statusBadge(referee.status)}
               </div>
 
-              {/* Details */}
+              {/* Details Grid */}
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="flex items-center gap-2 rounded-lg bg-[#FAFAFA] border border-border px-3 py-2">
-                  <BiPhone className="text-primary shrink-0" />
-                  <span className="text-xs text-[#555] truncate">
+                  <BiPhone className="text-primary text-base shrink-0" />
+                  <span className="text-xs text-gray-700 truncate font-medium">
                     {formatPhone(referee.phone)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 rounded-lg bg-[#FAFAFA] border border-border px-3 py-2">
-                  <LuTrophy className="text-primary shrink-0" />
-                  <span className="text-xs text-[#555]">
+                  <LuTrophy className="text-primary text-base shrink-0" />
+                  <span className="text-xs text-gray-700 font-medium">
                     {referee.assigned_games_count ?? 0} games
                   </span>
                 </div>
-                <div className="rounded-lg bg-[#FAFAFA] border border-border px-3 py-2">
-                  {jerseyEditor(referee)}
-                </div>
               </div>
 
-              {/* Actions */}
+              <div className="mt-2 flex items-center justify-between rounded-lg bg-[#FAFAFA] border border-border px-3 py-2">
+                <span className="text-xs text-gray-500 font-medium">
+                  Jersey Number:
+                </span>
+                {jerseyEditor(referee)}
+              </div>
+
+              {/* Actions Bar */}
               <div className="mt-3 flex gap-2">
                 {referee.status !== "checked_in" && (
                   <button
                     onClick={() => handleCheckIn(referee.id)}
                     disabled={checkingInId === referee.id}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 disabled:opacity-60"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition cursor-pointer bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 disabled:opacity-60"
                   >
                     <LuCheck className="w-4 h-4" />
                     {checkingInId === referee.id ? "Checking..." : "Check In"}
@@ -601,7 +706,7 @@ const RosterTable = ({ referees = [], campId }) => {
                 <button
                   onClick={() => handleRemove(referee.id)}
                   disabled={removingId === referee.id}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 disabled:opacity-60"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 disabled:opacity-60"
                 >
                   <MdDelete className="w-4 h-4" />
                   {removingId === referee.id ? "Removing..." : "Remove"}

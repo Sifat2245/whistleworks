@@ -361,7 +361,7 @@ const DemoAssignment = () => {
     }, [modalSearchTerm]);
 
     return (
-        <section className="py-16 md:py-24 bg-white text-[#333] relative overflow-hidden">
+        <section className="py-16 md:py-18 bg-white text-[#333] relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white via-white/80 to-transparent z-10 pointer-events-none" />
             <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent z-10 pointer-events-none" />
 
@@ -410,10 +410,6 @@ const DemoAssignment = () => {
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="text-center max-w-3xl mx-auto mb-10">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-3 backdrop-blur-sm">
-                        <LuSparkles className="text-primary text-xs animate-pulse" />
-                        <span>Live Interactive Demo</span>
-                    </div>
 
                     <CommonTitle
                         text="Interactive Court Assignment Experience"
@@ -439,8 +435,8 @@ const DemoAssignment = () => {
                                             key={day}
                                             onClick={() => setActiveDate(day)}
                                             className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium transition-all cursor-pointer ${active
-                                                    ? "bg-primary border-primary text-white shadow-sm ring-2 ring-primary/20"
-                                                    : "bg-white/90 backdrop-blur-sm border-border text-[#333] hover:border-primary/60 hover:text-primary"
+                                                ? "bg-primary border-primary text-white shadow-sm ring-2 ring-primary/20"
+                                                : "bg-white/90 backdrop-blur-sm border-border text-[#333] hover:border-primary/60 hover:text-primary"
                                                 }`}
                                         >
                                             <LuCalendarDays className={`shrink-0 ${active ? "" : "text-primary"}`} size={15} />
@@ -465,8 +461,8 @@ const DemoAssignment = () => {
                                 <button
                                     onClick={() => handleBulkModeToggle("individual")}
                                     className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${globalAssignmentType === "individual"
-                                            ? "bg-white text-primary shadow-sm"
-                                            : "text-gray-500 hover:text-gray-800"
+                                        ? "bg-white text-primary shadow-sm"
+                                        : "text-gray-500 hover:text-gray-800"
                                         }`}
                                 >
                                     <LuUser size={13} />
@@ -475,8 +471,8 @@ const DemoAssignment = () => {
                                 <button
                                     onClick={() => handleBulkModeToggle("crew")}
                                     className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${globalAssignmentType === "crew"
-                                            ? "bg-white text-purple-600 shadow-sm"
-                                            : "text-gray-500 hover:text-gray-800"
+                                        ? "bg-white text-purple-600 shadow-sm"
+                                        : "text-gray-500 hover:text-gray-800"
                                         }`}
                                 >
                                     <LuUsers size={13} className={globalAssignmentType === "crew" ? "text-purple-600" : ""} />
@@ -570,8 +566,8 @@ const DemoAssignment = () => {
                                                 <button
                                                     onClick={() => handleBulkBlockRow(slot.time_24h)}
                                                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer ${allBlocked
-                                                            ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                                                            : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                                                        ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                                        : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
                                                         }`}
                                                 >
                                                     {allBlocked ? <HiLockOpen className="w-3.5 h-3.5" /> : <HiLockClosed className="w-3.5 h-3.5" />}
@@ -599,8 +595,8 @@ const DemoAssignment = () => {
                                                             key={court.court_number}
                                                             onClick={() => !isBlocked && handleOpenModal(court, slot)}
                                                             className={`shrink-0 w-64 rounded-xl border bg-white p-4 min-h-[230px] flex flex-col justify-between transition-all duration-300 ${isBlocked
-                                                                    ? "border-gray-200 bg-gray-50 cursor-not-allowed"
-                                                                    : "border-border cursor-pointer hover:border-primary/50 hover:shadow-md hover:shadow-primary/5"
+                                                                ? "border-gray-200 bg-gray-50 cursor-not-allowed"
+                                                                : "border-border cursor-pointer hover:border-primary/50 hover:shadow-md hover:shadow-primary/5"
                                                                 }`}
                                                         >
                                                             {isBlocked ? (
@@ -675,8 +671,8 @@ const DemoAssignment = () => {
                                                                                         handleToggleSlotMode(slot.time_24h, court.court_number);
                                                                                     }}
                                                                                     className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${slotMode === "individual"
-                                                                                            ? "bg-white text-primary shadow-sm"
-                                                                                            : "text-gray-400 hover:text-gray-600"
+                                                                                        ? "bg-white text-primary shadow-sm"
+                                                                                        : "text-gray-400 hover:text-gray-600"
                                                                                         }`}
                                                                                     title="Switch to Individual Referees"
                                                                                 >
@@ -688,8 +684,8 @@ const DemoAssignment = () => {
                                                                                         handleToggleSlotMode(slot.time_24h, court.court_number);
                                                                                     }}
                                                                                     className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${slotMode === "crew"
-                                                                                            ? "bg-white text-primary shadow-sm"
-                                                                                            : "text-gray-400 hover:text-gray-600"
+                                                                                        ? "bg-white text-primary shadow-sm"
+                                                                                        : "text-gray-400 hover:text-gray-600"
                                                                                         }`}
                                                                                     title="Switch to Crew Mode"
                                                                                 >
@@ -844,8 +840,8 @@ const DemoAssignment = () => {
                                     <button
                                         onClick={() => setModalTab("referees")}
                                         className={`px-5 py-2.5 font-semibold text-sm border-b-2 transition-all cursor-pointer ${modalTab === "referees"
-                                                ? "border-primary text-primary"
-                                                : "border-transparent text-gray-500 hover:text-gray-800"
+                                            ? "border-primary text-primary"
+                                            : "border-transparent text-gray-500 hover:text-gray-800"
                                             }`}
                                     >
                                         Assign Referees
@@ -853,8 +849,8 @@ const DemoAssignment = () => {
                                     <button
                                         onClick={() => setModalTab("crew")}
                                         className={`px-5 py-2.5 font-semibold text-sm border-b-2 transition-all cursor-pointer ${modalTab === "crew"
-                                                ? "border-purple-600 text-purple-600"
-                                                : "border-transparent text-gray-500 hover:text-gray-800"
+                                            ? "border-purple-600 text-purple-600"
+                                            : "border-transparent text-gray-500 hover:text-gray-800"
                                             }`}
                                     >
                                         Assign Crew
@@ -877,8 +873,8 @@ const DemoAssignment = () => {
                                                         <div
                                                             key={posId}
                                                             className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${assignedRef
-                                                                    ? "bg-white border-blue-200 shadow-sm"
-                                                                    : "bg-white/60 border-dashed border-gray-300 hover:border-primary cursor-pointer"
+                                                                ? "bg-white border-blue-200 shadow-sm"
+                                                                : "bg-white/60 border-dashed border-gray-300 hover:border-primary cursor-pointer"
                                                                 }`}
                                                         >
                                                             {assignedRef ? (
@@ -947,14 +943,14 @@ const DemoAssignment = () => {
                                                         key={ref.id}
                                                         onClick={() => handleRefereeToggleInModal(ref)}
                                                         className={`border rounded-2xl p-4 flex flex-col transition-all cursor-pointer ${isSelected
-                                                                ? isNeedsRest
-                                                                    ? "border-orange-400 bg-orange-50/80 ring-2 ring-orange-200 shadow-md"
-                                                                    : "border-primary bg-blue-50/70 shadow-md ring-2 ring-primary/20"
-                                                                : isConflict
-                                                                    ? "border-red-400 bg-red-50 opacity-60 cursor-not-allowed"
-                                                                    : isNeedsRest
-                                                                        ? "border-orange-300 bg-orange-50/60 hover:border-orange-400"
-                                                                        : "border-gray-200 hover:border-primary"
+                                                            ? isNeedsRest
+                                                                ? "border-orange-400 bg-orange-50/80 ring-2 ring-orange-200 shadow-md"
+                                                                : "border-primary bg-blue-50/70 shadow-md ring-2 ring-primary/20"
+                                                            : isConflict
+                                                                ? "border-red-400 bg-red-50 opacity-60 cursor-not-allowed"
+                                                                : isNeedsRest
+                                                                    ? "border-orange-300 bg-orange-50/60 hover:border-orange-400"
+                                                                    : "border-gray-200 hover:border-primary"
                                                             }`}
                                                     >
                                                         <div className="flex items-center justify-between gap-4">
@@ -1013,8 +1009,8 @@ const DemoAssignment = () => {
                                                                             key={posId}
                                                                             onClick={() => handlePositionChangeForReferee(ref.id, posId)}
                                                                             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${isThisPos
-                                                                                    ? "bg-primary text-white shadow-md ring-2 ring-primary/30"
-                                                                                    : "bg-white border border-gray-200 text-gray-700 hover:border-primary hover:text-primary"
+                                                                                ? "bg-primary text-white shadow-md ring-2 ring-primary/30"
+                                                                                : "bg-white border border-gray-200 text-gray-700 hover:border-primary hover:text-primary"
                                                                                 }`}
                                                                         >
                                                                             <span>POS {posId}</span>
@@ -1042,8 +1038,8 @@ const DemoAssignment = () => {
                                                     key={crew.id}
                                                     onClick={() => setSelectedCrew(isSelected ? null : crew.id)}
                                                     className={`border-2 rounded-xl p-6 transition-all cursor-pointer ${isSelected
-                                                            ? "border-purple-600 bg-purple-50 shadow-md ring-2 ring-purple-500/20"
-                                                            : "border-gray-200 hover:border-purple-300"
+                                                        ? "border-purple-600 bg-purple-50 shadow-md ring-2 ring-purple-500/20"
+                                                        : "border-gray-200 hover:border-purple-300"
                                                         }`}
                                                 >
                                                     <div className="flex items-center justify-between mb-2">
