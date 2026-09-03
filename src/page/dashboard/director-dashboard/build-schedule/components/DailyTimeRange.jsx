@@ -25,7 +25,8 @@ const DailyTimeRange = ({ getDateRange }) => {
   const createScheduleMutation = useCreateSchedule(id);
   const autocompleteRefs = useRef({});
 
-  const { timezone, timezoneName, dates = [] } = getDateRange || {};
+  const { timezone, timezone_name, timezoneName, dates = [] } = getDateRange || {};
+  const displayTimezone = timezone_name || timezoneName || timezone || "—";
 
   const onPlaceChanged = (index) => {
     const autocomplete = autocompleteRefs.current[index];
@@ -341,7 +342,7 @@ const DailyTimeRange = ({ getDateRange }) => {
               <p className="text-sm text-amber-700 mt-1">
                 Make sure all locations are within the camp&apos;s timezone:{" "}
                 <span className="font-semibold text-amber-800">
-                  {timezoneName} ({timezone})
+                  {displayTimezone} {timezone && displayTimezone !== timezone ? `(${timezone})` : ""}
                 </span>
                 . Incorrect timezone settings may display wrong times for
                 referees and affect time synchronization.

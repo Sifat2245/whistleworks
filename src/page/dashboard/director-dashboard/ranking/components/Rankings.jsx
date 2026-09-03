@@ -373,7 +373,7 @@ const Rankings = ({ campId, sports_type_name }) => {
         </div>
 
         {/* Desktop table (md+) */}
-        <div className="hidden md:block overflow-x-auto hide-scrollbar">
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full min-w-[1400px]">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (

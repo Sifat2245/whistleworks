@@ -20,10 +20,14 @@ const BuildSchedule = () => {
   const {
     start_date = "—",
     end_date = "—",
-    timezoneName = "—",
+    timezone_name,
+    timezoneName,
+    timezone,
     dates = [],
     checked_in_referees_count = 0,
   } = getDateRange || {};
+
+  const displayTimezone = timezone_name || timezoneName || timezone || "—";
 
   const stats = [
     {
@@ -38,7 +42,7 @@ const BuildSchedule = () => {
     },
     {
       label: "Timezone",
-      value: timezoneName,
+      value: displayTimezone,
       icon: <LuGlobe />,
     },
     {

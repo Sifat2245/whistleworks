@@ -7,7 +7,7 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { useMemo, useRef, useCallback, useEffect } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useRefereeEvaluationHistory } from "@/hooks/api/useRankings";
 
 const SCORE_ITEMS = [
@@ -18,6 +18,35 @@ const SCORE_ITEMS = [
   { key: "fitness_mobility", label: "Fitness/Mobility" },
   { key: "game_awareness", label: "Game Awareness" },
 ];
+
+const DesktopExpandableText = ({ text, maxLength = 50 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!text || text === "-") return <span className="text-gray-400">-</span>;
+
+  const isLong = text.length > maxLength;
+
+  if (!isLong) {
+    return <div className="text-xs text-gray-700 whitespace-pre-line max-w-[220px]">{text}</div>;
+  }
+
+  return (
+    <div className="text-xs text-gray-700 max-w-[220px]">
+      <Tooltip title={!isExpanded ? text : ""} placement="topLeft" mouseEnterDelay={0.3}>
+        <div className={!isExpanded ? "truncate cursor-help" : "whitespace-pre-line leading-relaxed"}>
+          {text}
+        </div>
+      </Tooltip>
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="text-[11px] font-semibold text-[#00AEEF] hover:underline mt-1 block cursor-pointer"
+      >
+        {isExpanded ? "Show Less" : "Show More"}
+      </button>
+    </div>
+  );
+};
 
 const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
   const refereeId = referee?.referee_id;
@@ -130,30 +159,16 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
       {
         accessorKey: "private_comments",
         header: "Notes for Director",
-        cell: ({ row }) => {
-          const comment = row.original.private_comments || "-";
-          return (
-            <Tooltip title={comment} placement="topLeft" mouseEnterDelay={0.3}>
-              <div className="text-xs text-gray-600 max-w-[150px] truncate cursor-help">
-                {comment}
-              </div>
-            </Tooltip>
-          );
-        },
+        cell: ({ row }) => (
+          <DesktopExpandableText text={row.original.private_comments} />
+        ),
       },
       {
         accessorKey: "referee_feedback",
         header: "Referee Feedback",
-        cell: ({ row }) => {
-          const feedback = row.original.referee_feedback || "-";
-          return (
-            <Tooltip title={feedback} placement="topLeft" mouseEnterDelay={0.3}>
-              <div className="text-xs text-gray-700 max-w-[180px] line-clamp-3 cursor-help">
-                {feedback}
-              </div>
-            </Tooltip>
-          );
-        },
+        cell: ({ row }) => (
+          <DesktopExpandableText text={row.original.referee_feedback} />
+        ),
       },
       {
         accessorKey: "recommended_level",
@@ -422,7 +437,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                             <p className="text-xs font-semibold text-[#333] mb-1">
                               Notes for Director
                             </p>
-                            <p className="text-xs text-[#666] line-clamp-2">
+                            <p className="text-xs text-[#666] whitespace-pre-line leading-relaxed">
                               {evalItem.private_comments}
                             </p>
                           </div>
@@ -433,7 +448,7 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                             <p className="text-xs font-semibold text-[#333] mb-1">
                               Referee Feedback
                             </p>
-                            <p className="text-xs text-[#666] line-clamp-3">
+                            <p className="text-xs text-[#666] whitespace-pre-line leading-relaxed">
                               {evalItem.referee_feedback}
                             </p>
                           </div>

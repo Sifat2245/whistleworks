@@ -265,9 +265,8 @@ const CampSchedules = () => {
 
       <CommonSectionTitle
         text="Games Overview"
-        subText={`${displayedGames} of ${totalGames} game${
-          totalGames !== 1 ? "s" : ""
-        } scheduled — click a referee or crew to view details`}
+        subText={`${displayedGames} of ${totalGames} game${totalGames !== 1 ? "s" : ""
+          } scheduled — click a referee or crew to view details`}
       />
 
       {/* Overview stats */}

@@ -1,33 +1,116 @@
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MdClose, MdArrowBack, MdOutlineSportsHandball } from "react-icons/md";
-import { Avatar, Spin } from "antd";
+import { Avatar, Spin, Select } from "antd";
 import { useGetRefereeDetails } from "@/hooks/api/useRefereeDetails";
 import {
   useSubmitEvaluation,
+  useRecommendedLevels,
   buildEvaluationFormData,
 } from "@/hooks/api/useEvaluation";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import Swal from "sweetalert2";
-import CommonInputWrapper from "../../../../../components/common/CommonInputWrapper";
-import CommonSubmitBtn from "../../../../../components/common/CommonSubmitBtn";
 import LoaderV2 from "../../../../../components/common/LoaderV2";
 import { BsPersonCheck } from "react-icons/bs";
+import {
+  LuClipboardList,
+  LuTarget,
+  LuMessageSquareText,
+  LuScale,
+  LuFootprints,
+  LuActivity,
+  LuEye,
+  LuMessageSquare,
+  LuAward,
+  LuLock,
+  LuSend,
+} from "react-icons/lu";
 
-const scoreOptions = Array.from({ length: 10 }, (_, i) => ({
-  label: `${i + 1}`,
-  value: i + 1,
-}));
-
-const levelOptions = [
-  { label: "NCAA D1", value: "NCAA D1" },
-  { label: "NCAA D2", value: "NCAA D2" },
-  { label: "NAIA", value: "NAIA" },
-  { label: "JUCO", value: "JUCO" },
-  { label: "HS", value: "HS" },
-  { label: "JH/ELEM", value: "JH/ELEM" },
+const criteria = [
+  {
+    key: "call_accuracy",
+    label: "Call / No Call Accuracy",
+    hint: "Correct decisions on plays",
+    icon: <LuTarget />,
+  },
+  {
+    key: "communication_skills",
+    label: "Communication Skills",
+    hint: "Clarity with players & coaches",
+    icon: <LuMessageSquareText />,
+  },
+  {
+    key: "consistency_of_calls",
+    label: "Consistency of Calls",
+    hint: "Uniformity throughout the game",
+    icon: <LuScale />,
+  },
+  {
+    key: "court_position_mechanics",
+    label: "Court Position & Mechanics",
+    hint: "Positioning & movement",
+    icon: <LuFootprints />,
+  },
+  {
+    key: "fitness_mobility",
+    label: "Fitness & Mobility",
+    hint: "Endurance & agility",
+    icon: <LuActivity />,
+  },
+  {
+    key: "game_awareness",
+    label: "Game Awareness",
+    hint: "Reading the flow of play",
+    icon: <LuEye />,
+  },
 ];
 
+const ScoreSelector = ({ value, onChange, label, hint, icon, error }) => (
+  <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-3 font-sans">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#00AEEF] flex items-center justify-center text-base shrink-0 border border-blue-100">
+          {icon}
+        </div>
+        <div>
+          <p className="font-semibold text-slate-800 text-xs sm:text-sm leading-tight">
+            {label}
+          </p>
+          {hint && <p className="text-[11px] text-slate-500 mt-0.5">{hint}</p>}
+        </div>
+      </div>
+
+      {value ? (
+        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#00AEEF] border border-blue-100">
+          {value} / 10
+        </span>
+      ) : (
+        <span className="text-xs font-medium text-slate-400">Select 1-10</span>
+      )}
+    </div>
+
+    <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5 pt-1">
+      {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => {
+        const isSelected = Number(value) === num;
+        return (
+          <button
+            key={num}
+            type="button"
+            onClick={() => onChange(num)}
+            className={`py-2 text-xs sm:text-sm font-bold rounded-lg border transition-all cursor-pointer ${
+              isSelected
+                ? "bg-[#00AEEF] text-white border-[#00AEEF] shadow-xs scale-105"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+            }`}
+          >
+            {num}
+          </button>
+        );
+      })}
+    </div>
+    {error && <p className="text-xs text-red-500 font-medium">{error.message}</p>}
+  </div>
+);
 
 const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole = "evaluator" }) => {
   const [view, setView] = useState("details");
@@ -36,21 +119,36 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
   const refereeId = refereeData?.referee_id;
   const { refereeDetails, isLoading } = useGetRefereeDetails(campId, refereeId);
 
+  const camp = refereeDetails?.camp;
+  const { data: recommendedLevels = [], isLoading: levelsLoading } =
+    useRecommendedLevels(camp?.sports_type_name);
+
+  const levelOptions = recommendedLevels.map((level) => ({
+    label: level,
+    value: level,
+  }));
+
   const {
     control,
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     reset: resetForm,
   } = useForm({
     defaultValues: { referee_id: String(refereeId) },
   });
 
+  const watchedScores = watch(criteria.map((c) => c.key));
+  const ratedCount = (watchedScores || []).filter(
+    (val) => val !== undefined && val !== null && val !== ""
+  ).length;
+  const progress = Math.round((ratedCount / criteria.length) * 100);
+
   const {
     mutate: submitEvaluation,
     isPending: isSubmitting,
   } = useSubmitEvaluation(campId, {
-    // Custom onSuccess resets the form and switches back to details view
     onSuccess: (response) => {
       Swal.fire({
         icon: "success",
@@ -82,9 +180,6 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
   };
 
   const details = refereeDetails?.referee;
-  // const statistics = refereeDetails?.statistics;
-  // const assignedSlots = refereeDetails?.assigned_slots;
-  const camp = refereeDetails?.camp;
 
   return (
     <AnimatePresence>
@@ -213,7 +308,7 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
                             // Scroll to top when switching to evaluation form
                             scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
                           }}
-                          className="w-full py-3 bg-[#00AEEF] hover:bg-[#0099d4] text-white font-semibold rounded-xl transition-all shadow-lg shadow-[#00AEEF]/20 hover:shadow-[#00AEEF]/30"
+                          className="w-full py-3 bg-[#00AEEF] hover:bg-[#0099d4] text-white font-semibold rounded-xl transition-all shadow-lg shadow-[#00AEEF]/20 hover:shadow-[#00AEEF]/30 cursor-pointer"
                         >
                           Evaluate This Referee
                         </button>
@@ -223,136 +318,185 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
                 )
               ) : (
                 /* Evaluation Form View */
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6 font-sans">
                   {/* Referee being evaluated */}
-                  <div className="flex items-center gap-3 bg-blue-50 rounded-xl p-4 border border-blue-100">
+                  <div className="flex items-center gap-3.5 bg-slate-50 rounded-xl p-4 border border-slate-200/80">
                     <Avatar size={48} src={refereeData?.avatar}>
                       {refereeData?.name?.charAt(0)?.toUpperCase() || "R"}
                     </Avatar>
                     <div>
-                      <p className="text-xs text-blue-600 uppercase tracking-wide font-medium">Evaluating</p>
-                      <p className="text-lg font-bold text-gray-900">{refereeData?.name || "Referee"}</p>
+                      <p className="text-xs text-[#00AEEF] uppercase tracking-wide font-semibold">Evaluating Official</p>
+                      <p className="text-base font-bold text-slate-900">{refereeData?.name || "Referee"}</p>
                     </div>
                   </div>
 
                   <input type="hidden" {...register("referee_id")} />
 
-                  <h3 className="text-base font-semibold text-gray-800 border-b border-gray-100 pb-2">
-                    Performance Criteria
-                  </h3>
+                  {/* Progress Bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
+                      <span>Performance Evaluation Progress</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#00AEEF] rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
 
-                  <CommonInputWrapper
-                    type="select"
-                    label="Call/No Call Accuracy (10=Excellent; 1=Poor)"
-                    placeholder="Select one.."
-                    register_as="call_accuracy"
-                    control={control}
-                    options={scoreOptions}
-                    validationRules={{ required: "Required" }}
-                    errors={errors}
-                  />
+                  {/* Performance Criteria Ratings */}
+                  <div>
+                    <div className="flex items-center gap-2 border-b border-[#E8E8E8] pb-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#00AEEF] flex items-center justify-center text-base border border-blue-100">
+                        <LuClipboardList />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold text-[#333]">
+                          Performance Criteria (1 = Poor, 10 = Excellent)
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          Tap a score rating button for each of the six category criteria.
+                        </p>
+                      </div>
+                    </div>
 
-                  <CommonInputWrapper
-                    type="select"
-                    label="Communication Skills (10=Excellent; 1=Poor)"
-                    placeholder="Select one.."
-                    register_as="communication_skills"
-                    control={control}
-                    options={scoreOptions}
-                    validationRules={{ required: "Required" }}
-                    errors={errors}
-                  />
+                    <div className="space-y-4">
+                      {criteria.map((item) => (
+                        <Controller
+                          key={item.key}
+                          name={item.key}
+                          control={control}
+                          rules={{ required: "Rating required" }}
+                          render={({ field }) => (
+                            <ScoreSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label={item.label}
+                              hint={item.hint}
+                              icon={item.icon}
+                              error={errors[item.key]}
+                            />
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-                  <CommonInputWrapper
-                    type="select"
-                    label="Consistency of Calls (10=Excellent; 1=Poor)"
-                    placeholder="Select one.."
-                    register_as="consistency_of_calls"
-                    control={control}
-                    options={scoreOptions}
-                    validationRules={{ required: "Required" }}
-                    errors={errors}
-                  />
+                  {/* Written Comments & Feedback */}
+                  <div>
+                    <div className="flex items-center gap-2 border-b border-[#E8E8E8] pb-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#00AEEF] flex items-center justify-center text-base border border-blue-100">
+                        <LuMessageSquare />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold text-[#333]">
+                          Written Comments & Feedback
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          Provide feedback for the official referee and confidential notes for directors.
+                        </p>
+                      </div>
+                    </div>
 
-                  <CommonInputWrapper
-                    type="select"
-                    label="Court Position/Mechanics (10=Excellent; 1=Poor)"
-                    placeholder="Select one.."
-                    register_as="court_position_mechanics"
-                    control={control}
-                    options={scoreOptions}
-                    validationRules={{ required: "Required" }}
-                    errors={errors}
-                  />
+                    <div className="space-y-4">
+                      {/* Referee Feedback */}
+                      <div>
+                        <label className="text-xs sm:text-sm font-semibold text-slate-800 flex items-center gap-1.5 mb-1.5">
+                          <span>Referee Feedback</span>
+                          <span className="text-[11px] font-normal text-slate-400">
+                            (Visible to referee)
+                          </span>
+                        </label>
+                        <textarea
+                          {...register("referee_feedback")}
+                          rows={3}
+                          placeholder="Write feedback, key strengths, and constructive tips for the referee..."
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#00AEEF] focus:bg-white text-xs sm:text-sm placeholder-gray-400 transition"
+                        />
+                      </div>
 
-                  <CommonInputWrapper
-                    type="select"
-                    label="Fitness/Mobility (10=Excellent; 1=Poor)"
-                    placeholder="Select one.."
-                    register_as="fitness_mobility"
-                    control={control}
-                    options={scoreOptions}
-                    validationRules={{ required: "Required" }}
-                    errors={errors}
-                  />
+                      {/* Private Comments */}
+                      <div>
+                        <label className="text-xs sm:text-sm font-semibold text-slate-800 flex items-center gap-1.5 mb-1.5">
+                          <LuLock className="text-[#00AEEF] text-xs" />
+                          <span>Private Comments</span>
+                          <span className="text-[11px] font-normal text-slate-400">
+                            (Visible only to directors & evaluators)
+                          </span>
+                        </label>
+                        <textarea
+                          {...register("private_comments")}
+                          rows={3}
+                          placeholder="Write internal notes or administrative logs..."
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#00AEEF] focus:bg-white text-xs sm:text-sm placeholder-gray-400 transition"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                  <CommonInputWrapper
-                    type="select"
-                    label="Game Awareness (10=Excellent; 1=Poor)"
-                    placeholder="Select one.."
-                    register_as="game_awareness"
-                    control={control}
-                    options={scoreOptions}
-                    validationRules={{ required: "Required" }}
-                    errors={errors}
-                  />
+                  {/* Recommended Highest Level of Officiating */}
+                  <div>
+                    <div className="flex items-center gap-2 border-b border-[#E8E8E8] pb-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#00AEEF] flex items-center justify-center text-base border border-blue-100">
+                        <LuAward />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold text-[#333]">
+                          Recommended HIGHEST Level of Officiating
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          Select the highest recommended competition level for this referee.
+                        </p>
+                      </div>
+                    </div>
 
-                  <CommonInputWrapper
-                    type="textarea"
-                    label="Private Comments"
-                    textareaClass="border-black/15"
-                    placeholder="Write private comments (visible only to evaluators and directors)..."
-                    register_as="private_comments"
-                    register={register}
-                    errors={errors}
-                  />
+                    <Controller
+                      name="recommended_level"
+                      control={control}
+                      rules={{ required: "Please select a recommended level" }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          placeholder={levelsLoading ? "Loading levels..." : "Select highest level..."}
+                          className="w-full text-left"
+                          size="large"
+                          options={levelOptions}
+                          disabled={levelsLoading}
+                        />
+                      )}
+                    />
+                    {errors.recommended_level && (
+                      <p className="text-xs text-red-500 font-medium mt-1">
+                        {errors.recommended_level.message}
+                      </p>
+                    )}
+                  </div>
 
-                  <CommonInputWrapper
-                    type="textarea"
-                    textareaClass="border-black/15"
-                    label="Referee Feedback"
-                    placeholder="Write feedback for the referee..."
-                    register_as="referee_feedback"
-                    register={register}
-                    errors={errors}
-                  />
-
-                  <CommonInputWrapper
-                    type="select"
-                    label="Recommended HIGHEST Level of Officiating"
-                    placeholder="Select one.."
-                    register_as="recommended_level"
-                    control={control}
-                    options={levelOptions}
-                    validationRules={{ required: "Required" }}
-                    errors={errors}
-                  />
-
-                  <div className="flex gap-3 pt-2">
+                  {/* Actions */}
+                  <div className="flex items-center gap-3 pt-4 border-t border-[#E8E8E8]">
                     <button
                       type="button"
                       onClick={() => setView("details")}
-                      className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+                      className="w-1/3 py-3 border border-slate-200 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-100 transition cursor-pointer"
                     >
                       Cancel
                     </button>
-                    <CommonSubmitBtn
-                      variant="primary"
-                      className="flex-1!"
+                    <button
+                      type="submit"
                       disabled={isSubmitting}
+                      className="flex-1 py-3 bg-[#00AEEF] hover:bg-[#0099d4] text-white font-bold text-sm rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      {isSubmitting ? <LoaderV2 /> : "Submit Evaluation"}
-                    </CommonSubmitBtn>
+                      {isSubmitting ? (
+                        <LoaderV2 />
+                      ) : (
+                        <>
+                          <LuSend className="text-base" />
+                          <span>Submit Evaluation</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </form>
               )}
@@ -365,3 +509,4 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
 };
 
 export default ScheduleRefereeModal;
+

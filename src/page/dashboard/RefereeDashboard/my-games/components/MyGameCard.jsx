@@ -131,9 +131,16 @@ export default function MyGameCard({ game, camp }) {
 
           {/* Court & My Position Pill */}
           <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3.5 text-center space-y-2">
-            <p className="text-sm font-bold text-slate-900">
-              {game.game_details.court_name}
-            </p>
+            <div>
+              <p className="text-sm font-bold text-slate-900">
+                {game.game_details.court_name}
+              </p>
+              {game?.location?.address && (
+                <p className="text-xs font-medium text-slate-600 mt-0.5">
+                  {game.location.address}
+                </p>
+              )}
+            </div>
 
             {game?.my_position && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-full border border-blue-200 shadow-2xs">
