@@ -126,7 +126,7 @@ const RegistrationModal = ({
     }
   };
 
-  // Reset state when modal opens/closes
+  // Reset state when modal opens
   useEffect(() => {
     if (open) {
       setCouponCode("");
@@ -135,7 +135,8 @@ const RegistrationModal = ({
       applyCouponMutation.reset();
       setRegistering(false);
     }
-  }, [open, applyCouponMutation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleCloseSuccess = () => {
     setSuccessData(null);
