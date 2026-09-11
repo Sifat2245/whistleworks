@@ -112,7 +112,7 @@ const ScoreSelector = ({ value, onChange, label, hint, icon, error }) => (
   </div>
 );
 
-const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole = "evaluator" }) => {
+const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole = "evaluator", sportsType }) => {
   const [view, setView] = useState("details");
   const scrollContainerRef = useRef(null);
 
@@ -121,7 +121,7 @@ const ScheduleRefereeModal = ({ isOpen, onClose, refereeData, campId, userRole =
 
   const camp = refereeDetails?.camp;
   const { data: recommendedLevels = [], isLoading: levelsLoading } =
-    useRecommendedLevels(camp?.sports_type_name);
+    useRecommendedLevels(sportsType);
 
   const levelOptions = recommendedLevels.map((level) => ({
     label: level,

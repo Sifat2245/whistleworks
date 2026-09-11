@@ -1,12 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Image, Spin } from "antd";
 import { useState } from "react";
 import dayjs from "dayjs";
 import useCountdown from "@/hooks/useCountdown";
 import { useAuth } from "@/hooks/useAuth";
-import useAxiosSecure from "@/hooks/useAxiosSecure";
 import dummyImage from "@/assets/dummyCardImg.png";
 import Swal from "sweetalert2";
-import toast from "react-hot-toast";
 import SectionCard from "@/components/common/SectionCard";
 import {
   formatDate,
@@ -17,7 +16,9 @@ import RegistrationModal from "./components/RegistrationModal";
 import {
   useCancelRegistration,
   useMyRegistrations,
+  useRegisterForCamp,
 } from "@/hooks/api/evaluator-hooks/useEvaluatorCamps";
+import { useCheckIn } from "@/hooks/api/referee-hooks/useRefereeCamps";
 import {
   LuCalendarDays,
   LuMapPin,
@@ -39,20 +40,24 @@ import { MdOutlineSportsTennis } from "react-icons/md";
 export default function CampDetails({ campData, onRegistrationUpdate }) {
   const [loading, setLoading] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const queryClient = useQueryClient();
 
   const { userData } = useAuth();
-  const axiosSecure = useAxiosSecure();
 
   const isEvaluator = userData?.role === "evaluator";
   const isReferee = userData?.role === "referee";
 
+  const registerForCamp = useRegisterForCamp();
+  const checkIn = useCheckIn();
   const cancelRegistration = useCancelRegistration();
 
   // Fetch all registrations to find the registration ID for this camp
   const { registrations } = useMyRegistrations(1, 100);
 
   const currentRegistration = isEvaluator
-    ? registrations.find((reg) => reg.camp?.id === campData?.id)
+    ? registrations.find(
+        (reg) => String(reg.camp?.id) === String(campData?.id)
+      )
     : null;
   const evaluatorRegistrationId = currentRegistration?.id;
 
@@ -88,26 +93,6 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
   const countdown = useCountdown(isUpcoming ? start_date : null);
 
   const handleAction = async () => {
-    let endpoint = "";
-    let payload = {};
-    let successMessage = "";
-    let newStatusField = "";
-    let newStatusValue = "";
-
-    if (isEvaluator) {
-      endpoint = `/evaluator/camp-registration/register`;
-      payload = { camp_id: campId };
-      successMessage = "Registration submitted successfully. Waiting for director approval.";
-      newStatusField = "evaluator_registration_status";
-      newStatusValue = "pending";
-    } else if (isReferee && refereeStatus === "registered") {
-      endpoint = `/v1/referee/camp/${campId}/checkin`;
-      payload = {};
-      successMessage = "Checked In Successfully!";
-      newStatusField = "referee_registration_status";
-      newStatusValue = "checked_in";
-    }
-
     // For referee registration (not already registered/checked-in), open the pricing/coupon modal
     if (isReferee && refereeStatus !== "registered" && refereeStatus !== "checked_in") {
       setShowRegistrationModal(true);
@@ -143,22 +128,17 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
       preConfirm: async () => {
         setLoading(true);
         try {
-          const response = await axiosSecure.post(endpoint, payload);
-
-          const { success, data } = response.data;
-
-          if (success) {
-            if (data?.payment_required && data?.checkout_url) {
-              Swal.close();
-              window.location.href = data.checkout_url;
-              return;
-            }
-
-            toast.success(successMessage);
-
+          if (isEvaluator) {
+            await registerForCamp.mutateAsync({ camp_id: campId });
             onRegistrationUpdate?.({
               ...campData,
-              [newStatusField]: newStatusValue,
+              evaluator_registration_status: "pending",
+            });
+          } else if (isReferee && refereeStatus === "registered") {
+            await checkIn.mutateAsync(campId);
+            onRegistrationUpdate?.({
+              ...campData,
+              referee_registration_status: "checked_in",
             });
           }
         } catch (error) {
@@ -204,6 +184,11 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
 
   // Callback when registration modal completes successfully
   const handleRegistrationSuccess = () => {
+    if (campId) {
+      queryClient.invalidateQueries({ queryKey: ["camp-details", campId] });
+      queryClient.invalidateQueries({ queryKey: ["evaluator-my-registrations"] });
+    }
+
     onRegistrationUpdate?.({
       ...campData,
       referee_registration_status: "registered",
