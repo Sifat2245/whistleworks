@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useStripeService } from "@/services/stripeConnection.service";
+import { useStripeService } from "@/services/director-services/stripeConnection.service";
 import Swal from "sweetalert2";
 
 export const useStripeConnectionStatus = () => {

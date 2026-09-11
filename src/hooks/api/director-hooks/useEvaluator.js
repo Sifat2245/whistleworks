@@ -5,9 +5,10 @@ import toast from "react-hot-toast";
 // ── Query key factory ─────────────────────────────────────────
 export const evaluatorKeys = {
   all: ["evaluators"],
-  pending: (campId, page) => ["pending-evaluators", campId, page],
-  approved: (campId, page) => ["approved-evaluators", campId, page],
-  rejected: (campId, page) => ["rejected-evaluators", campId, page],
+  camp: (campId) => ["evaluators", campId],
+  pending: (campId, page) => ["evaluators", campId, "pending", page],
+  approved: (campId, page) => ["evaluators", campId, "approved", page],
+  rejected: (campId, page) => ["evaluators", campId, "rejected", page],
 };
 
 // ── Pending evaluators (cached, paginated) ────────────────────
@@ -155,10 +156,9 @@ export const useApproveEvaluator = (campId) => {
     onSuccess: () => {
       toast.success("Evaluator approved successfully!");
 
-      // Invalidate both lists — the approved one needs to refresh too
+      // Invalidate all evaluator queries (pending, approved, rejected) for this camp
       queryClient.invalidateQueries({
-        queryKey: evaluatorKeys.all,
-        refetchType: "active",
+        queryKey: campId ? evaluatorKeys.camp(campId) : evaluatorKeys.all,
       });
     },
     onError: (error) => {
@@ -179,9 +179,10 @@ export const useRejectEvaluator = (campId) => {
     mutationFn: rejectEvaluator,
     onSuccess: () => {
       toast.success("Evaluator rejected.");
+
+      // Invalidate all evaluator queries (pending, approved, rejected) for this camp
       queryClient.invalidateQueries({
-        queryKey: evaluatorKeys.all,
-        refetchType: "active",
+        queryKey: campId ? evaluatorKeys.camp(campId) : evaluatorKeys.all,
       });
     },
     onError: (error) => {
@@ -202,9 +203,10 @@ export const useRemoveEvaluator = (campId) => {
     mutationFn: removeEvaluator,
     onSuccess: () => {
       toast.success("Evaluator removed successfully.");
+
+      // Invalidate all evaluator queries (pending, approved, rejected) for this camp
       queryClient.invalidateQueries({
-        queryKey: evaluatorKeys.all,
-        refetchType: "active",
+        queryKey: campId ? evaluatorKeys.camp(campId) : evaluatorKeys.all,
       });
     },
     onError: (error) => {

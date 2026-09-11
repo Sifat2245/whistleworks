@@ -42,14 +42,22 @@ export const useRegisterForCamp = (options) => {
   return useMutation({
     mutationKey: ["evaluator-register-camp"],
     mutationFn: registerForCamp,
-    onSuccess: (response) => {
+    onSuccess: (response, variables, context) => {
       toast.success(response?.data?.message || "Registration submitted successfully!");
       queryClient.invalidateQueries({ queryKey: evaluatorCampKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["evaluator-my-registrations"] });
+      queryClient.invalidateQueries({ queryKey: ["camp-details"] });
+      if (options?.onSuccess) {
+        options.onSuccess(response, variables, context);
+      }
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       const errorMsg =
         error?.response?.data?.message || "Registration failed. Please try again.";
       toast.error(errorMsg);
+      if (options?.onError) {
+        options.onError(error, variables, context);
+      }
     },
     ...options,
   });
@@ -63,14 +71,22 @@ export const useCancelRegistration = (options) => {
   return useMutation({
     mutationKey: ["evaluator-cancel-registration"],
     mutationFn: cancelRegistration,
-    onSuccess: (response) => {
+    onSuccess: (response, variables, context) => {
       toast.success(response?.data?.message || "Registration cancelled successfully!");
       queryClient.invalidateQueries({ queryKey: evaluatorCampKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["evaluator-my-registrations"] });
+      queryClient.invalidateQueries({ queryKey: ["camp-details"] });
+      if (options?.onSuccess) {
+        options.onSuccess(response, variables, context);
+      }
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error(
         error?.response?.data?.message || "Failed to cancel registration.",
       );
+      if (options?.onError) {
+        options.onError(error, variables, context);
+      }
     },
     ...options,
   });

@@ -11,7 +11,7 @@ import {
   FiZap,
 } from "react-icons/fi";
 import { SiStripe } from "react-icons/si";
-import { useStripeConnectionStatus, useConnectStripe, useStripeDashboard } from "@/hooks/api/useStripConnection";
+import { useStripeConnectionStatus, useConnectStripe, useStripeDashboard } from "@/hooks/api/director-hooks/useStripConnection";
 import userImage from "@/assets/dashboard/userImage.png";
 
 const roleColors = {
