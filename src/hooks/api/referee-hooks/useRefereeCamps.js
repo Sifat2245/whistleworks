@@ -77,14 +77,14 @@ export const useRefereePreviousCamps = (page = 1) => {
 };
 
 // ── Check-in mutation ─────────────────────────────────────────
-export const useCheckIn = () => {
+export const useCheckIn = (options) => {
   const { checkIn } = useRefereeCampService();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ["referee-checkin"],
     mutationFn: checkIn,
-    onSuccess: (response) => {
+    onSuccess: (response, variables, context) => {
       const data = response?.data;
       // If payment is required, redirect to checkout
       if (data?.data?.payment_required && data?.data?.checkout_url) {
@@ -93,24 +93,34 @@ export const useCheckIn = () => {
       }
       toast.success(data?.message || "Checked In Successfully!");
       queryClient.invalidateQueries({ queryKey: refereeCampKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["referee-my-checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["referee-my-registrations"] });
+      queryClient.invalidateQueries({ queryKey: ["camp-details"] });
+      if (options?.onSuccess) {
+        options.onSuccess(response, variables, context);
+      }
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error(
         error?.response?.data?.message || "Check-in failed. Please try again.",
       );
+      if (options?.onError) {
+        options.onError(error, variables, context);
+      }
     },
+    ...options,
   });
 };
 
 // ── Register mutation ─────────────────────────────────────────
-export const useRefereeRegister = () => {
+export const useRefereeRegister = (options) => {
   const { register } = useRefereeCampService();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ["referee-register"],
     mutationFn: ({ campId, payload = {} }) => register(campId, payload),
-    onSuccess: (response) => {
+    onSuccess: (response, variables, context) => {
       const data = response?.data;
       if (data?.data?.payment_required && data?.data?.checkout_url) {
         window.location.href = data.data.checkout_url;
@@ -118,11 +128,21 @@ export const useRefereeRegister = () => {
       }
       toast.success(data?.message || "Registered Successfully!");
       queryClient.invalidateQueries({ queryKey: refereeCampKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["referee-my-registrations"] });
+      queryClient.invalidateQueries({ queryKey: ["referee-my-checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["camp-details"] });
+      if (options?.onSuccess) {
+        options.onSuccess(response, variables, context);
+      }
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error(
         error?.response?.data?.message || "Registration failed. Please try again.",
       );
+      if (options?.onError) {
+        options.onError(error, variables, context);
+      }
     },
+    ...options,
   });
 };

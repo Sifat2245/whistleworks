@@ -107,8 +107,6 @@ export const useRecommendedLevels = (sportsTypeName) => {
       const response = await getRecommendLevels(sportsTypeName);
       return response?.data?.data || [];
     },
-    staleTime: 24 * 60 * 60 * 1000, // levels rarely change
-    gcTime: 24 * 60 * 60 * 1000,
   });
 };
 

@@ -79,14 +79,7 @@ const CampCard = ({ camp }) => {
     return `/camp/details/${campId}`;
   };
 
-  const buttonPath = getButtonPath();
-
-  const getButtonText = () => {
-    if (!isLoggedIn) {
-      return "Register";
-    }
-    return userRole === "director" ? "Manage" : "Register";
-  };
+  const buttonPath = getButtonPath()
 
   return (
     <motion.div
@@ -150,9 +143,11 @@ const CampCard = ({ camp }) => {
         </div>
 
         {/* Camp Title */}
-        <h3 className="text-xl sm:text-2xl font-black text-white leading-snug mb-3 group-hover:text-cyan-300 transition-colors drop-shadow-md line-clamp-2">
-          {camp_name || "Great Lakes Basketball Summit"}
-        </h3>
+        <Link to={buttonPath}>
+          <h3 className="text-xl sm:text-2xl font-black text-white leading-snug mb-3 group-hover:text-cyan-300 transition-colors drop-shadow-md line-clamp-2">
+            {camp_name || "Great Lakes Basketball Summit"}
+          </h3>
+        </Link>
 
         {/* Location & Date Specs */}
         <div className="space-y-1.5 mb-5 text-slate-300 text-xs sm:text-sm font-medium">
@@ -179,7 +174,7 @@ const CampCard = ({ camp }) => {
             to={buttonPath}
             className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-white text-white hover:text-slate-900 font-extrabold text-sm sm:text-base flex items-center gap-2 transition-all shadow-lg hover:shadow-cyan-500/20 group-hover:scale-105 shrink-0"
           >
-            <span>{getButtonText()}</span>
+            <span>View Details</span>
             <FaArrowRight className="text-xs group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

@@ -6,7 +6,7 @@ import {
   useStripeConnectionStatus,
   useConnectStripe,
   useStripeDashboard,
-} from "@/hooks/api/useStripConnection";
+} from "@/hooks/api/director-hooks/useStripConnection";
 import { Link } from "react-router-dom";
 
 // ── Skeleton ────────────────────────────────────────────────────

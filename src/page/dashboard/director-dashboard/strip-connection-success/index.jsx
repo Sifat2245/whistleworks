@@ -15,7 +15,7 @@ import { FiExternalLink, FiRefreshCw, FiArrowLeft } from "react-icons/fi";
 import {
   useStripeConnectionStatus,
   useStripeDashboard,
-} from "@/hooks/api/useStripConnection";
+} from "@/hooks/api/director-hooks/useStripConnection";
 
 // ─── Confetti Particles ───────────────────────────────────────────
 const CONFETTI_COLORS = [

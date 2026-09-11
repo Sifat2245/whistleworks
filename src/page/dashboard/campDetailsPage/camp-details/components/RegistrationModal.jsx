@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Modal, Input, Button, Spin } from "antd";
 import { LoadingOutlined, CheckCircleFilled, CloseCircleOutlined } from "@ant-design/icons";
-import useAxiosSecure from "@/hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import RegistrationSuccessModal from "./RegistrationSuccessModal";
 import {
   useCampPrice,
   useApplyCoupon,
 } from "@/hooks/api/referee-hooks/useCampRegistration";
+import { useRefereeRegister } from "@/hooks/api/referee-hooks/useRefereeCamps";
 
 const RegistrationModal = ({
   open,
@@ -17,13 +17,12 @@ const RegistrationModal = ({
   sportsName,
   onRegistrationSuccess,
 }) => {
-  const axiosSecure = useAxiosSecure();
-
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discountInfo, setDiscountInfo] = useState(null);
-  const [registering, setRegistering] = useState(false);
   const [successData, setSuccessData] = useState(null);
+
+  const refereeRegister = useRefereeRegister();
 
   // Fetch camp pricing
   const {
@@ -78,52 +77,39 @@ const RegistrationModal = ({
     applyCouponMutation.reset();
   };
 
-  // Handle registration
-  const handleRegister = async () => {
-    setRegistering(true);
-    try {
-      const payload = {};
-      if (appliedCoupon) {
-        payload.coupon_code = appliedCoupon;
-      }
-
-      const response = await axiosSecure.post(
-        `/v2/referee/camp/${campId}/register`,
-        payload
-      );
-
-      const { success, data } = response.data;
-
-      if (success) {
-        if (data?.payment_required && data?.checkout_url) {
-          // Save camp info & price breakdown to localStorage so PaymentSuccess can display it
-          localStorage.setItem(
-            "pending_camp_registration",
-            JSON.stringify({
-              camp: data?.camp,
-              price_breakdown: data?.price_breakdown,
-              discount: data?.discount,
-              session_id: data?.session_id,
-            })
-          );
-          onClose();
-          window.location.href = data.checkout_url;
-          return;
-        }
-
-        // Registration successful (free or 100% discount) — show success modal
-        setSuccessData(data);
-        onRegistrationSuccess?.();
-      }
-    } catch (error) {
-      const errorMsg =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Registration failed. Please try again.";
-      toast.error(errorMsg);
-    } finally {
-      setRegistering(false);
+  // Handle registration via centralized mutation hook
+  const handleRegister = () => {
+    const payload = {};
+    if (appliedCoupon) {
+      payload.coupon_code = appliedCoupon;
     }
+
+    refereeRegister.mutate(
+      { campId, payload },
+      {
+        onSuccess: (response) => {
+          const { success, data } = response?.data || {};
+          if (success) {
+            if (data?.payment_required && data?.checkout_url) {
+              localStorage.setItem(
+                "pending_camp_registration",
+                JSON.stringify({
+                  camp: data?.camp,
+                  price_breakdown: data?.price_breakdown,
+                  discount: data?.discount,
+                  session_id: data?.session_id,
+                })
+              );
+              onClose();
+              return;
+            }
+
+            setSuccessData(data);
+            onRegistrationSuccess?.();
+          }
+        },
+      }
+    );
   };
 
   // Reset state when modal opens
@@ -133,7 +119,6 @@ const RegistrationModal = ({
       setAppliedCoupon(null);
       setDiscountInfo(null);
       applyCouponMutation.reset();
-      setRegistering(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -333,7 +318,7 @@ const RegistrationModal = ({
                 size="large"
                 onClick={onClose}
                 className="flex-1 border-gray-300 text-gray-600 font-medium h-12 rounded-lg hover:bg-gray-50 transition-all"
-                disabled={registering}
+                disabled={refereeRegister.isPending}
               >
                 Cancel
               </Button>
@@ -341,10 +326,10 @@ const RegistrationModal = ({
                 type="primary"
                 size="large"
                 onClick={handleRegister}
-                loading={registering}
+                loading={refereeRegister.isPending}
                 className="flex-1 bg-primary! hover:bg-[#0099d4]! border-none font-semibold h-12 text-base rounded-lg shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 transition-all duration-200"
               >
-                {registering ? "Registering..." : "Confirm & Register"}
+                {refereeRegister.isPending ? "Registering..." : "Confirm & Register"}
               </Button>
             </div>
           </div>

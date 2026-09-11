@@ -9,7 +9,7 @@ import {
   IoClose,
 } from "react-icons/io5";
 import { FiExternalLink } from "react-icons/fi";
-import { useConnectStripe } from "@/hooks/api/useStripConnection";
+import { useConnectStripe } from "@/hooks/api/director-hooks/useStripConnection";
 
 // ── Content ─────────────────────────────────────────────────────
 const BENEFITS = [

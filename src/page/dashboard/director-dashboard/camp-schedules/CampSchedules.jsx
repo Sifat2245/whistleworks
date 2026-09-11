@@ -56,6 +56,7 @@ const CampSchedules = () => {
     isError,
     error,
   } = useCampRosterDetails(camp_id);
+  console.log(campData, 'data')
 
   const {
     mutate: exportSchedule,
@@ -357,6 +358,7 @@ const CampSchedules = () => {
         refereeData={selectedReferee}
         campId={camp_id}
         userRole="director"
+        sportsType={campData?.sports_type?.name}
       />
 
       {/* Crew Details Modal */}
