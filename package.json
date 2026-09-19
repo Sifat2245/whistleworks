@@ -1,13 +1,27 @@
 {
-  "name": "project_template",
+  "name": "whistleworks",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "WhistleWorks - Official Referee Camp Management, Evaluation & Scheduling Platform",
+  "author": "Md Sifat Rahman",
+  "license": "UNLICENSED",
+  "keywords": [
+    "whistleworks",
+    "referee",
+    "camp",
+    "management",
+    "evaluation",
+    "scheduling",
+    "sports"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",
@@ -43,6 +57,9 @@
   "devDependencies": {
     "@eslint/js": "^9.19.0",
     "@tanstack/eslint-plugin-query": "^5.66.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react-swc": "^3.5.0",
@@ -51,6 +68,8 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.18",
     "globals": "^15.14.0",
-    "vite": "^6.1.0"
+    "jsdom": "^30.1.0",
+    "vite": "^6.1.0",
+    "vitest": "^5.0.1"
   }
 }
