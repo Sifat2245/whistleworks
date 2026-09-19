@@ -68,7 +68,22 @@ const EvaluationFormV2 = ({ camp_id, sports_type_name }) => {
 
   const convertedRefOptions = getRegisterReferess?.map((ref) => ({
     value: String(ref?.referee_id),
-    label: `${ref?.name} ${ref?.jersey_number ? `(#${ref?.jersey_number})` : ""}`,
+    label: (
+      <div className="flex items-center gap-2.5 py-0.5">
+        <img
+          src={ref?.avatar || "/default-avatar.png"}
+          alt={ref?.name}
+          className="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200"
+          onError={(e) => {
+            e.target.src = "/default-avatar.png";
+          }}
+        />
+        <span className="font-medium text-slate-800 text-sm truncate">
+          {ref?.name} {ref?.jersey_number ? `(#${ref?.jersey_number})` : ""}
+        </span>
+      </div>
+    ),
+    searchValue: `${ref?.name} ${ref?.jersey_number ? `(#${ref?.jersey_number})` : ""}`,
     referee: ref,
   }));
 
@@ -182,7 +197,7 @@ const EvaluationFormV2 = ({ camp_id, sports_type_name }) => {
               size="large"
               options={convertedRefOptions}
               filterOption={(input, option) =>
-                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                (option?.searchValue ?? "").toLowerCase().includes(input.toLowerCase())
               }
             />
           )}
