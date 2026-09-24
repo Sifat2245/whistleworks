@@ -4,6 +4,7 @@ import CommonText from "@/components/common/CommonText";
 import CommonTitle from "@/components/common/CommonTitle";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 import { useLocation, useNavigate } from "react-router-dom";
 import LoaderV2 from "@/components/common/LoaderV2";
 import { useSignUp } from "@/hooks/api/useAuth";
@@ -104,7 +105,36 @@ const SignUp = () => {
       navigate("/auth/verify-otp");
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Sign up failed");
+      const errorResponse = error?.response?.data;
+      const emailErrors = errorResponse?.["t-errors"]?.email;
+      const isEmailTaken =
+        errorResponse?.message?.toLowerCase()?.includes("already been taken") ||
+        (Array.isArray(emailErrors) &&
+          emailErrors.some(
+            (msg) =>
+              typeof msg === "string" &&
+              msg.toLowerCase().includes("already been taken")
+          ));
+
+      if (isEmailTaken) {
+        Swal.fire({
+          icon: "warning",
+          title: "Account Already Exists",
+          text: "The email has already been taken. Please login and verify your account.",
+          showCancelButton: true,
+          confirmButtonText: "Sign In",
+          cancelButtonText: "Cancel",
+          confirmButtonColor: "#00AEEF",
+          cancelButtonColor: "#6B7280",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate("/auth/signin", { state: location.state });
+          }
+        });
+        return;
+      }
+
+      toast.error(errorResponse?.message || "Sign up failed");
     },
   });
 

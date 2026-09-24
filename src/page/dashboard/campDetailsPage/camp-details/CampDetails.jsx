@@ -35,7 +35,7 @@ import {
   LuX,
   LuTimer,
 } from "react-icons/lu";
-import { MdOutlineSportsTennis } from "react-icons/md";
+import SportIcon from "@/components/shared/SportIcon";
 
 export default function CampDetails({ campData, onRegistrationUpdate }) {
   const [loading, setLoading] = useState(false);
@@ -250,7 +250,7 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
     {
       label: "Sport",
       value: sports_type_name,
-      icon: <MdOutlineSportsTennis />,
+      icon: <SportIcon sport={sports_type_name} />,
       tint: "bg-amber-50 text-amber-600",
     },
     {
@@ -286,7 +286,7 @@ export default function CampDetails({ campData, onRegistrationUpdate }) {
                   {camp_name}
                 </h2>
                 <p className="text-xs sm:text-sm text-[#666] mt-1 flex items-center gap-1.5 flex-wrap">
-                  <MdOutlineSportsTennis className="text-primary shrink-0" />
+                  <SportIcon sport={sports_type_name} className="text-primary shrink-0" />
                   <span className="capitalize">{sports_type_name}</span>
                   <span className="text-[#ccc]">•</span>
                   <LuMapPin className="text-primary shrink-0" />
