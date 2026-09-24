@@ -34,7 +34,7 @@ import {
   LuInfo,
   LuSettings2,
 } from "react-icons/lu";
-import { MdOutlineSportsTennis } from "react-icons/md";
+import SportIcon from "@/components/shared/SportIcon";
 import ManageCampModal from "./components/ManageCampModal";
 
 const parseBool = (val) => val === true || val === 1 || val === "1" || val === "true";
@@ -308,8 +308,8 @@ const CampOverview = () => {
     },
     {
       label: "Sport",
-      value: campData?.sport?.sports_name || "—",
-      icon: <MdOutlineSportsTennis />,
+      value: campData?.sport?.sports_name || campData?.sports_type_name || "—",
+      icon: <SportIcon sport={campData?.sport || campData?.sports_type_name} />,
       tint: "bg-amber-50 text-amber-600",
     },
     {
@@ -344,9 +344,12 @@ const CampOverview = () => {
                   {campData?.camp_name}
                 </h2>
                 <p className="text-sm text-[#666] mt-1 flex items-center gap-1.5 flex-wrap">
-                  <MdOutlineSportsTennis className="text-primary shrink-0" />
+                  <SportIcon
+                    sport={campData?.sport || campData?.sports_type_name}
+                    className="text-primary shrink-0"
+                  />
                   <span className="capitalize">
-                    {campData?.sport?.sports_name || "—"}
+                    {campData?.sport?.sports_name || campData?.sports_type_name || "—"}
                   </span>
                   <span className="text-[#ccc]">•</span>
                   <LuMapPin className="text-primary shrink-0" />

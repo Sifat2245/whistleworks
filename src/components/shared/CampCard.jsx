@@ -8,6 +8,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import defaultCampBg from "@/assets/banner-images/photo-1634306320577-eb8f44e6ab96.webp";
+import SportIcon from "@/components/shared/SportIcon";
 
 // Helper to calculate duration in days between two dates
 const getDurationText = (startDateStr, endDateStr) => {
@@ -134,8 +135,9 @@ const CampCard = ({ camp }) => {
       <div className="relative z-20 mt-auto pt-8">
         {/* Pill Badges (Sport & Duration) */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-semibold">
-            {sports_type || "HS Basketball"}
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-semibold">
+            <SportIcon sport={sports_type} className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
+            <span>{sports_type || "HS Basketball"}</span>
           </span>
           <span className="px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-semibold">
             {durationText}
