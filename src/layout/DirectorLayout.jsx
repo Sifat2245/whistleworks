@@ -4,6 +4,7 @@ import DashboardHeader from "@/components/shared/DashboardHeader";
 import DashboardSidebar from "@/components/shared/DashboardSidebar";
 import { Outlet } from "react-router-dom";
 import NoticeTopbar from "@/components/shared/NoticeTopbar";
+import DynamicTitleManager from "@/components/common/DynamicTitleManager";
 
 const DirectorLayout = () => {
     const [isNoticeOpen, setIsNoticeOpen] = useState(false);
@@ -11,6 +12,7 @@ const DirectorLayout = () => {
 
     return (
         <div className="w-full min-h-screen bg-neutral-50">
+            <DynamicTitleManager />
             <NoticeTopbar onViewUpdate={() => setIsNoticeOpen(true)} />
 
             <div className="w-full lg:grid lg:grid-cols-[272px_minmax(0,1fr)]">

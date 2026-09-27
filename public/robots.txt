@@ -1,0 +1,31 @@
+# https://www.robotstxt.org/robotstxt.html
+# WhistleWorks - Official Referee Camp Management, Evaluation & Scheduling Platform
+
+User-agent: *
+Allow: /
+Allow: /all-camps
+Allow: /all-camps/*
+Allow: /about-us
+Allow: /faq
+Allow: /whats-new
+Allow: /privacy-policy
+Allow: /terms-conditions
+
+# Disallow authenticated dashboards and private administrative pages
+Disallow: /director-dashboard/
+Disallow: /director-dashboard/*
+Disallow: /evaluator-dashboard/
+Disallow: /evaluator-dashboard/*
+Disallow: /referee-dashboard/
+Disallow: /referee-dashboard/*
+Disallow: /auth/
+Disallow: /auth/*
+Disallow: /camp/details/
+Disallow: /camp/details/*
+
+# Crawl-delay (optional, helps prevent aggressive scraper bots)
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://whistleworks.org/sitemap.xml
+Sitemap: https://www.whistleworks.org/sitemap.xml

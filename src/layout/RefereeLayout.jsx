@@ -2,12 +2,14 @@ import { useState } from "react";
 import DashboardHeader from "@/components/shared/DashboardHeader";
 import DashboardSidebar from "@/components/shared/DashboardSidebar";
 import { Outlet } from "react-router-dom";
+import DynamicTitleManager from "@/components/common/DynamicTitleManager";
 
 const RefereeLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="w-full min-h-screen bg-neutral-50">
+      <DynamicTitleManager />
       {/* Sidebar — full height on the left */}
       <DashboardSidebar
         role="referee"

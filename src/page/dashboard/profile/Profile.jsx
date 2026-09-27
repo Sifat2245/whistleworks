@@ -13,7 +13,7 @@ import { useUpdateAvatar, useUpdateProfile } from "@/hooks/api/useAuth";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import EditProfileModal from "./components/EditProfileModal";
-import ProfileSettingsModal from "../../../components/common/ProfileSettingsModal";
+import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Profile() {

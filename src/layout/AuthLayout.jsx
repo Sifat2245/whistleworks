@@ -3,10 +3,12 @@ import { motion } from "framer-motion";
 import authLogo from "@/assets/logo4x.png";
 import bgImage from "@/assets/banner-images/photo-1634306320577-eb8f44e6ab96.webp";
 import { FaArrowLeft } from "react-icons/fa6";
+import DynamicTitleManager from "@/components/common/DynamicTitleManager";
 
 const AuthLayout = () => {
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden bg-slate-950 py-4 px-4">
+      <DynamicTitleManager />
       {/* Background Image with Dark Overlay */}
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transform scale-105 bg-slate-950"

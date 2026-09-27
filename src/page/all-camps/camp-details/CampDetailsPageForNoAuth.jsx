@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useCountdown from "@/hooks/useCountdown";
+import useDocumentTitle from "@/hooks/useDocumentTitle";
 import Swal from "sweetalert2";
 import { usePublicCampDetails } from "@/hooks/api/useNoAuthCamps";
 import dayjs from "dayjs";
@@ -71,6 +72,8 @@ const CampDetailsPageForNoAuth = () => {
   }, []);
 
   const camp = campDetails || {};
+
+  useDocumentTitle(camp.camp_name);
 
   const statusMeta = getStatusMeta(camp.status);
   const price = useMemo(() => formatPrice(camp.price), [camp.price]);
