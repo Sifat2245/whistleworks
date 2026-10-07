@@ -12,7 +12,7 @@ import {
   FiX,
   FiChevronRight,
 } from "react-icons/fi";
-import { LuSparkles } from "react-icons/lu";
+// import { LuSparkles } from "react-icons/lu";
 import { SiStripe } from "react-icons/si";
 import Logo from "@/components/common/Logo";
 import { useAuth } from "@/hooks/useAuth";
