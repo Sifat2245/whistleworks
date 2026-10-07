@@ -27,7 +27,7 @@ const DirectorLayout = () => {
                     <DashboardHeader onOpenSidebar={() => setIsSidebarOpen(true)} />
 
                     <main className="w-full">
-                        <div className="mx-auto w-full max-w-[1620px] px-4 pt-4 pb-10">
+                        <div className="mx-auto w-full max-w-[1620px] px-2 sm:px-4 pt-2 sm:pt-4 pb-2 sm:pb-10">
                             <Outlet />
                         </div>
                     </main>

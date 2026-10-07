@@ -15,7 +15,7 @@ describe("DynamicTitleManager Component", () => {
       </MemoryRouter>
     );
 
-    expect(document.title).toBe("About Us | WhistleWorks");
+    expect(document.title).toBe("About Us");
   });
 
   it("updates document.title for all-camps route", () => {
@@ -25,7 +25,7 @@ describe("DynamicTitleManager Component", () => {
       </MemoryRouter>
     );
 
-    expect(document.title).toBe("Explore Camps | WhistleWorks");
+    expect(document.title).toBe("Explore Camps");
   });
 
   it("updates document.title for director dashboard", () => {
@@ -35,6 +35,6 @@ describe("DynamicTitleManager Component", () => {
       </MemoryRouter>
     );
 
-    expect(document.title).toBe("Director Dashboard | WhistleWorks");
+    expect(document.title).toBe("Director Dashboard");
   });
 });

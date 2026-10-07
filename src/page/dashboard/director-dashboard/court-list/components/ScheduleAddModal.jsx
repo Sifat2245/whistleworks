@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Modal, Input, Tabs, Radio, Spin, Tooltip } from "antd";
 
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
@@ -19,9 +19,33 @@ import {
   formatRefereePosition,
 } from "@/utils/refereePositions";
 
-
 const { Search } = Input;
 const { TabPane } = Tabs;
+
+/**
+ * Robust referee matching helper covering IDs, referee_id, assignment_id, and email.
+ */
+const isRefMatching = (r, targetRef) => {
+  if (!r || !targetRef) return false;
+  const rId = r.id || r.referee_id;
+  const targetId = targetRef.id || targetRef.referee_id;
+  if (rId && targetId && String(rId) === String(targetId)) return true;
+  if (
+    r.assignment_id &&
+    targetRef.assignment_id &&
+    String(r.assignment_id) === String(targetRef.assignment_id)
+  ) {
+    return true;
+  }
+  if (
+    r.email &&
+    targetRef.email &&
+    r.email.toLowerCase().trim() === targetRef.email.toLowerCase().trim()
+  ) {
+    return true;
+  }
+  return false;
+};
 
 const ScheduleAddModal = ({
   isModalOpen,
@@ -41,20 +65,75 @@ const ScheduleAddModal = ({
   const [selectedReferees, setSelectedReferees] = useState([]);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [focusedTargetPosId, setFocusedTargetPosId] = useState(selectedPosition?.id || null);
+  const [focusedTargetPosId, setFocusedTargetPosId] = useState(
+    selectedPosition?.id || null,
+  );
 
   const courtPositions = getCourtPositions(selectedCourt, maxReferees);
 
-  // Reset on open
+  // Extract currently assigned referees directly from selectedCourt positions / assignments
+  const getInitiallyAssignedReferees = useCallback(() => {
+    const assigned = [];
+    const positions = getCourtPositions(selectedCourt, maxReferees);
+    const assignments = selectedCourt?.assignments || [];
+
+    positions.forEach((pos, idx) => {
+      const rawRef =
+        pos.referee ||
+        (pos.is_assigned && getPositionReferee(pos, assignments)) ||
+        (!pos.referee && assignments[idx]);
+
+      if (rawRef && rawRef.type !== "crew" && !rawRef.is_crew) {
+        const refId = rawRef.id || rawRef.referee_id;
+        const refName = rawRef.name || rawRef.referee_name;
+        if (refId || refName) {
+          assigned.push({
+            id: refId,
+            referee_id: refId,
+            name: refName,
+            referee_name: refName,
+            email: rawRef.email || rawRef.referee_email || "",
+            phone: rawRef.phone || rawRef.contact || "",
+            avatar:
+              rawRef.avatar ||
+              rawRef.photo ||
+              rawRef.image ||
+              rawRef.profile_image ||
+              "/default-avatar.png",
+            jersey_number: rawRef.jersey_number || rawRef.jourcy_number || "",
+            jourcy_number: rawRef.jourcy_number || rawRef.jersey_number || "",
+            assignment_id:
+              pos.game_slot_assignment_id || rawRef.assignment_id || rawRef.id,
+            assignedPositionId: pos.id || idx + 1,
+            is_assigned_to_this_slot: true,
+            status: rawRef.status || "already_assigned",
+            status_message:
+              rawRef.status_message || "Already assigned to this slot",
+          });
+        }
+      }
+    });
+    return assigned;
+  }, [selectedCourt, maxReferees]);
+
+  // Reset & populate initially assigned referees on open or court change
   useEffect(() => {
     if (isModalOpen) {
-      setSelectedReferees([]);
+      const initialAssigned = getInitiallyAssignedReferees();
+      setSelectedReferees(initialAssigned);
       setSelectedCrew(null);
       setSearchTerm("");
       setActiveTab(isCrewMode ? "crew" : "referees");
       setFocusedTargetPosId(selectedPosition?.id || null);
     }
-  }, [isModalOpen, assignmentType, selectedPosition, isCrewMode]);
+  }, [
+    isModalOpen,
+    assignmentType,
+    selectedPosition,
+    isCrewMode,
+    selectedCourt,
+    getInitiallyAssignedReferees,
+  ]);
 
   // ── Hooks ──────────────────────────────────────────────────────
   const { data: refereeListData = [], isLoading: loadingReferees } =
@@ -79,26 +158,86 @@ const ScheduleAddModal = ({
     onSuccess: onAssignSuccess,
   });
 
-  // Pre-select currently assigned referees with position info
+  // Enhance pre-selected assigned referees with detailed API list data
   useEffect(() => {
     if (refereeListData.length > 0 && activeTab === "referees") {
-      const assigned = refereeListData
-        .filter((ref) => ref.is_assigned_to_this_slot)
-        .map((ref, idx) => {
-          const matchedPos = courtPositions.find(
-            (p) =>
-              p.referee?.id === ref.id ||
-              p.game_slot_assignment_id === ref.assignment_id ||
-              (p.is_assigned && getPositionReferee(p, [ref]))
+      setSelectedReferees((prev) => {
+        const currentList =
+          prev.length > 0 ? prev : getInitiallyAssignedReferees();
+
+        const enriched = currentList.map((cur) => {
+          const matchedInApi = refereeListData.find((apiRef) =>
+            isRefMatching(cur, apiRef),
           );
-          return {
-            ...ref,
-            assignedPositionId: matchedPos?.id || courtPositions[idx]?.id || idx + 1,
-          };
+          if (matchedInApi) {
+            return {
+              ...matchedInApi,
+              ...cur,
+              id: matchedInApi.id || cur.id,
+              name: matchedInApi.name || cur.name,
+              avatar: matchedInApi.avatar || cur.avatar,
+              assignedPositionId: cur.assignedPositionId,
+            };
+          }
+          return cur;
         });
-      setSelectedReferees(assigned);
+
+        // Also check if refereeListData has any referee flagged as is_assigned_to_this_slot
+        refereeListData.forEach((apiRef, idx) => {
+          const isAssigned =
+            apiRef.is_assigned_to_this_slot ||
+            apiRef.status === "already_assigned" ||
+            apiRef.status_message
+              ?.toLowerCase()
+              .includes("already assigned to this slot");
+
+          if (isAssigned) {
+            const alreadyInEnriched = enriched.some((e) =>
+              isRefMatching(e, apiRef),
+            );
+
+            if (!alreadyInEnriched) {
+              const matchedPos = courtPositions.find(
+                (p) =>
+                  isRefMatching(p.referee, apiRef) ||
+                  (p.game_slot_assignment_id &&
+                    String(p.game_slot_assignment_id) ===
+                      String(apiRef.assignment_id)) ||
+                  (!enriched.some(
+                    (e) => String(e.assignedPositionId) === String(p.id),
+                  ) &&
+                    (p.is_assigned || p.referee)),
+              );
+
+              const fallbackPosId =
+                matchedPos?.id ||
+                courtPositions.find(
+                  (p) =>
+                    !enriched.some(
+                      (e) => String(e.assignedPositionId) === String(p.id),
+                    ),
+                )?.id ||
+                courtPositions[idx]?.id ||
+                idx + 1;
+
+              enriched.push({
+                ...apiRef,
+                assignedPositionId: fallbackPosId,
+              });
+            }
+          }
+        });
+
+        return enriched;
+      });
     }
-  }, [refereeListData, activeTab, selectedCourt, courtPositions]);
+  }, [
+    refereeListData,
+    activeTab,
+    selectedCourt,
+    courtPositions,
+    getInitiallyAssignedReferees,
+  ]);
 
   // Search filter — always include currently assigned
   const filteredReferees = useMemo(() => {
@@ -107,13 +246,16 @@ const ScheduleAddModal = ({
 
     const lower = searchTerm.toLowerCase();
     return refereeListData.filter((ref) => {
-      if (ref.is_assigned_to_this_slot) return true;
+      const isAssigned =
+        ref.is_assigned_to_this_slot ||
+        selectedReferees.some((r) => isRefMatching(r, ref));
+      if (isAssigned) return true;
       return (
         ref.name?.toLowerCase().includes(lower) ||
         ref.email?.toLowerCase().includes(lower)
       );
     });
-  }, [refereeListData, searchTerm, activeTab]);
+  }, [refereeListData, searchTerm, activeTab, selectedReferees]);
 
   // Conflict type detection
   const getConflictType = (ref) => {
@@ -142,19 +284,26 @@ const ScheduleAddModal = ({
       return;
     }
 
-    const conflictType = getConflictType(referee);
-    if (conflictType === "hard") {
-      toast.error(
-        "This referee is already assigned to another court at this time",
-      );
-      return;
-    }
+    const refId = referee.id || referee.referee_id;
 
     setSelectedReferees((prev) => {
-      const exists = prev.some((r) => r.id === referee.id);
-      if (exists) return prev.filter((r) => r.id !== referee.id);
+      const exists = prev.some((r) => isRefMatching(r, referee));
+      if (exists) {
+        return prev.filter((r) => !isRefMatching(r, referee));
+      }
+
+      const conflictType = getConflictType(referee);
+      if (conflictType === "hard") {
+        toast.error(
+          "This referee is already assigned to another court at this time",
+        );
+        return prev;
+      }
+
       if (prev.length >= (courtPositions.length || maxReferees)) {
-        toast.warning(`Maximum ${courtPositions.length || maxReferees} referees allowed`);
+        toast.warning(
+          `Maximum ${courtPositions.length || maxReferees} referees allowed`,
+        );
         return prev;
       }
 
@@ -162,39 +311,57 @@ const ScheduleAddModal = ({
       let targetPosId = null;
       if (
         focusedTargetPosId &&
-        !prev.some((r) => r.assignedPositionId === focusedTargetPosId)
+        !prev.some(
+          (r) => String(r.assignedPositionId) === String(focusedTargetPosId),
+        )
       ) {
         targetPosId = focusedTargetPosId;
       } else if (
         selectedPosition?.id &&
-        !prev.some((r) => r.assignedPositionId === selectedPosition.id)
+        !prev.some(
+          (r) => String(r.assignedPositionId) === String(selectedPosition.id),
+        )
       ) {
         targetPosId = selectedPosition.id;
       } else {
-        const usedPosIds = prev.map((r) => r.assignedPositionId);
-        const firstAvailable = courtPositions.find((p) => !usedPosIds.includes(p.id));
+        const usedPosIds = prev.map((r) => String(r.assignedPositionId));
+        const firstAvailable = courtPositions.find(
+          (p) => !usedPosIds.includes(String(p.id)),
+        );
         targetPosId = firstAvailable ? firstAvailable.id : prev.length + 1;
       }
 
-      return [...prev, { ...referee, assignedPositionId: targetPosId }];
+      return [
+        ...prev,
+        {
+          ...referee,
+          id: refId,
+          name: referee.name || referee.referee_name,
+          assignedPositionId: targetPosId,
+        },
+      ];
     });
   };
 
   const handlePositionChangeForReferee = (refId, newPosId) => {
     setSelectedReferees((prev) => {
-      const currentRef = prev.find((r) => r.id === refId);
+      const currentRef = prev.find((r) =>
+        isRefMatching(r, { id: refId, referee_id: refId }),
+      );
       if (!currentRef) return prev;
       const oldPosId = currentRef.assignedPositionId;
 
       const occupant = prev.find(
-        (r) => r.assignedPositionId === newPosId && r.id !== refId,
+        (r) =>
+          String(r.assignedPositionId) === String(newPosId) &&
+          !isRefMatching(r, { id: refId, referee_id: refId }),
       );
 
       return prev.map((r) => {
-        if (r.id === refId) {
+        if (isRefMatching(r, { id: refId, referee_id: refId })) {
           return { ...r, assignedPositionId: newPosId };
         }
-        if (occupant && r.id === occupant.id) {
+        if (occupant && isRefMatching(r, occupant)) {
           return { ...r, assignedPositionId: oldPosId };
         }
         return r;
@@ -205,10 +372,13 @@ const ScheduleAddModal = ({
   // Conflict detection
   const hasCrewAssigned =
     !!selectedCourt?.crew ||
-    selectedCourt?.assignments?.some((a) => a.is_crew || a.crew_id || a.type === "crew");
-  const hasIndividualReferees = refereeListData.some(
-    (ref) => ref.is_assigned_to_this_slot,
-  );
+    selectedCourt?.assignments?.some(
+      (a) => a.is_crew || a.crew_id || a.type === "crew",
+    );
+  const hasIndividualReferees =
+    selectedReferees.length > 0 ||
+    refereeListData.some((ref) => ref.is_assigned_to_this_slot) ||
+    courtPositions.some((p) => p.is_assigned || p.referee);
 
   const primaryButtonDisabled =
     activeTab === "referees"
@@ -228,7 +398,10 @@ const ScheduleAddModal = ({
 
     if (activeTab === "referees") {
       const hasRisk = selectedReferees.some(
-        (r) => getConflictType(r) === "soft" || r.is_assigned_to_this_court || r.status === "needs_rest",
+        (r) =>
+          getConflictType(r) === "soft" ||
+          r.is_assigned_to_this_court ||
+          r.status === "needs_rest",
       );
       const limit = courtPositions.length || maxReferees;
       const base = `Assign Referees (${selectedReferees.length}/${limit})`;
@@ -247,7 +420,10 @@ const ScheduleAddModal = ({
     }
 
     const restOrCourtRiskRefs = selectedReferees.filter(
-      (r) => r.is_assigned_to_this_court || r.status === "needs_rest" || getConflictType(r) === "soft",
+      (r) =>
+        r.is_assigned_to_this_court ||
+        r.status === "needs_rest" ||
+        getConflictType(r) === "soft",
     );
     if (restOrCourtRiskRefs.length > 0) {
       const names = restOrCourtRiskRefs
@@ -267,9 +443,10 @@ const ScheduleAddModal = ({
 
     // Build position-based payload as requested by API
     const dataPayload = selectedReferees.map((ref, idx) => {
-      const posId = ref.assignedPositionId || courtPositions[idx]?.id || idx + 1;
+      const posId =
+        ref.assignedPositionId || courtPositions[idx]?.id || idx + 1;
       return {
-        referee_ids: ref.id,
+        referee_ids: ref.id || ref.referee_id,
         position_ids: posId,
       };
     });
@@ -300,7 +477,7 @@ const ScheduleAddModal = ({
               {selectedTimeSlot?.time} • {selectedCourt?.address || "Main Court"}
               {selectedPosition && (
                 <span className="ml-2 font-semibold text-primary">
-                  • Target: {selectedPosition.position}
+                  • Target: {formatRefereePosition(selectedPosition.position)}
                 </span>
               )}
             </div>
@@ -355,11 +532,12 @@ const ScheduleAddModal = ({
             <div className="bg-slate-50 border border-gray-200 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-1.5">
-                  Court Positions ({selectedReferees.length}/{courtPositions.length || maxReferees})
+                  Court Positions ({selectedReferees.length}/
+                  {courtPositions.length || maxReferees})
                 </span>
                 {selectedPosition && (
                   <span className="text-xs font-semibold text-[#00AEEF] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
-                    Target Slot: {selectedPosition.position}
+                    Target Slot: {formatRefereePosition(selectedPosition.position)}
                   </span>
                 )}
               </div>
@@ -367,11 +545,11 @@ const ScheduleAddModal = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {courtPositions.map((pos) => {
                   const assignedRef = selectedReferees.find(
-                    (r) => r.assignedPositionId === pos.id
+                    (r) => String(r.assignedPositionId) === String(pos.id),
                   );
                   const isTarget =
-                    selectedPosition?.id === pos.id ||
-                    focusedTargetPosId === pos.id;
+                    String(selectedPosition?.id) === String(pos.id) ||
+                    String(focusedTargetPosId) === String(pos.id);
 
                   return (
                     <div
@@ -392,7 +570,7 @@ const ScheduleAddModal = ({
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             <img
                               src={assignedRef.avatar || "/default-avatar.png"}
-                              alt={assignedRef.name}
+                              alt={assignedRef.name || assignedRef.referee_name}
                               className="w-9 h-9 rounded-full object-cover border border-blue-200 shrink-0"
                               onError={(e) =>
                                 (e.target.src = "/default-avatar.png")
@@ -400,24 +578,25 @@ const ScheduleAddModal = ({
                             />
                             <div className="flex flex-col min-w-0">
                               <span className="text-[10px] font-bold text-[#00AEEF] uppercase tracking-wider truncate">
-                                {pos.position}
+                                {formatRefereePosition(pos.position)}
                               </span>
-                              <span className="text-xs font-semibold text-gray-800 truncate">
-                                {assignedRef.name}
-                              </span>
+                              <div className="flex items-center gap-1.5 truncate">
+                                <span className="text-xs font-semibold text-gray-800 truncate">
+                                  {assignedRef.name ||
+                                    assignedRef.referee_name ||
+                                    "Assigned Official"}
+                                </span>
+                                {(assignedRef.jersey_number ||
+                                  assignedRef.jourcy_number) && (
+                                  <span className="text-[10px] font-bold text-[#00AEEF] bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-full shrink-0">
+                                    #
+                                    {assignedRef.jersey_number ||
+                                      assignedRef.jourcy_number}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRefereeToggle(assignedRef);
-                            }}
-                            title="Remove assignment"
-                            className="w-6 h-6 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-600 text-gray-400 flex items-center justify-center transition-colors cursor-pointer text-sm font-bold shrink-0"
-                          >
-                            ×
-                          </button>
                         </>
                       ) : (
                         <div className="flex items-center gap-2 text-xs text-gray-500 font-medium py-0.5">
@@ -426,7 +605,7 @@ const ScheduleAddModal = ({
                           </div>
                           <div className="flex flex-col">
                             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                              {pos.position}
+                              {formatRefereePosition(pos.position)}
                             </span>
                             <span className="text-[11px] text-gray-400">
                               {isTarget ? "Target Slot" : "Unassigned"}
@@ -455,7 +634,8 @@ const ScheduleAddModal = ({
                 Available ({filteredReferees.length})
               </span>
               <span className="font-semibold text-[#00AEEF]">
-                Selected: {selectedReferees.length}/{courtPositions.length || maxReferees}
+                Selected: {selectedReferees.length}/
+                {courtPositions.length || maxReferees}
               </span>
             </div>
 
@@ -472,20 +652,29 @@ const ScheduleAddModal = ({
                 </div>
               ) : (
                 filteredReferees.map((ref) => {
-                  const selectedObj = selectedReferees.find((r) => r.id === ref.id);
+                  const selectedObj = selectedReferees.find((r) =>
+                    isRefMatching(r, ref),
+                  );
                   const isSelected = !!selectedObj;
                   const conflictType = getConflictType(ref);
                   const isHardConflict = conflictType === "hard";
                   const isSoftRisk = conflictType === "soft";
                   const isAssignedToThisCourt = !!ref.is_assigned_to_this_court;
                   const isNeedsRest = ref.status === "needs_rest" || isSoftRisk;
+                  const isCurrentlyAssigned =
+                    ref.is_assigned_to_this_slot ||
+                    ref.status === "already_assigned" ||
+                    ref.status_message
+                      ?.toLowerCase()
+                      .includes("already assigned to this slot");
                   const disabled =
                     !isSelected &&
-                    selectedReferees.length >= (courtPositions.length || maxReferees);
+                    selectedReferees.length >=
+                      (courtPositions.length || maxReferees);
 
                   return (
                     <div
-                      key={ref.id}
+                      key={ref.id || ref.referee_id}
                       onClick={() =>
                         !hasCrewAssigned &&
                         !disabled &&
@@ -530,11 +719,11 @@ const ScheduleAddModal = ({
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-semibold text-gray-900">
                                 {ref.name || "Unnamed Referee"}{" "}
-                                {ref?.jourcy_number
-                                  ? `#${ref.jourcy_number}`
+                                {ref?.jourcy_number || ref?.jersey_number
+                                  ? `#${ref.jourcy_number || ref.jersey_number}`
                                   : ""}
                               </p>
-                              {ref.is_assigned_to_this_slot && (
+                              {isCurrentlyAssigned && (
                                 <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
                                   Currently Assigned
                                 </span>
@@ -554,17 +743,19 @@ const ScheduleAddModal = ({
                                   Conflicting Assignment
                                 </span>
                               )}
-                              {isSoftRisk && !isAssignedToThisCourt && ref.status !== "needs_rest" && (
-                                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
-                                  Fatigue Risk
-                                </span>
-                              )}
+                              {isSoftRisk &&
+                                !isAssignedToThisCourt &&
+                                ref.status !== "needs_rest" && (
+                                  <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+                                    Fatigue Risk
+                                  </span>
+                                )}
                             </div>
                             <p className="text-sm text-gray-500 mt-0.5">
-                              Contact: {ref.phone}
+                              Contact: {ref.phone || ref.contact || "N/A"}
                             </p>
                             <p className="text-xs font-semibold text-gray-500">
-                              Total Games Assigned: {ref.total_assignments}
+                              Total Games Assigned: {ref.total_assignments ?? 0}
                             </p>
                             {ref.status_message && (
                               <p
@@ -610,9 +801,13 @@ const ScheduleAddModal = ({
                             Assign Position:
                           </span>
                           {courtPositions.map((cp) => {
-                            const isThisPos = selectedObj?.assignedPositionId === cp.id;
+                            const isThisPos =
+                              String(selectedObj?.assignedPositionId) ===
+                              String(cp.id);
                             const occupant = selectedReferees.find(
-                              (r) => r.assignedPositionId === cp.id && r.id !== ref.id
+                              (r) =>
+                                String(r.assignedPositionId) ===
+                                  String(cp.id) && !isRefMatching(r, ref),
                             );
 
                             return (
@@ -621,7 +816,10 @@ const ScheduleAddModal = ({
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handlePositionChangeForReferee(ref.id, cp.id);
+                                  handlePositionChangeForReferee(
+                                    ref.id || ref.referee_id,
+                                    cp.id,
+                                  );
                                 }}
                                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                                   isThisPos
@@ -631,9 +829,13 @@ const ScheduleAddModal = ({
                                       : "bg-white border border-gray-200 text-gray-700 hover:border-[#00AEEF] hover:text-[#00AEEF]"
                                 }`}
                               >
-                                <span>{cp.position}</span>
+                                <span>
+                                  {formatRefereePosition(cp.position)}
+                                </span>
                                 {isThisPos && (
-                                  <span className="text-white text-[11px] font-bold">✓</span>
+                                  <span className="text-white text-[11px] font-bold">
+                                    ✓
+                                  </span>
                                 )}
                                 {occupant && !isThisPos && (
                                   <span className="text-[10px] text-gray-400 font-normal">
@@ -789,17 +991,25 @@ const ScheduleAddModal = ({
                                     key={member.id}
                                     title={
                                       <div className="text-center">
-                                        <p className="font-medium">{member.name}</p>
-                                        {(member.position || member.position_name) && (
+                                        <p className="font-medium">
+                                          {member.name}
+                                        </p>
+                                        {(member.position ||
+                                          member.position_name) && (
                                           <p className="text-xs text-sky-300 font-semibold mt-0.5">
-                                            {formatRefereePosition(member.position || member.position_name)}
+                                            {formatRefereePosition(
+                                              member.position ||
+                                                member.position_name,
+                                            )}
                                           </p>
                                         )}
                                       </div>
                                     }
                                   >
                                     <img
-                                      src={member.avatar || "/default-avatar.png"}
+                                      src={
+                                        member.avatar || "/default-avatar.png"
+                                      }
                                       alt={member.name}
                                       className="w-11 h-11 rounded-full border-3 border-white shadow-md object-cover"
                                       onError={(e) =>
@@ -824,7 +1034,9 @@ const ScheduleAddModal = ({
                                     className="flex items-center gap-2.5 px-3 py-2"
                                   >
                                     <img
-                                      src={member.avatar || "/default-avatar.png"}
+                                      src={
+                                        member.avatar || "/default-avatar.png"
+                                      }
                                       alt={member.name || "crew member"}
                                       className="w-7 h-7 rounded-full object-cover border border-gray-200 bg-white shrink-0"
                                       onError={(e) =>
@@ -834,9 +1046,13 @@ const ScheduleAddModal = ({
                                     <span className="text-sm font-medium text-[#333] truncate flex-1">
                                       {member.name || "Unnamed Referee"}
                                     </span>
-                                    {(member.position || member.position_name) && (
+                                    {(member.position ||
+                                      member.position_name) && (
                                       <span className="shrink-0 text-[11px] font-semibold text-purple-700 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-full">
-                                        {formatRefereePosition(member.position || member.position_name)}
+                                        {formatRefereePosition(
+                                          member.position ||
+                                            member.position_name,
+                                        )}
                                       </span>
                                     )}
                                     {(member.jersey_number ||
@@ -851,7 +1067,6 @@ const ScheduleAddModal = ({
                                 ))}
                               </div>
                             )}
-
                           </div>
                         </div>
                       </div>

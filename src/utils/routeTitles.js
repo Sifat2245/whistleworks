@@ -4,44 +4,45 @@
 export const ROUTE_TITLES = {
   // ── Public Pages ───────────────────────────────────────
   "/": "WhistleWorks - Official Referee Camp Management & Scheduling",
-  "/about-us": "About Us | WhistleWorks",
-  "/all-camps": "Explore Camps | WhistleWorks",
-  "/faq": "FAQ | WhistleWorks",
-  "/whats-new": "What's New | WhistleWorks",
-  "/privacy-policy": "Privacy Policy | WhistleWorks",
-  "/terms-conditions": "Terms & Conditions | WhistleWorks",
+  "/about-us": "About Us",
+  "/all-camps": "Explore Camps",
+  "/faq": "FAQ",
+  "/whats-new": "What's New",
+  "/privacy-policy": "Privacy Policy",
+  "/terms-conditions": "Terms & Conditions",
 
   // ── Authentication ─────────────────────────────────────
-  "/auth/signin": "Sign In | WhistleWorks",
-  "/auth/signup": "Sign Up | WhistleWorks",
-  "/auth/forget-password": "Forgot Password | WhistleWorks",
-  "/auth/reset-password": "Reset Password | WhistleWorks",
-  "/auth/reset-password-otp": "Reset Password Verification | WhistleWorks",
-  "/auth/verify-otp": "Verify Email | WhistleWorks",
+  "/auth/signin": "Sign In",
+  "/auth/signup": "Sign Up",
+  "/auth/forget-password": "Forgot Password",
+  "/auth/reset-password": "Reset Password",
+  "/auth/reset-password-otp": "Reset Password Verification",
+  "/auth/verify-otp": "Verify Email",
 
   // ── Director Dashboard ─────────────────────────────────
-  "/director-dashboard": "Director Dashboard | WhistleWorks",
-  "/director-dashboard/create-new-camp": "Create New Camp | WhistleWorks",
-  "/director-dashboard/previous-camps": "Previous Camps | WhistleWorks",
-  "/director-dashboard/assigned-camps": "Assigned Camps | WhistleWorks",
-  "/director-dashboard/profile": "Profile Settings | WhistleWorks",
-  "/director-dashboard/stripe-connection-success": "Stripe Connected | WhistleWorks",
+  "/director-dashboard": "Director Dashboard",
+  "/director-dashboard/create-new-camp": "Create New Camp",
+  "/director-dashboard/previous-camps": "Previous Camps",
+  "/director-dashboard/assigned-camps": "Assigned Camps",
+  "/director-dashboard/profile": "Profile Settings",
+  "/director-dashboard/stripe-connection-success": "Stripe Connected",
+  "/director-dashboard/ai-assistant": "AI Director Assistant",
 
   // ── Evaluator Dashboard ────────────────────────────────
-  "/evaluator-dashboard": "Evaluator Dashboard | WhistleWorks",
-  "/evaluator-dashboard/active-camps": "My Active Camps | WhistleWorks",
-  "/evaluator-dashboard/find-camps": "Find Camps | WhistleWorks",
-  "/evaluator-dashboard/previous-camps": "Previous Camps | WhistleWorks",
-  "/evaluator-dashboard/profile": "Profile Settings | WhistleWorks",
+  "/evaluator-dashboard": "Evaluator Dashboard",
+  "/evaluator-dashboard/active-camps": "My Active Camps",
+  "/evaluator-dashboard/find-camps": "Find Camps",
+  "/evaluator-dashboard/previous-camps": "Previous Camps",
+  "/evaluator-dashboard/profile": "Profile Settings",
 
   // ── Referee Dashboard ──────────────────────────────────
-  "/referee-dashboard": "Referee Dashboard | WhistleWorks",
-  "/referee-dashboard/active-camps": "My Camps | WhistleWorks",
-  "/referee-dashboard/find-camps": "Find Camps | WhistleWorks",
-  "/referee-dashboard/previous-camps": "Previous Camps | WhistleWorks",
-  "/referee-dashboard/payment-success": "Payment Successful | WhistleWorks",
-  "/referee-dashboard/payment-cancel": "Payment Cancelled | WhistleWorks",
-  "/referee-dashboard/profile": "Profile Settings | WhistleWorks",
+  "/referee-dashboard": "Referee Dashboard",
+  "/referee-dashboard/active-camps": "My Camps",
+  "/referee-dashboard/find-camps": "Find Camps",
+  "/referee-dashboard/previous-camps": "Previous Camps",
+  "/referee-dashboard/payment-success": "Payment Successful",
+  "/referee-dashboard/payment-cancel": "Payment Cancelled",
+  "/referee-dashboard/profile": "Profile Settings",
 };
 
 export const DEFAULT_DOCUMENT_TITLE = "WhistleWorks - Official Referee Camp Management";
@@ -55,7 +56,7 @@ export const formatTitle = (title) => {
   if (trimmed.toLowerCase().includes("whistleworks") || trimmed.toLowerCase().includes("whistle works")) {
     return trimmed;
   }
-  return `${trimmed} | WhistleWorks`;
+  return `${trimmed}`;
 };
 
 /**
@@ -73,50 +74,50 @@ export const getTitleForPathname = (pathname = "") => {
 
   // Dynamic parameterized routes
   if (normalized.startsWith("/all-camps/")) {
-    return "Camp Details | WhistleWorks";
+    return "Camp Details";
   }
   if (normalized.startsWith("/director-dashboard/camp-overview/")) {
-    return "Camp Overview | WhistleWorks";
+    return "Camp Overview";
   }
   if (normalized.startsWith("/director-dashboard/edit-camp/")) {
-    return "Edit Camp | WhistleWorks";
+    return "Edit Camp";
   }
   if (normalized.startsWith("/director-dashboard/build-schedule/")) {
-    return "Build Schedule | WhistleWorks";
+    return "Build Schedule";
   }
   if (normalized.startsWith("/director-dashboard/court-list/")) {
-    return "Court List | WhistleWorks";
+    return "Court List";
   }
   if (normalized.startsWith("/director-dashboard/camp-schedules/")) {
-    return "Camp Schedules | WhistleWorks";
+    return "Camp Schedules";
   }
   if (normalized.startsWith("/director-dashboard/ranking/")) {
-    return "Camp Rankings | WhistleWorks";
+    return "Camp Rankings";
   }
   if (normalized.startsWith("/director-dashboard/roster/")) {
-    return "Camp Roster | WhistleWorks";
+    return "Camp Roster";
   }
   if (normalized.startsWith("/director-dashboard/make-announcement/")) {
-    return "Make Announcement | WhistleWorks";
+    return "Make Announcement";
   }
   if (normalized.startsWith("/director-dashboard/evaluate/")) {
-    return "Evaluate Referees | WhistleWorks";
+    return "Evaluate Referees";
   }
   if (normalized.startsWith("/director-dashboard/active-evaluate/")) {
-    return "Active Evaluations | WhistleWorks";
+    return "Active Evaluations";
   }
   if (normalized.startsWith("/director-dashboard/active-crews/")) {
-    return "Officiating Crews | WhistleWorks";
+    return "Officiating Crews";
   }
   if (normalized.startsWith("/director-dashboard/crew-details/")) {
-    return "Crew Details | WhistleWorks";
+    return "Crew Details";
   }
   if (
     normalized.startsWith("/evaluator-dashboard/camp/") ||
     normalized.startsWith("/referee-dashboard/camp/") ||
     normalized.startsWith("/camp/details/")
   ) {
-    return "Camp Details | WhistleWorks";
+    return "Camp Details";
   }
 
   return DEFAULT_DOCUMENT_TITLE;

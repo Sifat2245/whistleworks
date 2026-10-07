@@ -46,15 +46,13 @@ const CourtLists = ({ campData }) => {
   const [assignmentType, setAssignmentType] = useState("individual");
   const [slotOverrides, setSlotOverrides] = useState({});
 
+  // Reset slot overrides on camp or date change
   useEffect(() => {
-    if (campId) {
-      setAssignmentType("individual");
-      setSlotOverrides({});
-    }
-  }, [campId]);
+    setSlotOverrides({});
+  }, [campId, selectedDate]);
 
   const handleToggleSlotMode = (slotId, currentMode) => {
-    const activeMode = currentMode || slotOverrides[slotId] || assignmentType;
+    const activeMode = slotOverrides[slotId] || currentMode || assignmentType;
     const nextMode = activeMode === "crew" ? "individual" : "crew";
 
     setSlotOverrides((prev) => ({
@@ -67,6 +65,7 @@ const CourtLists = ({ campData }) => {
 
   const handleBulkModeToggle = (mode) => {
     setAssignmentType(mode);
+    setSlotOverrides({});
     if (scheduleId) {
       bulkModeChangeMutation.mutate({ scheduleId, mode });
     }
@@ -74,14 +73,15 @@ const CourtLists = ({ campData }) => {
 
   const getSlotAssignmentType = (courtSlot) => {
     if (!courtSlot) return assignmentType;
+    if (slotOverrides[courtSlot.slot_id]) return slotOverrides[courtSlot.slot_id];
     if (courtSlot.mode === "crew" || courtSlot.assignment_mode === "crew") return "crew";
     if (courtSlot.mode === "individual" || courtSlot.assignment_mode === "individual") return "individual";
     const assignments = courtSlot.assignments || [];
-    const hasCrew = assignments.some((a) => a.type === "crew");
+    const hasCrew = assignments.some((a) => a.type === "crew" || a.is_crew || a.crew_id);
     if (hasCrew) return "crew";
-    const hasRefs = assignments.some((a) => a.type === "individual");
+    const hasRefs = assignments.some((a) => a.type === "individual" || a.referee_id || a.id);
     if (hasRefs) return "individual";
-    return slotOverrides[courtSlot.slot_id] || assignmentType;
+    return assignmentType;
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -112,6 +112,24 @@ const CourtLists = ({ campData }) => {
   );
 
   const { data, isLoading } = useCourtInfo(campData?.id, selectedDate);
+
+    // Sync assignmentType with backend mode from API data
+  useEffect(() => {
+    const backendMode =
+      data?.mode ||
+      data?.active_mode ||
+      data?.schedule?.mode ||
+      data?.schedule?.active_mode;
+
+    if (backendMode === "crew" || backendMode === "individual") {
+      setAssignmentType(backendMode);
+    }
+  }, [
+    data?.mode,
+    data?.active_mode,
+    data?.schedule?.mode,
+    data?.schedule?.active_mode,
+  ]);
 
   const courtHeaders = data?.court_headers || [];
   const maxReferees = data?.schedule?.max_referees_per_slot;
