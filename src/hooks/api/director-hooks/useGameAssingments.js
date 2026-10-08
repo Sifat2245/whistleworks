@@ -200,6 +200,12 @@ export const useRemoveAssignment = (campId, selectedDate) => {
       queryClient.invalidateQueries({
         queryKey: ["court-info", campId, selectedDate],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["referee-list"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["crew-list"],
+      });
     },
     onError: (error) => {
       if (!handleAssignmentError(error, "You do not have permission to remove assignment.")) {
@@ -214,6 +220,7 @@ export const useRemoveAssignment = (campId, selectedDate) => {
 // ════════════════════════════════════════════════════════════════════
 
 export const useAssignReferees = (callbacks = {}) => {
+  const queryClient = useQueryClient();
   const { assignReferees } = useGameAssignmentService();
   const { onSuccess: onSuccessCb, onError: onErrorCb } = callbacks;
 
@@ -223,6 +230,9 @@ export const useAssignReferees = (callbacks = {}) => {
       assignReferees(slotId, payload || formData),
     onSuccess: (data, variables, context) => {
       toast.success("Referees assigned successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["referee-list"],
+      });
       if (onSuccessCb) onSuccessCb(data, variables, context);
     },
     onError: (error) => {
@@ -238,6 +248,7 @@ export const useAssignReferees = (callbacks = {}) => {
 
 
 export const useAssignCrew = (callbacks = {}) => {
+  const queryClient = useQueryClient();
   const { assignCrew } = useGameAssignmentService();
   const { onSuccess: onSuccessCb, onError: onErrorCb } = callbacks;
 
@@ -246,6 +257,12 @@ export const useAssignCrew = (callbacks = {}) => {
     mutationFn: ({ slotId, data }) => assignCrew(slotId, data),
     onSuccess: (data, variables, context) => {
       toast.success("Crew assigned successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["referee-list"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["crew-list"],
+      });
       if (onSuccessCb) onSuccessCb(data, variables, context);
     },
     onError: (error) => {

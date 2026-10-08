@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import ScheduleAddModal from "./ScheduleAddModal";
+import RefereeAssignModal from "./RefereeAssignModal";
+import CrewAssignModal from "./CrewAssignModal";
 import CourtSlotBox from "./CourtSlotBox";
 import CourtSlotCardMobile from "./CourtSlotCardMobile";
 import ScheduleActionButtons from "./ScheduleActionButtons";
@@ -813,22 +814,32 @@ const CourtLists = ({ campData }) => {
 
       <ScheduleActionButtons campId={campData?.id} />
 
-      {/* Modal */}
-      <ScheduleAddModal
-        isModalOpen={isModalOpen}
-        handleCloseModal={handleCloseModal}
-        selectedCourt={selectedCourt}
-        selectedTimeSlot={selectedTimeSlot}
-        selectedPosition={selectedPosition}
-        handleBlockCourt={handleBlockCourt}
-        campId={campData?.id}
-        maxReferees={maxReferees}
-        selectedDate={selectedDate}
-        sportName={campData?.sport?.sports_name}
-        assignmentType={getSlotAssignmentType(selectedCourt)}
-        isBlocking={toggleBlockMutation.isPending}
-        onAssignSuccess={handleAssignSuccess}
-      />
+      {/* Assignment Modals */}
+      {getSlotAssignmentType(selectedCourt) === "crew" ? (
+        <CrewAssignModal
+          isModalOpen={isModalOpen}
+          handleCloseModal={handleCloseModal}
+          selectedCourt={selectedCourt}
+          selectedTimeSlot={selectedTimeSlot}
+          handleBlockCourt={handleBlockCourt}
+          campId={campData?.id}
+          isBlocking={toggleBlockMutation.isPending}
+          onAssignSuccess={handleAssignSuccess}
+        />
+      ) : (
+        <RefereeAssignModal
+          isModalOpen={isModalOpen}
+          handleCloseModal={handleCloseModal}
+          selectedCourt={selectedCourt}
+          selectedTimeSlot={selectedTimeSlot}
+          selectedPosition={selectedPosition}
+          handleBlockCourt={handleBlockCourt}
+          campId={campData?.id}
+          maxReferees={maxReferees}
+          isBlocking={toggleBlockMutation.isPending}
+          onAssignSuccess={handleAssignSuccess}
+        />
+      )}
     </div>
   );
 };

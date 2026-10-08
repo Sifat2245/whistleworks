@@ -9,6 +9,7 @@ const CommonSubmitBtn = ({
   className,
   path = "",
   isLoading = false,
+  disabled = false,
   onClick,
   variant = "primary", // new prop
 }) => {
@@ -27,7 +28,13 @@ const CommonSubmitBtn = ({
   const baseClasses =
     "inline-flex font-medium cursor-pointer text-center justify-center items-center";
 
-  const combinedClasses = cn(baseClasses, variantClasses[variant], className);
+  const isBtnDisabled = disabled || isLoading;
+  const combinedClasses = cn(
+    baseClasses,
+    variantClasses[variant],
+    isBtnDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : "",
+    className
+  );
 
   // Conditional render
   if (link) {
@@ -42,11 +49,8 @@ const CommonSubmitBtn = ({
     <button
       type={type}
       onClick={onClick}
-      disabled={isLoading}
-      className={cn(
-        combinedClasses,
-        isLoading ? "opacity-70 cursor-not-allowed" : ""
-      )}
+      disabled={isBtnDisabled}
+      className={combinedClasses}
     >
       {isLoading ? (
         <Loader size={28} color="white" speed={1} />
