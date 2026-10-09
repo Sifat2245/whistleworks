@@ -19,13 +19,13 @@ const ResetPassword = () => {
     watch,
     formState: { errors },
   } = useForm();
-  const password = watch("password_confirmation");
+  const password = watch("password");
 
   // Note: reset password mutation
   const resetPasswordMutation = useResetPassword({
     onSuccess: (res) => {
       const message = res?.data?.message;
-      toast.success(message || "OTP verification successful");
+      toast.success(message || "Password reset successfully");
       sessionStorage.removeItem("reset_token");
       sessionStorage.removeItem("verify_email");
       sessionStorage.removeItem("testing_purpose_otp");

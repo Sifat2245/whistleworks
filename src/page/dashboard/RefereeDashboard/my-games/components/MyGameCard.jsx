@@ -1,6 +1,5 @@
 import { formatRefereePosition } from "@/utils/refereePositions";
 import { useState } from "react";
-import { format } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { LuCalendar, LuMapPin, LuMessageSquare, LuUserCheck, LuClock } from "react-icons/lu";
 import RefereeDetailsPopup from "./RefereeDetailsPopup";
@@ -8,20 +7,35 @@ import RefereeDetailsPopup from "./RefereeDetailsPopup";
 export default function MyGameCard({ game, camp }) {
   const [selectedReferee, setSelectedReferee] = useState(null);
 
-  const gameDateUTC = game?.game_details?.date;
-  const tz = camp?.timezone || "UTC";
+  // Extract raw date string (e.g. "2026-05-08") without browser local timezone shift
+  const rawDateStr =
+    typeof game?.game_details?.date === "string"
+      ? game.game_details.date.split("T")[0]
+      : "";
 
-  const startTimeStr = game.game_details.start_time;
-  const endTimeStr = game.game_details.end_time;
+  const tz = camp?.timezone || "America/Chicago";
 
-  const startLocalStr = `${format(gameDateUTC, "yyyy-MM-dd")}T${startTimeStr}`;
-  const endLocalStr = `${format(gameDateUTC, "yyyy-MM-dd")}T${endTimeStr}`;
+  const startTimeStr = game?.game_details?.start_time || "00:00:00";
+  const endTimeStr = game?.game_details?.end_time || "00:00:00";
+
+  const startLocalStr = `${rawDateStr}T${startTimeStr}`;
+  const endLocalStr = `${rawDateStr}T${endTimeStr}`;
 
   const startDateInTz = fromZonedTime(startLocalStr, tz);
   const endDateInTz = fromZonedTime(endLocalStr, tz);
 
-  const startTimeFormatted = formatInTimeZone(startDateInTz, tz, "h:mm a z");
-  const endTimeFormatted = formatInTimeZone(endDateInTz, tz, "h:mm a z");
+  const dateFormatted =
+    rawDateStr && !isNaN(startDateInTz?.getTime())
+      ? formatInTimeZone(startDateInTz, tz, "EEEE, MMMM d, yyyy")
+      : rawDateStr;
+
+  const startTimeFormatted = !isNaN(startDateInTz?.getTime())
+    ? formatInTimeZone(startDateInTz, tz, "h:mm a z")
+    : startTimeStr;
+
+  const endTimeFormatted = !isNaN(endDateInTz?.getTime())
+    ? formatInTimeZone(endDateInTz, tz, "h:mm a z")
+    : endTimeStr;
 
   const latitude = game.location.latitude;
   const longitude = game.location.longitude;
@@ -120,7 +134,7 @@ export default function MyGameCard({ game, camp }) {
           <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-slate-800 text-xs sm:text-sm font-semibold">
               <LuCalendar className="text-[#00AEEF] text-base shrink-0" />
-              <span>{format(new Date(gameDateUTC), "EEEE, MMM d, yyyy")}</span>
+              <span>{dateFormatted}</span>
             </div>
 
             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-[#00AEEF] shadow-2xs">

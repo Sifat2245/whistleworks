@@ -49,6 +49,11 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mock SVGSVGElement for svg-injector in node jsdom environment
+if (typeof globalThis.SVGSVGElement === 'undefined') {
+  globalThis.SVGSVGElement = window.SVGSVGElement || class SVGSVGElement extends HTMLElement {};
+}
+
 afterEach(() => {
   cleanup()
 })

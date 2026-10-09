@@ -178,7 +178,7 @@ describe("RefereeAssignModal Component", () => {
     });
   });
 
-  it("unassigns a selected referee when clicking the remove cross button on position card", () => {
+  it("unassigns a selected referee when clicking the referee item again", () => {
     render(
       <RefereeAssignModal
         isModalOpen={true}
@@ -190,12 +190,11 @@ describe("RefereeAssignModal Component", () => {
       />
     );
 
-    fireEvent.click(screen.getByText("Alex Johnson #12"));
+    const refItem = screen.getByText("Alex Johnson #12");
+    fireEvent.click(refItem);
     expect(screen.getByText(/Court Positions \(1\/2\)/i)).toBeInTheDocument();
 
-    const removeBtn = screen.getByTitle("Remove assignment");
-    fireEvent.click(removeBtn);
-
+    fireEvent.click(refItem);
     expect(screen.getByText(/Court Positions \(0\/2\)/i)).toBeInTheDocument();
   });
 });

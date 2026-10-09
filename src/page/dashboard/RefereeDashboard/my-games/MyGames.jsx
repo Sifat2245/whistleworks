@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { parseISO } from "date-fns";
 import { Spin } from "antd";
 import MyGameCard from "./components/MyGameCard";
 import { useAssignedSlots } from "@/hooks/api/referee-hooks/useRefereeGames";
@@ -70,10 +69,15 @@ export default function MyGames({ camp_id }) {
     );
   }
 
-  // Sort by date ascending (chronological order)
-  const sortedSlots = [...gameSlots].sort(
-    (a, b) => parseISO(a.game_details.date) - parseISO(b.game_details.date)
-  );
+  // Sort by date and start_time ascending (chronological order)
+  const sortedSlots = [...gameSlots].sort((a, b) => {
+    const dateA = (a?.game_details?.date || "").split("T")[0];
+    const dateB = (b?.game_details?.date || "").split("T")[0];
+    if (dateA !== dateB) return dateA.localeCompare(dateB);
+    const timeA = a?.game_details?.start_time || "";
+    const timeB = b?.game_details?.start_time || "";
+    return timeA.localeCompare(timeB);
+  });
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
