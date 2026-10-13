@@ -7,14 +7,14 @@ import { useRecommendedLevels } from "@/hooks/api/useEvaluation";
 import { resolveLevels } from "@/lib/recommendedLevels";
 import { Spin } from "antd";
 
-export default function Performance({ camp_id, sports_type_name }) {
+export default function Performance({ camp_id }) {
   const { data, isLoading } = useMyEvaluations(camp_id);
 
   // Recommended levels are driven by the camp's sports type
   // (e.g. HS Basketball → Large School Varsity ... JH/ELEM),
   // falling back to the legacy list while loading or for other sports.
   const { data: recommendedLevels = [] } =
-    useRecommendedLevels(sports_type_name);
+    useRecommendedLevels(camp_id);
   const levels = resolveLevels(recommendedLevels);
 
   // Destructure properly

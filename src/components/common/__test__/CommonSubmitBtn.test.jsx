@@ -5,9 +5,22 @@ import { MemoryRouter } from "react-router-dom";
 import CommonSubmitBtn from "../CommonSubmitBtn";
 
 describe("CommonSubmitBtn Component", () => {
+  it("opens an external download link with safe new-tab attributes", () => {
+    render(
+      <CommonSubmitBtn href="https://example.com/report.xlsx" target="_blank">
+        Download report
+      </CommonSubmitBtn>,
+    );
+    const link = screen.getByRole("link", { name: "Download report" });
+    expect(link).toHaveAttribute("href", "https://example.com/report.xlsx");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
   it("renders button with children text", () => {
     render(<CommonSubmitBtn>Submit Application</CommonSubmitBtn>);
-    expect(screen.getByRole("button", { name: /submit application/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /submit application/i }),
+    ).toBeInTheDocument();
   });
 
   it("triggers onClick when clicked", async () => {
@@ -26,7 +39,7 @@ describe("CommonSubmitBtn Component", () => {
         <CommonSubmitBtn link path="/all-camps">
           Browse Camps
         </CommonSubmitBtn>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const linkEl = screen.getByRole("link", { name: /browse camps/i });
@@ -41,7 +54,7 @@ describe("CommonSubmitBtn Component", () => {
     render(
       <CommonSubmitBtn isLoading onClick={handleClick}>
         Save Changes
-      </CommonSubmitBtn>
+      </CommonSubmitBtn>,
     );
 
     const button = screen.getByRole("button");
@@ -57,7 +70,7 @@ describe("CommonSubmitBtn Component", () => {
 
   it("applies variant classes correctly", () => {
     const { rerender } = render(
-      <CommonSubmitBtn variant="danger">Delete</CommonSubmitBtn>
+      <CommonSubmitBtn variant="danger">Delete</CommonSubmitBtn>,
     );
     expect(screen.getByRole("button")).toHaveClass("bg-red-600");
 

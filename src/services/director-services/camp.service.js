@@ -57,6 +57,5 @@ export const useCampService = () => {
 
     removeAssistantDirector: (assistantId, campId) =>
       axiosSecure.delete(`/assistant-director/camp/permission/remove?assistant_director_id=${assistantId}&camp_id=${campId}`),
-
   };
 };

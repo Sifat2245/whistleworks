@@ -5,11 +5,15 @@ import Icon from "@/components/common/Icon";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { useRefereeEvaluations } from "@/hooks/api/useRankings";
 import { useRecommendedLevels } from "@/hooks/api/useEvaluation";
-import { resolveLevels, LEVEL_LABELS } from "@/lib/recommendedLevels";
+import {
+  resolveLevels,
+  computeLevelCounts,
+  LEVEL_LABELS,
+} from "@/lib/recommendedLevels";
 
 const { Option } = Select;
 
-export default function RankingReportTable({ camp_id, sports_type_name }) {
+export default function RankingReportTable({ camp_id }) {
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState(null);
   const [minScore, setMinScore] = useState(null);
@@ -23,7 +27,7 @@ export default function RankingReportTable({ camp_id, sports_type_name }) {
   // Recommended levels are driven by the camp's sports type
   // (e.g. HS Basketball → Large School Varsity ... JH/ELEM).
   const { data: recommendedLevels = [], isLoading: levelsLoading } =
-    useRecommendedLevels(sports_type_name);
+    useRecommendedLevels(camp_id);
 
   const levels = resolveLevels(recommendedLevels);
 
@@ -42,24 +46,21 @@ export default function RankingReportTable({ camp_id, sports_type_name }) {
     if (!evaluations?.length) return [];
 
     const processedData = evaluations.map((item) => {
-      const levelCounts = {};
-      (item.recommended_levels || []).forEach((rl) => {
-        levelCounts[rl.level] = rl.count;
-      });
+      const levelCounts = computeLevelCounts(item, levels, recommendedLevels);
 
       return {
         key: item.referee_id,
         name: item.referee_name,
         avatarUrl: item.referee_avatar,
         address: item.referee_address,
-        overall: parseFloat(item.averages.overall.toFixed(3)),
-        callAccur: parseFloat(item.averages.call_accuracy.toFixed(1)),
-        mech: parseFloat(item.averages.court_position_mechanics.toFixed(1)),
-        fitMob: parseFloat(item.averages.fitness_mobility.toFixed(1)),
-        comm: parseFloat(item.averages.communication_skills.toFixed(1)),
-        consistency: parseFloat(item.averages.consistency_of_calls.toFixed(1)),
-        gA: parseFloat(item.averages.game_awareness.toFixed(1)),
-        totalEvaluations: item.total_evaluations,
+        overall: item.averages?.overall !== undefined ? parseFloat(Number(item.averages.overall).toFixed(3)) : 0,
+        callAccur: item.averages?.call_accuracy !== undefined ? parseFloat(Number(item.averages.call_accuracy).toFixed(1)) : 0,
+        mech: item.averages?.court_position_mechanics !== undefined ? parseFloat(Number(item.averages.court_position_mechanics).toFixed(1)) : 0,
+        fitMob: item.averages?.fitness_mobility !== undefined ? parseFloat(Number(item.averages.fitness_mobility).toFixed(1)) : 0,
+        comm: item.averages?.communication_skills !== undefined ? parseFloat(Number(item.averages.communication_skills).toFixed(1)) : 0,
+        consistency: item.averages?.consistency_of_calls !== undefined ? parseFloat(Number(item.averages.consistency_of_calls).toFixed(1)) : 0,
+        gA: item.averages?.game_awareness !== undefined ? parseFloat(Number(item.averages.game_awareness).toFixed(1)) : 0,
+        totalEvaluations: item.total_evaluations || 0,
         levelCounts,
       };
     });
@@ -74,7 +75,7 @@ export default function RankingReportTable({ camp_id, sports_type_name }) {
 
     filtered.sort((a, b) => b.overall - a.overall);
     return filtered.map((item, index) => ({ ...item, rank: index + 1 }));
-  }, [evaluations, search, level, minScore]);
+  }, [evaluations, search, level, minScore, levels, recommendedLevels]);
 
   const handleResetFilters = useCallback(() => {
     setSearch("");

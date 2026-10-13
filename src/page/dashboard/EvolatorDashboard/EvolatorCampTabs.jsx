@@ -6,12 +6,14 @@ import craveArrow from "@/assets/svg/creve-arrow.svg";
 import myGame from "@/assets/svg/my-games.svg";
 import calender from "/referee/calender-icon.svg";
 
-const ALL_TABS = ["camp-details", "roster", "schedule", "evaluate", "ranking-report"];
+const ALL_TABS = ["camp-details", "roster", "schedule", "evaluation", "ranking-report"];
 
 export default function EvolatorCampTabs({ visibleTabs = ALL_TABS }) {
   const [queryParams] = useSearchParams();
   const tab = queryParams.get("tab");
   const show = (key) => visibleTabs.includes(key);
+
+  const isEvaluationActive = tab === "evaluation" || tab === "evaluate";
 
   return (
     <div className="flex items-center gap-4 overflow-x-auto pb-4 md:pb-0">
@@ -81,24 +83,24 @@ export default function EvolatorCampTabs({ visibleTabs = ALL_TABS }) {
         </Link>
       )}
 
-      {show("evaluate") && (
+      {(show("evaluation") || show("evaluate")) && (
         <Link
-          to={`?tab=evaluate`}
+          to={`?tab=evaluation`}
           className={`border border-border py-3 px-3 rounded-lg flex items-center gap-2 cursor-pointer ${
-            tab === "evaluate" ? "bg-primary" : ""
+            isEvaluationActive ? "bg-primary" : ""
           }`}
         >
           <Icon
             src={craveArrow}
             alt="camp details icon"
-            className={`${tab === "evaluate" && "text-white"} size-5`}
+            className={`${isEvaluationActive && "text-white"} size-5`}
           />
           <span
             className={`text-base font-medium ${
-              tab === "evaluate" && "text-white"
+              isEvaluationActive && "text-white"
             }`}
           >
-            Evaluate
+            Evaluation
           </span>
         </Link>
       )}

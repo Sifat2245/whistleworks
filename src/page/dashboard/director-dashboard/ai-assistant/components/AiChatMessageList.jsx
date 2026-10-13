@@ -1,37 +1,67 @@
-import AiChatMessageItem from "./AiChatMessageItem";
-import AiChatEmptyState from "./AiChatEmptyState";
+import { useCallback, useEffect, useRef } from "react";
+import { useReducedMotion } from "framer-motion";
+import AiChatMessageItem from "@/page/dashboard/director-dashboard/ai-assistant/components/AiChatMessageItem";
+import AiChatEmptyState from "@/page/dashboard/director-dashboard/ai-assistant/components/AiChatEmptyState";
 
-const AiChatMessageList = ({
+export default function AiChatMessageList({
   messages = [],
   isTyping = false,
-  onSelectPrompt,
+  isSavedSession = false,
   messagesEndRef,
-}) => {
-  const isEmpty = messages.length === 0;
-
+}) {
+  const following = useRef(true);
+  const reduced = useReducedMotion();
+  const followResponse = useCallback(() => {
+    if (following.current)
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "auto",
+        block: "end",
+      });
+  }, [messagesEndRef]);
+  useEffect(() => {
+    if (following.current)
+      messagesEndRef.current?.scrollIntoView({
+        behavior: reduced ? "auto" : "smooth",
+        block: "end",
+      });
+  }, [messages, isTyping, messagesEndRef, reduced]);
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto px-1 sm:px-4 py-1 sm:py-4 flex flex-col">
-      {isEmpty ? (
-        <AiChatEmptyState onSelectPrompt={onSelectPrompt} />
+    <div
+      className="flex-1 min-h-0 overflow-y-auto px-1 sm:px-4 py-1 sm:py-4 flex flex-col"
+      onScroll={(event) => {
+        const element = event.currentTarget;
+        following.current =
+          element.scrollHeight - element.scrollTop - element.clientHeight < 100;
+      }}
+    >
+      {messages.length === 0 ? (
+        <AiChatEmptyState isSavedSession={isSavedSession} />
       ) : (
-        <div className="max-w-3xl mx-auto w-full space-y-4 sm:space-y-6">
-          {messages.map((msg) => (
-            <AiChatMessageItem key={msg.id} message={msg} />
+        <div
+          role="log"
+          aria-label="AI conversation"
+          aria-live="polite"
+          className="max-w-3xl mx-auto w-full space-y-4 sm:space-y-6"
+        >
+          {messages.map((message) => (
+            <AiChatMessageItem
+              key={message.id}
+              message={message}
+              onTypingProgress={followResponse}
+            />
           ))}
-
-          {/* Thinking Indicator */}
           {isTyping && (
-            <div className="flex items-center gap-2 text-xs text-slate-500 py-2">
-              <span className="size-2 rounded-full bg-slate-400 animate-pulse" />
-              <span>Thinking...</span>
+            <div
+              role="status"
+              className="flex items-center gap-2 text-xs text-slate-500 py-2"
+            >
+              <span className="size-2 rounded-full bg-primary animate-pulse motion-reduce:animate-none" />
+              Thinking…
             </div>
           )}
-
           <div ref={messagesEndRef} />
         </div>
       )}
     </div>
   );
-};
-
-export default AiChatMessageList;
+}

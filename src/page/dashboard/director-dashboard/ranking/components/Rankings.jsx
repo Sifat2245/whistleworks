@@ -21,7 +21,11 @@ import RefereeDetailsModal from "./RefereeDetailsModal";
 import RankingsSkeleton from "./RankingsSkeleton";
 import { useRefereeEvaluations } from "@/hooks/api/useRankings";
 import { useRecommendedLevels } from "@/hooks/api/useEvaluation";
-import { resolveLevels, LEVEL_LABELS } from "@/lib/recommendedLevels";
+import {
+  resolveLevels,
+  computeLevelCounts,
+  LEVEL_LABELS,
+} from "@/lib/recommendedLevels";
 
 const trophyColor = (rank) => {
   if (rank === 1) return "text-amber-400";
@@ -52,7 +56,7 @@ const rankBadgeClass = (rank) => {
   return "bg-[#333]";
 };
 
-const Rankings = ({ campId, sports_type_name }) => {
+const Rankings = ({ campId }) => {
   const {
     evaluations: rawEvaluations,
     isLoading,
@@ -61,23 +65,13 @@ const Rankings = ({ campId, sports_type_name }) => {
   } = useRefereeEvaluations(campId);
 
   const { data: recommendedLevels = [] } =
-    useRecommendedLevels(sports_type_name);
+    useRecommendedLevels(campId);
   const levels = resolveLevels(recommendedLevels);
 
   const processedData = useMemo(() => {
     const mapped = rawEvaluations.map((item) => {
       const averages = item.averages || {};
-      const levelCounts = {};
-      levels.forEach((lvl) => {
-        levelCounts[lvl] = 0;
-      });
-
-      (item.recommended_levels || []).forEach((lvl) => {
-        if (lvl.level in levelCounts) {
-          levelCounts[lvl.level] = lvl.count;
-        }
-      });
-
+      const levelCounts = computeLevelCounts(item, levels, recommendedLevels);
       const overall = averages.overall || 0;
 
       return {
@@ -106,7 +100,7 @@ const Rankings = ({ campId, sports_type_name }) => {
       ...item,
       rank: index + 1,
     }));
-  }, [rawEvaluations, levels]);
+  }, [rawEvaluations, levels, recommendedLevels]);
 
   const totalEvals = useMemo(
     () =>
@@ -295,11 +289,14 @@ const Rankings = ({ campId, sports_type_name }) => {
       ...levels.map((lvl) => ({
         accessorKey: `levels.${lvl}`,
         header: LEVEL_LABELS[lvl] || lvl,
-        cell: ({ row }) => (
-          <div className="text-center text-sm text-[#444]">
-            {row.original.levels[lvl] || "–"}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const count = row.original?.levels?.[lvl];
+          return (
+            <div className="text-center text-sm text-[#444]">
+              {count > 0 ? count : "–"}
+            </div>
+          );
+        },
       })),
     ],
     [levels],

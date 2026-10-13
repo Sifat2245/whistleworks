@@ -121,14 +121,20 @@ export const useRefereeEvaluationHistory = (campId, refereeId, enabled) => {
         refereeId,
         pageParam,
       );
-      return response?.data?.data || { evaluations: [], pagination: {} };
+      return (
+        response?.data?.data ??
+        response?.data ?? { evaluations: [], pagination: {} }
+      );
     },
     getNextPageParam: (lastPage) => {
-      const pagination = lastPage?.pagination;
-      if (!pagination || pagination.current_page >= pagination.last_page) {
+      const currentPage =
+        lastPage?.pagination?.current_page ?? lastPage?.current_page;
+      const lastPageNum =
+        lastPage?.pagination?.last_page ?? lastPage?.last_page;
+      if (!currentPage || !lastPageNum || currentPage >= lastPageNum) {
         return undefined;
       }
-      return pagination.current_page + 1;
+      return currentPage + 1;
     },
     initialPageParam: 1,
     enabled: !!campId && !!refereeId && enabled,

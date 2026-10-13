@@ -1,10 +1,16 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import CommonTitle from "../CommonTitle";
 import CommonText from "../CommonText";
 import ErrorText from "../ErrorText";
 import Logo from "../Logo";
 import CommonContactInfo from "../CommonContactInfo";
+
+vi.mock("../Icon", () => ({
+  default: ({ src, className }) => (
+    <span data-testid="mock-icon" data-src={src} className={className} />
+  ),
+}));
 
 describe("Common Primitive UI Components", () => {
   describe("CommonTitle", () => {

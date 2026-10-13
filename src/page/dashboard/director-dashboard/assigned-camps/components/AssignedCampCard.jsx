@@ -1,4 +1,4 @@
-import MyCampusCart from "@/page/dashboard/director-dashboard/dashboard/components/MyCampusCart";
+import CampCard from "@/page/dashboard/director-dashboard/dashboard/components/CampCard";
 
 const AssignedCampCard = ({ camp }) => {
   const permObj = Object.values(camp?.permissions || {})[0] || {};
@@ -17,7 +17,7 @@ const AssignedCampCard = ({ camp }) => {
     <div className="w-full">
       {/* Same card as "My Camps" — with an "Assigned by" badge and
           quick actions gated by the granted permissions */}
-      <MyCampusCart
+      <CampCard
         league={camp}
         assignedBy={camp.assigned_by || "Director"}
         permissions={mappedPermissions}

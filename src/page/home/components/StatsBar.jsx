@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 const StatsBar = () => {
   const stats = [
     { label: "Camps Managed", value: "30+", highlight: true },
-    { label: "Officials Evaluated", value: "10,000+", highlight: false },
+    { label: "Officials Evaluated", value: "1,000+", highlight: false },
     { label: "On-Court Accuracy", value: "99.9%", highlight: true },
     { label: "Coordinator Rating", value: "4.9 / 5", highlight: false },
   ];

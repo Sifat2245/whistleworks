@@ -8,6 +8,9 @@ const CommonSubmitBtn = ({
   link = false,
   className,
   path = "",
+  href,
+  target,
+  rel,
   isLoading = false,
   disabled = false,
   onClick,
@@ -33,10 +36,22 @@ const CommonSubmitBtn = ({
     baseClasses,
     variantClasses[variant],
     isBtnDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : "",
-    className
+    className,
   );
 
   // Conditional render
+  if (href) {
+    return (
+      <a
+        href={href}
+        target={target}
+        rel={rel || (target === "_blank" ? "noopener noreferrer" : undefined)}
+        className={combinedClasses}
+      >
+        {children}
+      </a>
+    );
+  }
   if (link) {
     return (
       <Link to={path} className={combinedClasses}>
@@ -52,11 +67,7 @@ const CommonSubmitBtn = ({
       disabled={isBtnDisabled}
       className={combinedClasses}
     >
-      {isLoading ? (
-        <Loader size={28} color="white" speed={1} />
-      ) : (
-        children
-      )}
+      {isLoading ? <Loader size={28} color="white" speed={1} /> : children}
     </button>
   );
 };

@@ -8,14 +8,43 @@ export const useEvaluationService = () => {
       axiosSecure.get(`/referee/evaluation/camp/${campId}/all-referees`, {
         params: { page },
       }),
-    
-    getRecommendLevels: (name) =>
-      axiosSecure.get("/referee/evaluation/recommended-highest-level", {
-        params: name ? { name } : {},
+
+    getRecommendLevels: (campIdOrParams) => {
+      const params = { format: "objects" };
+      if (typeof campIdOrParams === "object" && campIdOrParams !== null) {
+        Object.assign(params, campIdOrParams);
+        if (params.campId && !params.camp_id) {
+          params.camp_id = params.campId;
+          delete params.campId;
+        }
+      } else if (campIdOrParams) {
+        params.camp_id = campIdOrParams;
+      }
+      return axiosSecure.get("/referee/evaluation/recommended-highest-level", {
+        params,
+      });
+    },
+
+    storeEvaluation: (formData) =>
+      axiosSecure.post("/referee/evaluation/store", formData),
+
+    // Alias for backwards compatibility
+    submitEvaluation: (formData) =>
+      axiosSecure.post("/referee/evaluation/store", formData),
+
+    updateEvaluation: (evaluationId, formData) =>
+      axiosSecure.post(`/referee/evaluation/update/${evaluationId}`, formData),
+
+    deleteEvaluation: (evaluationId) =>
+      axiosSecure.delete(`/referee/evaluation/destroy/${evaluationId}`),
+
+    getMyCampEvaluations: (campId, page = 1, params = {}) =>
+      axiosSecure.get(`/referee/evaluation/my-evaluations/${campId}`, {
+        params: { page, ...params },
       }),
 
-    submitEvaluation: (formData) =>
-      axiosSecure.post("/referee/evaluation/upsert", formData),
+    getEvaluationDetails: (evaluationId) =>
+      axiosSecure.get(`/referee/evaluation/details/${evaluationId}`),
 
     getRefereeEvaluation: (campId, refereeId) =>
       axiosSecure.get(
@@ -32,8 +61,6 @@ export const useEvaluationService = () => {
 
     getEvaluationStats: (campId) =>
       axiosSecure.get(`/referee/evaluation/camp/${campId}/stats`),
-
-    deleteEvaluation: (evaluationId) =>
-      axiosSecure.delete(`/referee/evaluation/${evaluationId}/delete`),
   };
 };
+

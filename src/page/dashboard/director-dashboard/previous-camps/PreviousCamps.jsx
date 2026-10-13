@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FiRefreshCw } from "react-icons/fi";
 import BackBtn from "@/components/common/BackBtn";
 import PaginationV2 from "@/components/common/PaginationV2";
-import MyCampusCart from "@/page/dashboard/director-dashboard/dashboard/components/MyCampusCart";
+import CampCard from "@/page/dashboard/director-dashboard/dashboard/components/CampCard";
 import MyCampCartSkeleton from "@/page/dashboard/director-dashboard/dashboard/components/MyCampCartSkeleton";
 import { useGetPreviousCamps } from "@/hooks/api/director-hooks/useCamps";
 
@@ -67,7 +67,7 @@ const DirectorPreviousCamps = () => {
             {/* Camps List — same card as My Camps */}
             <div className="grid grid-cols-1 gap-5">
               {previousCamps.map((camp) => (
-                <MyCampusCart key={camp.camp_id} league={camp} />
+                <CampCard key={camp.camp_id} league={camp} />
               ))}
             </div>
 

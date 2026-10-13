@@ -103,6 +103,9 @@ export const getTitleForPathname = (pathname = "") => {
   if (normalized.startsWith("/director-dashboard/evaluate/")) {
     return "Evaluate Referees";
   }
+  if (normalized.startsWith("/director-dashboard/evaluation/")) {
+    return "Camp Evaluations";
+  }
   if (normalized.startsWith("/director-dashboard/active-evaluate/")) {
     return "Active Evaluations";
   }

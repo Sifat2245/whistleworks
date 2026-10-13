@@ -12,6 +12,7 @@ import Schedule from "../EvolatorDashboard/schedule/Schedule";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetCampDetails } from "@/hooks/api/director-hooks/useCamps";
 import EvaluateV2 from "../EvolatorDashboard/evaluate-referee/EvaluateV2";
+import EvaluatorEvaluationTab from "./evaluation/EvaluatorEvaluationTab";
 
 export default function CampDetailsPage() {
   const { id } = useParams();
@@ -43,14 +44,14 @@ export default function CampDetailsPage() {
 
   const allowedTabs = {
     common: ["camp-details"],
-    evaluator: ["ranking-report", "evaluate", "schedule", "roster"],
+    evaluator: ["ranking-report", "evaluation", "evaluate", "schedule", "roster"],
     referee: ["performance", "my-games", "roster", "ranking-report"],
   };
 
   // Tabs that should be visible to the user based on registration status.
   // Unregistered users only see "Camp Details" — the rest are hidden.
   const evaluatorVisibleTabs = isEvaluatorRegistered
-    ? ["camp-details", ...allowedTabs.evaluator]
+    ? ["camp-details", "roster", "schedule", "evaluation", "ranking-report"]
     : ["camp-details"];
   const refereeVisibleTabs = isRefereeRegistered
     ? ["camp-details", ...allowedTabs.referee]
@@ -102,8 +103,8 @@ export default function CampDetailsPage() {
                       {allowedTabs.evaluator.map((t) => {
                         if (t === "ranking-report")
                           return <li key={t}>Ranking Report</li>;
-                        if (t === "evaluate")
-                          return <li key={t}>Evaluate Referees</li>;
+                        if (t === "evaluation" || t === "evaluate")
+                          return <li key={t}>Camp Evaluations</li>;
                         if (t === "schedule")
                           return <li key={t}>Camp Schedule</li>;
                         if (t === "roster") return <li key={t}>Camp Roster</li>;
@@ -181,6 +182,12 @@ export default function CampDetailsPage() {
             {/* Evaluator-Only Tabs */}
             {isEvaluator && isEvaluatorRegistered && (
               <>
+                {tab === "evaluation" && (
+                  <EvaluatorEvaluationTab
+                    campId={id}
+                    campName={campName}
+                  />
+                )}
                 {tab === "evaluate" && (
                   <EvaluateV2
                     camp_id={id}

@@ -22,19 +22,39 @@ const SCORE_ITEMS = [
 const DesktopExpandableText = ({ text, maxLength = 50 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!text || text === "-") return <span className="text-gray-400">-</span>;
+  const normalizedText = useMemo(() => {
+    if (!text || text === "-") return "";
+    if (Array.isArray(text)) return text.filter(Boolean).join("\n");
+    return String(text);
+  }, [text]);
 
-  const isLong = text.length > maxLength;
+  if (!normalizedText) return <span className="text-gray-400">-</span>;
+
+  const isLong = normalizedText.length > maxLength;
 
   if (!isLong) {
-    return <div className="text-xs text-gray-700 whitespace-pre-line max-w-[220px]">{text}</div>;
+    return (
+      <div className="text-xs text-gray-700 whitespace-pre-line max-w-[220px]">
+        {normalizedText}
+      </div>
+    );
   }
 
   return (
     <div className="text-xs text-gray-700 max-w-[220px]">
-      <Tooltip title={!isExpanded ? text : ""} placement="topLeft" mouseEnterDelay={0.3}>
-        <div className={!isExpanded ? "truncate cursor-help" : "whitespace-pre-line leading-relaxed"}>
-          {text}
+      <Tooltip
+        title={!isExpanded ? normalizedText : ""}
+        placement="topLeft"
+        mouseEnterDelay={0.3}
+      >
+        <div
+          className={
+            !isExpanded
+              ? "truncate cursor-help"
+              : "whitespace-pre-line leading-relaxed"
+          }
+        >
+          {normalizedText}
         </div>
       </Tooltip>
       <button
@@ -49,7 +69,7 @@ const DesktopExpandableText = ({ text, maxLength = 50 }) => {
 };
 
 const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
-  const refereeId = referee?.referee_id;
+  const refereeId = referee?.referee_id || referee?.id;
 
   const {
     data: historyPages,
@@ -60,7 +80,24 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
   } = useRefereeEvaluationHistory(campId, refereeId, isOpen);
 
   const evaluations = useMemo(() => {
-    return historyPages?.pages?.flatMap((page) => page.evaluations || []) || [];
+    return (
+      historyPages?.pages?.flatMap((page) => {
+        if (Array.isArray(page)) return page;
+        if (Array.isArray(page?.evaluations)) return page.evaluations;
+        if (Array.isArray(page?.data)) return page.data;
+        if (Array.isArray(page?.history)) return page.history;
+        if (Array.isArray(page?.data?.data)) return page.data.data;
+        if (Array.isArray(page?.data?.evaluations)) return page.data.evaluations;
+        if (
+          page &&
+          typeof page === "object" &&
+          (page.id || page.evaluation_id || page.submitted_at)
+        ) {
+          return [page];
+        }
+        return [];
+      }) || []
+    );
   }, [historyPages]);
 
   const observerRef = useRef();
@@ -81,110 +118,196 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
     [isFetchingNextPage, hasNextPage, fetchNextPage],
   );
 
+  const getCriteriaScore = (row, key) => {
+    const orig = row?.original || row;
+    const obj =
+      orig?.scores || orig?.performance_criteria || orig || {};
+    const val = obj[key];
+    if (val !== undefined && val !== null && val !== "") {
+      const num = Number(val);
+      return !isNaN(num) ? num.toFixed(2) : String(val);
+    }
+    return "–";
+  };
+
+  const getOverallScore = (row) => {
+    const orig = row?.original || row;
+    const val =
+      orig?.average_score ??
+      orig?.overall ??
+      orig?.total_score ??
+      orig?.overall_avg;
+    if (val !== undefined && val !== null && !isNaN(Number(val))) {
+      return Number(val).toFixed(3);
+    }
+    return "–";
+  };
+
+  const getEvaluatorName = (row) => {
+    const orig = row?.original || row;
+    const ev = orig?.evaluator || orig?.evaluators;
+    if (Array.isArray(ev)) {
+      return (
+        ev
+          .map((e) => (typeof e === "object" ? e?.name || e?.email : e))
+          .filter(Boolean)
+          .join(", ") || "Evaluator"
+      );
+    }
+    if (typeof ev === "object" && ev !== null) {
+      return ev.name || ev.email || "Evaluator";
+    }
+    if (typeof ev === "string" && ev.trim()) {
+      return ev;
+    }
+    return orig?.evaluator_name || "Evaluator";
+  };
+
+  const getRecommendedLevel = (row) => {
+    const orig = row?.original || row;
+    const lvl =
+      orig?.recommended_level ||
+      orig?.current_recommended_level ||
+      orig?.highest_recommended_level ||
+      (Array.isArray(orig?.recommended_levels) && orig.recommended_levels[0]);
+    if (typeof lvl === "object" && lvl !== null) {
+      return (
+        lvl.level ||
+        lvl.name ||
+        String(lvl.sports_type_level_id || lvl.id || "")
+      );
+    }
+    return lvl || "-";
+  };
+
+  const getNotesText = (row) => {
+    const orig = row?.original || row;
+    const val =
+      orig?.private_comments ||
+      orig?.notes ||
+      orig?.comments ||
+      orig?.private_notes;
+    if (!val) return "";
+    if (Array.isArray(val)) return val.filter(Boolean).join("\n");
+    return String(val);
+  };
+
+  const getFeedbackText = (row) => {
+    const orig = row?.original || row;
+    const val =
+      orig?.referee_feedback ||
+      orig?.feedback ||
+      orig?.public_comments;
+    if (!val) return "";
+    if (Array.isArray(val)) return val.filter(Boolean).join("\n");
+    return String(val);
+  };
+
   const columns = useMemo(
     () => [
       {
         accessorKey: "submitted_at",
         header: "Date/Time",
         cell: ({ row }) => {
-          const date = row.original.submitted_at;
+          const date =
+            row.original?.submitted_at || row.original?.created_at || "-";
           return <div className="text-sm text-gray-700">{date}</div>;
         },
       },
       {
-        accessorKey: "scores.call_accuracy",
+        id: "call_accuracy",
         header: "Call/No Call Accuracy",
         cell: ({ row }) => (
           <div className="text-center font-medium">
-            {row.original.scores.call_accuracy}
+            {getCriteriaScore(row, "call_accuracy")}
           </div>
         ),
       },
       {
-        accessorKey: "scores.communication_skills",
+        id: "communication_skills",
         header: "Communication Skills",
         cell: ({ row }) => (
           <div className="text-center font-medium">
-            {row.original.scores.communication_skills}
+            {getCriteriaScore(row, "communication_skills")}
           </div>
         ),
       },
       {
-        accessorKey: "scores.consistency_of_calls",
+        id: "consistency_of_calls",
         header: "Consistency of Calls",
         cell: ({ row }) => (
           <div className="text-center font-medium">
-            {row.original.scores.consistency_of_calls}
+            {getCriteriaScore(row, "consistency_of_calls")}
           </div>
         ),
       },
       {
-        accessorKey: "scores.court_position_mechanics",
+        id: "court_position_mechanics",
         header: "Court Position/Mechanics",
         cell: ({ row }) => (
           <div className="text-center font-medium">
-            {row.original.scores.court_position_mechanics}
+            {getCriteriaScore(row, "court_position_mechanics")}
           </div>
         ),
       },
       {
-        accessorKey: "scores.fitness_mobility",
+        id: "fitness_mobility",
         header: "Fitness/Mobility",
         cell: ({ row }) => (
           <div className="text-center font-medium">
-            {row.original.scores.fitness_mobility}
+            {getCriteriaScore(row, "fitness_mobility")}
           </div>
         ),
       },
       {
-        accessorKey: "scores.game_awareness",
+        id: "game_awareness",
         header: "Game Awareness",
         cell: ({ row }) => (
           <div className="text-center font-medium">
-            {row.original.scores.game_awareness}
+            {getCriteriaScore(row, "game_awareness")}
           </div>
         ),
       },
       {
-        accessorKey: "average_score",
+        id: "average_score",
         header: "Overall",
         cell: ({ row }) => (
           <div className="text-center">
             <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 font-bold rounded-full text-sm">
-              {Number(row.original.average_score).toFixed(3)}
+              {getOverallScore(row)}
             </span>
           </div>
         ),
       },
       {
-        accessorKey: "private_comments",
+        id: "private_comments",
         header: "Notes for Director",
         cell: ({ row }) => (
-          <DesktopExpandableText text={row.original.private_comments} />
+          <DesktopExpandableText text={getNotesText(row)} />
         ),
       },
       {
-        accessorKey: "referee_feedback",
+        id: "referee_feedback",
         header: "Referee Feedback",
         cell: ({ row }) => (
-          <DesktopExpandableText text={row.original.referee_feedback} />
+          <DesktopExpandableText text={getFeedbackText(row)} />
         ),
       },
       {
-        accessorKey: "recommended_level",
+        id: "recommended_level",
         header: "Recommended Highest Level of Officiating",
         cell: ({ row }) => (
           <div className="text-center font-medium text-green-700">
-            {row.original.recommended_level || "-"}
+            {getRecommendedLevel(row)}
           </div>
         ),
       },
       {
-        accessorKey: "evaluator.name",
+        id: "evaluator",
         header: "Evaluator",
         cell: ({ row }) => (
           <div className="text-sm font-medium text-gray-800">
-            {row.original.evaluator.name}
+            {getEvaluatorName(row)}
           </div>
         ),
       },
@@ -209,6 +332,19 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
   }, [isOpen, onClose]);
 
   if (!referee) return null;
+
+  const refereeName = referee?.name || referee?.referee_name || "Referee";
+  const refereeAvatar = referee?.avatar || referee?.referee_avatar || null;
+  const rankDisplay = referee?.rank ?? "-";
+  const overallRaw =
+    referee?.overall_percentage ??
+    referee?.overall_avg ??
+    referee?.overall ??
+    referee?.averages?.overall ??
+    0;
+  const overallNum = Number(overallRaw);
+  const formattedOverall = !isNaN(overallNum) ? overallNum : 0;
+  const evalCount = Number(referee?.count ?? referee?.total_evaluations ?? 0);
 
   return (
     <AnimatePresence>
@@ -252,32 +388,32 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                 <div className="relative shrink-0">
                   <Avatar
                     size={44}
-                    src={referee?.avatar}
-                    alt={`${referee?.name}'s avatar`}
+                    src={refereeAvatar}
+                    alt={`${refereeName}'s avatar`}
                     className="bg-primary/10 text-primary border-2 border-primary/20"
                   >
-                    {!referee?.avatar && referee?.name
-                      ? referee.name.charAt(0).toUpperCase()
+                    {!refereeAvatar && refereeName
+                      ? refereeName.charAt(0).toUpperCase()
                       : "R"}
                   </Avatar>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-[#333] truncate">
-                    {referee.name}
+                    {refereeName}
                   </h3>
                   <div className="flex items-center gap-1.5 mt-1">
                     <BsTrophy className="w-4 h-4 text-amber-400 shrink-0" />
                     <span className="text-sm font-bold text-[#333]">
-                      Rank #{referee.rank}
+                      Rank #{rankDisplay}
                     </span>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <span className="inline-block px-3 py-1.5 bg-primary/10 text-primary font-bold rounded-full text-sm whitespace-nowrap">
-                    {referee.overall_percentage.toFixed(1)}%
+                    {formattedOverall.toFixed(1)}%
                   </span>
                   <p className="text-[11px] text-[#666] mt-1">
-                    {referee.count} eval{referee.count > 1 ? "s" : ""}
+                    {evalCount} eval{evalCount !== 1 ? "s" : ""}
                   </p>
                 </div>
               </div>
@@ -287,33 +423,33 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                 <div className="relative mb-3">
                   <Avatar
                     size={80}
-                    src={referee?.avatar}
-                    alt={`${referee?.name}'s avatar`}
+                    src={refereeAvatar}
+                    alt={`${refereeName}'s avatar`}
                     className="bg-primary/10 text-primary border-2 border-primary/20 shadow-md"
                   >
-                    {!referee?.avatar && referee?.name
-                      ? referee.name.charAt(0).toUpperCase()
+                    {!refereeAvatar && refereeName
+                      ? refereeName.charAt(0).toUpperCase()
                       : "R"}
                   </Avatar>
                 </div>
                 <h3 className="text-lg font-semibold text-[#333]">
-                  {referee.name}
+                  {refereeName}
                 </h3>
                 <div className="flex items-center gap-3 mt-3">
                   <BsTrophy className="w-6 h-6 text-amber-400" />
                   <span className="text-xl font-bold text-[#333]">
-                    Rank #{referee.rank}
+                    Rank #{rankDisplay}
                   </span>
                 </div>
                 <p className="text-base text-[#666] mt-3">
                   Overall Score:{" "}
                   <span className="font-bold text-base text-primary">
-                    {referee.overall_percentage.toFixed(3)}
+                    {formattedOverall.toFixed(3)}
                   </span>
                 </p>
                 <p className="text-sm text-[#666]">
-                  Based on {referee.count} evaluation
-                  {referee.count > 1 ? "s" : ""}
+                  Based on {evalCount} evaluation
+                  {evalCount !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
@@ -381,80 +517,90 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
 
                   {/* Mobile cards (below md) */}
                   <div className="md:hidden min-h-0 overflow-y-auto flex flex-col gap-3 pr-0.5">
-                    {evaluations.map((evalItem, index) => (
-                      <div
-                        key={evalItem.id || index}
-                        ref={
-                          index === evaluations.length - 5
-                            ? lastEvaluationRef
-                            : null
-                        }
-                        className="bg-white border border-border rounded-[10px] p-4"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-[#333]">
-                              {evalItem.submitted_at}
-                            </p>
-                            <p className="text-xs text-[#666] mt-0.5 truncate">
-                              by {evalItem.evaluator?.name || "Evaluator"}
-                            </p>
-                          </div>
-                          <span className="shrink-0 inline-block px-3 py-1 bg-primary/10 text-primary font-bold rounded-full text-sm">
-                            {Number(evalItem.average_score).toFixed(3)}
-                          </span>
-                        </div>
+                    {evaluations.map((evalItem, index) => {
+                      const avgDisplay = getOverallScore(evalItem);
+                      const evaluatorName = getEvaluatorName(evalItem);
+                      const recLevel = getRecommendedLevel(evalItem);
+                      const notesText = getNotesText(evalItem);
+                      const feedbackText = getFeedbackText(evalItem);
 
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                          {SCORE_ITEMS.map((s) => (
-                            <div
-                              key={s.key}
-                              className="flex items-center justify-between gap-2 rounded-lg bg-[#FAFAFA] border border-border px-3 py-2"
-                            >
-                              <span className="text-xs text-[#666] truncate">
-                                {s.label}
+                      return (
+                        <div
+                          key={evalItem?.id || index}
+                          ref={
+                            index === evaluations.length - 5
+                              ? lastEvaluationRef
+                              : null
+                          }
+                          className="bg-white border border-border rounded-[10px] p-4"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-[#333]">
+                                {evalItem?.submitted_at ||
+                                  evalItem?.created_at ||
+                                  "-"}
+                              </p>
+                              <p className="text-xs text-[#666] mt-0.5 truncate">
+                                by {evaluatorName}
+                              </p>
+                            </div>
+                            <span className="shrink-0 inline-block px-3 py-1 bg-primary/10 text-primary font-bold rounded-full text-sm">
+                              {avgDisplay}
+                            </span>
+                          </div>
+
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            {SCORE_ITEMS.map((s) => (
+                              <div
+                                key={s.key}
+                                className="flex items-center justify-between gap-2 rounded-lg bg-[#FAFAFA] border border-border px-3 py-2"
+                              >
+                                <span className="text-xs text-[#666] truncate">
+                                  {s.label}
+                                </span>
+                                <span className="text-sm font-semibold text-[#333]">
+                                  {getCriteriaScore(evalItem, s.key)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {recLevel && recLevel !== "-" && (
+                            <div className="mt-3 flex items-center gap-2">
+                              <span className="text-xs text-[#666]">
+                                Recommended:
                               </span>
-                              <span className="text-sm font-semibold text-[#333]">
-                                {evalItem.scores?.[s.key] ?? "–"}
+                              <span className="px-2.5 py-1 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold">
+                                {recLevel}
                               </span>
                             </div>
-                          ))}
+                          )}
+
+                          {notesText && (
+                            <div className="mt-3">
+                              <p className="text-xs font-semibold text-[#333] mb-1">
+                                Notes for Director
+                              </p>
+                              <p className="text-xs text-[#666] whitespace-pre-line leading-relaxed">
+                                {notesText}
+                              </p>
+                            </div>
+                          )}
+
+                          {feedbackText && (
+                            <div className="mt-2">
+                              <p className="text-xs font-semibold text-[#333] mb-1">
+                                Referee Feedback
+                              </p>
+                              <p className="text-xs text-[#666] whitespace-pre-line leading-relaxed">
+                                {feedbackText}
+                              </p>
+                            </div>
+                          )}
                         </div>
-
-                        {evalItem.recommended_level && (
-                          <div className="mt-3 flex items-center gap-2">
-                            <span className="text-xs text-[#666]">
-                              Recommended:
-                            </span>
-                            <span className="px-2.5 py-1 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold">
-                              {evalItem.recommended_level}
-                            </span>
-                          </div>
-                        )}
-
-                        {evalItem.private_comments && (
-                          <div className="mt-3">
-                            <p className="text-xs font-semibold text-[#333] mb-1">
-                              Notes for Director
-                            </p>
-                            <p className="text-xs text-[#666] whitespace-pre-line leading-relaxed">
-                              {evalItem.private_comments}
-                            </p>
-                          </div>
-                        )}
-
-                        {evalItem.referee_feedback && (
-                          <div className="mt-2">
-                            <p className="text-xs font-semibold text-[#333] mb-1">
-                              Referee Feedback
-                            </p>
-                            <p className="text-xs text-[#666] whitespace-pre-line leading-relaxed">
-                              {evalItem.referee_feedback}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Infinite scroll footer */}
@@ -472,7 +618,6 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                 </>
               )}
             </div>
-
           </motion.div>
         </motion.div>
       )}

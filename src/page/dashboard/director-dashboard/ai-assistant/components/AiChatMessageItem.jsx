@@ -1,26 +1,36 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { FiDownload, FiCopy, FiCheck } from "react-icons/fi";
 import toast from "react-hot-toast";
-import { exportAiResponseToFile } from "../data/aiAssistantData";
-import RefereeHistoryCard from "./cards/RefereeHistoryCard";
-import RefereeComparisonCard from "./cards/RefereeComparisonCard";
-import TopPerformersTable from "./cards/TopPerformersTable";
-import EvaluatorReportCard from "./cards/EvaluatorReportCard";
-import CampMetricsCard from "./cards/CampMetricsCard";
+import {
+  aiResponseText,
+  exportAiResponseToFile,
+} from "@/page/dashboard/director-dashboard/ai-assistant/utils/aiPresentation";
+import AiMarkdownContent from "@/page/dashboard/director-dashboard/ai-assistant/components/AiMarkdownContent";
+import AiWidgetRenderer from "@/page/dashboard/director-dashboard/ai-assistant/components/AiWidgetRenderer";
+import useTypedResponse from "@/page/dashboard/director-dashboard/ai-assistant/hooks/useTypedResponse";
 
-const AiChatMessageItem = ({ message }) => {
+const AiChatMessageItem = ({ message, onTypingProgress }) => {
   const [isCopied, setIsCopied] = useState(false);
-  const isUser = message.sender === "user";
+  const isUser = message.sender === "user" || message.role === "user";
+  const textContent = message.content || message.text || "";
+  const reduced = useReducedMotion();
+  const typed = useTypedResponse(textContent, !isUser && message.animate);
+  const copiedTimer = useRef(null);
+  useEffect(() => () => window.clearTimeout(copiedTimer.current), []);
+  useEffect(() => {
+    if (!isUser) onTypingProgress?.();
+  }, [typed.text, isUser, onTypingProgress]);
 
   const handleCopy = async () => {
     try {
-      let copyText = message.text || "";
-      if (message.verdict) copyText += `\n\nRecommendation: ${message.verdict}`;
+      const copyText = aiResponseText(message, false);
 
       await navigator.clipboard.writeText(copyText);
       setIsCopied(true);
       toast.success("Response copied to clipboard!");
-      setTimeout(() => setIsCopied(false), 2000);
+      window.clearTimeout(copiedTimer.current);
+      copiedTimer.current = window.setTimeout(() => setIsCopied(false), 2000);
     } catch {
       toast.error("Failed to copy response");
     }
@@ -28,7 +38,10 @@ const AiChatMessageItem = ({ message }) => {
 
   const handleExport = () => {
     try {
-      const filename = exportAiResponseToFile(message);
+      const filename = exportAiResponseToFile({
+        ...message,
+        text: textContent,
+      });
       toast.success(`Report downloaded: ${filename}`);
     } catch {
       toast.error("Failed to export report");
@@ -39,7 +52,7 @@ const AiChatMessageItem = ({ message }) => {
     return (
       <div className="flex justify-end w-full">
         <div className="bg-white border border-slate-200/90 shadow-2xs text-slate-900 rounded-3xl px-4.5 py-2.5 text-sm max-w-[85%] sm:max-w-[75%] leading-relaxed">
-          <p className="whitespace-pre-line">{message.text}</p>
+          <p className="whitespace-pre-line">{textContent}</p>
         </div>
       </div>
     );
@@ -47,36 +60,33 @@ const AiChatMessageItem = ({ message }) => {
 
   return (
     <div className="flex flex-col space-y-3 w-full max-w-full text-slate-800 text-sm leading-relaxed">
-      {/* Response Text */}
-      <p className="whitespace-pre-line text-slate-900 font-normal leading-relaxed">
-        {message.text}
-      </p>
-
-      {/* Embedded Structured Cards */}
-      {message.type === "referee-history" && (
-        <RefereeHistoryCard referee={message.referee} />
-      )}
-
-      {message.type === "comparison" && (
-        <RefereeComparisonCard
-          title={message.title}
-          refA={message.refA}
-          refB={message.refB}
-          verdict={message.verdict}
+      <div aria-busy={typed.typing}>
+        <div aria-hidden={typed.typing ? true : undefined}>
+          <AiMarkdownContent content={typed.text} />
+        </div>
+        {typed.typing && (
+          <>
+            <span className="sr-only">{textContent}</span>
+            <button
+              type="button"
+              onClick={typed.finish}
+              className="text-[11px] text-sky-700 underline mt-2"
+            >
+              Show full response
+            </button>
+          </>
+        )}
+      </div>
+      <motion.div
+        initial={message.animate && !reduced ? { opacity: 0, y: 8 } : false}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: reduced ? 0 : 0.3 }}
+      >
+        <AiWidgetRenderer
+          type={message.widget_type}
+          payload={message.widget_payload}
         />
-      )}
-
-      {message.type === "top-performers" && (
-        <TopPerformersTable list={message.list} />
-      )}
-
-      {message.type === "evaluator-report" && (
-        <EvaluatorReportCard evaluators={message.evaluators} />
-      )}
-
-      {message.type === "camp-metrics" && (
-        <CampMetricsCard metrics={message.metrics} />
-      )}
+      </motion.div>
 
       {/* Minimal Action Bar */}
       <div className="flex items-center gap-3 pt-1 text-slate-400">
@@ -90,7 +100,9 @@ const AiChatMessageItem = ({ message }) => {
           {isCopied ? (
             <>
               <FiCheck className="size-3.5 text-emerald-600" />
-              <span className="text-emerald-700 text-[11px] font-medium">Copied</span>
+              <span className="text-emerald-700 text-[11px] font-medium">
+                Copied
+              </span>
             </>
           ) : (
             <FiCopy className="size-3.5" />
@@ -105,7 +117,9 @@ const AiChatMessageItem = ({ message }) => {
           className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer flex items-center gap-1 text-xs"
         >
           <FiDownload className="size-3.5" />
-          <span className="text-[11px] font-medium hidden sm:inline">Export Report</span>
+          <span className="text-[11px] font-medium hidden sm:inline">
+            Export Report
+          </span>
         </button>
 
         {message.scope && (

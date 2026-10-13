@@ -17,6 +17,7 @@ import CreatedCourt from "@/page/dashboard/director-dashboard/court-list/Created
 import Ranking from "@/page/dashboard/director-dashboard/ranking/Ranking";
 import Roster from "@/page/dashboard/director-dashboard/roster/Roster";
 import Evaluate from "@/page/dashboard/director-dashboard/evaluate/Evaluate";
+import DirectorEvaluationPage from "@/page/dashboard/director-dashboard/evaluation/DirectorEvaluationPage";
 import ActiveCamps from "@/page/dashboard/RefereeDashboard/ActiveCamps";
 import Profile from "@/page/dashboard/profile/Profile";
 import PreviousCamps from "@/page/dashboard/RefereeDashboard/PreviousCamps";
@@ -148,6 +149,10 @@ const router = createBrowserRouter([
       {
         path: "evaluate/:id",
         element: <Evaluate />,
+      },
+      {
+        path: "evaluation/:id",
+        element: <DirectorEvaluationPage />,
       },
       {
         path: "active-evaluate/:id",

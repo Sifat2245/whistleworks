@@ -5,6 +5,13 @@ import Swal from "sweetalert2";
 // Query key factory
 export const evaluationKeys = {
   all: ["evaluations"],
+  myEvaluations: (campId, page = 1, params = {}) => [
+    "my-evaluations",
+    campId,
+    page,
+    params,
+  ],
+  details: (evaluationId) => ["evaluation-details", evaluationId],
   registeredReferees: (campId, page) => ["registered-referees", campId, page],
   refereeEvaluation: (campId, refereeId) => [
     "referee-evaluation",
@@ -14,7 +21,10 @@ export const evaluationKeys = {
   campEvaluations: (campId, page) => ["camp-evaluations", campId, page],
   rankings: (campId) => ["referees-ranking", campId],
   stats: (campId) => ["evaluation-stats", campId],
-  recommendedLevels: (sportsTypeName) => ["recommended-levels", sportsTypeName],
+  recommendedLevels: (campId) => [
+    "recommended-levels",
+    campId ? String(campId) : "all",
+  ],
 };
 
 // Get registered referees (with pagination & caching)
@@ -28,8 +38,8 @@ export const useRegisteredReferees = (campId, page = 1) => {
       return response?.data?.data || { referees: [], pagination: {} };
     },
     enabled: !!campId,
-    staleTime: 5 * 60 * 1000, // 5 min — referees list doesn't change often
-    gcTime: 30 * 60 * 1000,   // keep in cache for 30 min
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     placeholderData: (previousData) => previousData,
   });
 
@@ -39,6 +49,66 @@ export const useRegisteredReferees = (campId, page = 1) => {
     isLoading,
     isFetching,
   };
+};
+
+// Get evaluations list submitted by current user for a camp
+export const useMyEvaluations = (campId, page = 1, params = {}) => {
+  const { getMyCampEvaluations } = useEvaluationService();
+
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
+    queryKey: evaluationKeys.myEvaluations(campId, page, params),
+    queryFn: async () => {
+      const response = await getMyCampEvaluations(campId, page, params);
+      return (
+        response?.data?.data || {
+          camp: null,
+          evaluations: [],
+          overall_level_summary: [],
+          statistics: { total_evaluations: 0, unique_referees_evaluated: 0 },
+          pagination: { total: 0, per_page: 15, current_page: 1, last_page: 1 },
+        }
+      );
+    },
+    enabled: !!campId,
+    staleTime: 1 * 60 * 1000,
+  });
+
+  return {
+    data,
+    camp: data?.camp || null,
+    evaluations: data?.evaluations || [],
+    overall_level_summary: data?.overall_level_summary || [],
+    statistics: data?.statistics || {
+      total_evaluations: 0,
+      unique_referees_evaluated: 0,
+    },
+    pagination: data?.pagination || {
+      total: 0,
+      per_page: 15,
+      current_page: 1,
+      last_page: 1,
+    },
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  };
+};
+
+// Get single evaluation details by evaluation ID
+export const useEvaluationDetails = (evaluationId, options = {}) => {
+  const { getEvaluationDetails } = useEvaluationService();
+
+  return useQuery({
+    queryKey: evaluationKeys.details(evaluationId),
+    queryFn: async () => {
+      const response = await getEvaluationDetails(evaluationId);
+      return response?.data?.data || null;
+    },
+    enabled: !!evaluationId,
+    staleTime: 2 * 60 * 1000,
+    ...options,
+  });
 };
 
 // Get a single referee's evaluation history
@@ -95,18 +165,17 @@ export const useRefereeRankings = (campId) => {
   });
 };
 
-// Get recommended highest levels for a sports type (e.g. "HS Basketball").
-// Always enabled — when no name is passed the API returns the generic
-// level list, so the dropdown never ends up empty.
-export const useRecommendedLevels = (sportsTypeName) => {
+// Get recommended highest levels (passing camp_id and format: objects in params)
+export const useRecommendedLevels = (campId) => {
   const { getRecommendLevels } = useEvaluationService();
 
   return useQuery({
-    queryKey: evaluationKeys.recommendedLevels(sportsTypeName || "default"),
+    queryKey: evaluationKeys.recommendedLevels(campId),
     queryFn: async () => {
-      const response = await getRecommendLevels(sportsTypeName);
+      const response = await getRecommendLevels(campId);
       return response?.data?.data || [];
     },
+    staleTime: 10 * 60 * 1000,
   });
 };
 
@@ -126,27 +195,54 @@ export const useEvaluationStats = (campId) => {
   });
 };
 
-//  Submit (upsert) evaluation
-export const useSubmitEvaluation = (campId, options) => {
-  const { submitEvaluation } = useEvaluationService();
+// Helper to invalidate all evaluation-related query keys
+export const invalidateEvaluationQueries = (queryClient, campId) => {
+  queryClient.invalidateQueries({ queryKey: ["my-evaluations"] });
+  queryClient.invalidateQueries({ queryKey: ["camp-evaluations"] });
+  queryClient.invalidateQueries({ queryKey: ["evaluation-stats"] });
+  queryClient.invalidateQueries({ queryKey: ["evaluation-details"] });
+  queryClient.invalidateQueries({ queryKey: ["referee-evaluation"] });
+  queryClient.invalidateQueries({ queryKey: ["referees-ranking"] });
+  queryClient.invalidateQueries({ queryKey: ["rankings"] });
+  queryClient.invalidateQueries({ queryKey: evaluationKeys.all });
+
+  if (campId) {
+    queryClient.invalidateQueries({ queryKey: ["my-evaluations", campId] });
+    queryClient.invalidateQueries({
+      queryKey: ["my-evaluations", Number(campId)],
+    });
+    queryClient.invalidateQueries({ queryKey: ["camp-evaluations", campId] });
+    queryClient.invalidateQueries({
+      queryKey: ["camp-evaluations", Number(campId)],
+    });
+    queryClient.invalidateQueries({ queryKey: ["evaluation-stats", campId] });
+    queryClient.invalidateQueries({
+      queryKey: ["evaluation-stats", Number(campId)],
+    });
+    queryClient.invalidateQueries({ queryKey: ["referees-ranking", campId] });
+    queryClient.invalidateQueries({
+      queryKey: ["referees-ranking", Number(campId)],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["rankings", "evaluations", campId],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["rankings", "evaluations", Number(campId)],
+    });
+  }
+};
+
+// Store (submit new) evaluation
+export const useStoreEvaluation = (campId, options = {}) => {
+  const { storeEvaluation } = useEvaluationService();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: ["give-evaluation", campId],
-    mutationFn: submitEvaluation,
-    onSuccess: (response) => {
-      // Invalidate related queries so data stays fresh
-      queryClient.invalidateQueries({
-        queryKey: evaluationKeys.rankings(campId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: evaluationKeys.campEvaluations(campId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: evaluationKeys.stats(campId),
-      });
+    mutationKey: ["store-evaluation", campId],
+    mutationFn: (formData) => storeEvaluation(formData),
+    onSuccess: (response, variables, context) => {
+      invalidateEvaluationQueries(queryClient, campId);
 
-      // Show success toast
       Swal.fire({
         icon: "success",
         title: "Success!",
@@ -154,8 +250,10 @@ export const useSubmitEvaluation = (campId, options) => {
         timer: 2500,
         showConfirmButton: false,
       });
+
+      options?.onSuccess?.(response, variables, context);
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       const errorMessage =
         error?.response?.data?.message ||
         error?.response?.data?.data ||
@@ -168,34 +266,90 @@ export const useSubmitEvaluation = (campId, options) => {
         timer: 4000,
         showConfirmButton: false,
       });
+
+      options?.onError?.(error, variables, context);
+    },
+    ...options,
+  });
+};
+
+// Alias for submitEvaluation for backward compatibility
+export const useSubmitEvaluation = useStoreEvaluation;
+
+// Update existing evaluation
+export const useUpdateEvaluation = (campId, options = {}) => {
+  const { updateEvaluation } = useEvaluationService();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["update-evaluation", campId],
+    mutationFn: ({ evaluationId, formData }) =>
+      updateEvaluation(evaluationId, formData),
+    onSuccess: (response, variables, context) => {
+      invalidateEvaluationQueries(queryClient, campId);
+      if (variables?.evaluationId) {
+        queryClient.invalidateQueries({
+          queryKey: evaluationKeys.details(variables.evaluationId),
+        });
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Updated!",
+        text: response?.data?.message || "Evaluation updated successfully",
+        timer: 2500,
+        showConfirmButton: false,
+      });
+
+      options?.onSuccess?.(response, variables, context);
+    },
+    onError: (error, variables, context) => {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.data ||
+        "Failed to update evaluation.";
+
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
+        text: typeof errorMessage === "string" ? errorMessage : "Something went wrong!",
+        timer: 4000,
+        showConfirmButton: false,
+      });
+
+      options?.onError?.(error, variables, context);
     },
     ...options,
   });
 };
 
 // Delete an evaluation
-export const useDeleteEvaluation = (campId, options) => {
+export const useDeleteEvaluation = (campId, options = {}) => {
   const { deleteEvaluation } = useEvaluationService();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: ["delete-evaluation"],
-    mutationFn: deleteEvaluation,
-    onSuccess: () => {
-      // Invalidate all evaluation-related queries for this camp
-      queryClient.invalidateQueries({
-        queryKey: evaluationKeys.all,
-      });
+    mutationKey: ["delete-evaluation", campId],
+    mutationFn: (evaluationId) => deleteEvaluation(evaluationId),
+    onSuccess: (response, variables, context) => {
+      invalidateEvaluationQueries(queryClient, campId);
+      if (variables) {
+        queryClient.removeQueries({
+          queryKey: evaluationKeys.details(variables),
+        });
+      }
 
       Swal.fire({
         icon: "success",
         title: "Deleted!",
-        text: "Evaluation deleted successfully",
+        text: response?.data?.message || "Evaluation deleted successfully",
         timer: 2000,
         showConfirmButton: false,
       });
+
+      options?.onSuccess?.(response, variables, context);
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -203,35 +357,63 @@ export const useDeleteEvaluation = (campId, options) => {
         timer: 3000,
         showConfirmButton: false,
       });
+
+      options?.onError?.(error, variables, context);
     },
     ...options,
   });
 };
 
-// Helper to build the FormData for submission
+// Helper to build FormData for evaluation store or update
 export const buildEvaluationFormData = (data, campId) => {
   const formData = new FormData();
 
-  formData.append("referee_id", data.referee_id);
-  formData.append("camp_id", campId);
-  formData.append("call_accuracy", Number(data.call_accuracy));
-  formData.append("communication_skills", Number(data.communication_skills));
-  formData.append("consistency_of_calls", Number(data.consistency_of_calls));
-  formData.append(
-    "court_position_mechanics",
-    Number(data.court_position_mechanics),
-  );
-  formData.append("fitness_mobility", Number(data.fitness_mobility));
-  formData.append("game_awareness", Number(data.game_awareness));
-  formData.append("recommended_level", data.recommended_level);
-  formData.append("status", "submitted");
-
-  if (data.private_comments?.trim()) {
-    formData.append("private_comments", data.private_comments);
+  if (data?.referee_id) {
+    formData.append("referee_id", data.referee_id);
+  }
+  if (campId) {
+    formData.append("camp_id", campId);
   }
 
-  if (data.referee_feedback?.trim()) {
-    formData.append("referee_feedback", data.referee_feedback);
+  if (data?.call_accuracy !== undefined && data?.call_accuracy !== null && data?.call_accuracy !== "") {
+    formData.append("call_accuracy", Number(data.call_accuracy));
+  }
+  if (data?.communication_skills !== undefined && data?.communication_skills !== null && data?.communication_skills !== "") {
+    formData.append("communication_skills", Number(data.communication_skills));
+  }
+  if (data?.consistency_of_calls !== undefined && data?.consistency_of_calls !== null && data?.consistency_of_calls !== "") {
+    formData.append("consistency_of_calls", Number(data.consistency_of_calls));
+  }
+  if (data?.court_position_mechanics !== undefined && data?.court_position_mechanics !== null && data?.court_position_mechanics !== "") {
+    formData.append("court_position_mechanics", Number(data.court_position_mechanics));
+  }
+  if (data?.fitness_mobility !== undefined && data?.fitness_mobility !== null && data?.fitness_mobility !== "") {
+    formData.append("fitness_mobility", Number(data.fitness_mobility));
+  }
+  if (data?.game_awareness !== undefined && data?.game_awareness !== null && data?.game_awareness !== "") {
+    formData.append("game_awareness", Number(data.game_awareness));
+  }
+
+  const recLevel = data?.recommended_level ?? data?.recommended_level_id;
+  if (recLevel !== undefined && recLevel !== null && recLevel !== "") {
+    let resolvedLevel = recLevel;
+    if (typeof recLevel === "object" && recLevel !== null) {
+      resolvedLevel =
+        recLevel.id !== undefined && recLevel.id !== null && recLevel.id !== ""
+          ? recLevel.id
+          : (recLevel.name || recLevel.level);
+    }
+    formData.append("recommended_level", resolvedLevel);
+  }
+
+  formData.append("status", data?.status || "submitted");
+
+  if (data?.private_comments?.trim?.()) {
+    formData.append("private_comments", data.private_comments.trim());
+  }
+
+  if (data?.referee_feedback?.trim?.()) {
+    formData.append("referee_feedback", data.referee_feedback.trim());
   }
 
   return formData;

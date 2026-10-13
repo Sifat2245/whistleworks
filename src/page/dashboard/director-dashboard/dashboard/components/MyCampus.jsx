@@ -1,5 +1,5 @@
 import { useState } from "react";
-import MyCampusCart from "./MyCampusCart";
+import CampCard from "./CampCard";
 import MyCampCartSkeleton from "./MyCampCartSkeleton";
 import { useGetMyCamp } from "@/hooks/api/director-hooks/useCamps";
 import PaginationV2 from "@/components/common/PaginationV2";
@@ -43,7 +43,7 @@ const MyCamps = () => {
           {/* Camps List */}
           <div className="grid grid-cols-1 gap-5">
             {camps.map((camp) => (
-              <MyCampusCart key={camp.camp_id} league={camp} />
+              <CampCard key={camp.camp_id} league={camp} />
             ))}
           </div>
           {hasMultiplePages && (
