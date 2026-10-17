@@ -39,7 +39,7 @@ export default function OverallPerformance({
               Overall Score
             </p>
             <p className="text-2xl sm:text-3xl font-black text-slate-900 leading-none mt-1">
-              {score > 0 ? score.toFixed(1) : "0.0"}
+              {Number(score || 0).toFixed(3)}
               <span className="text-sm font-medium text-slate-400">/10</span>
             </p>
           </div>

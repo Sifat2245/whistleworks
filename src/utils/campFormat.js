@@ -1,16 +1,5 @@
 import dayjs from "dayjs";
 
-/**
- * Shared formatting helpers for camp detail pages.
- * Used by both the public (no-auth) camp details page and the
- * dashboard CampDetails component so date/price/duration formatting
- * stays consistent across the app.
- *
- * Note: dates arrive as "YYYY-MM-DD" strings from the API. `dayjs`
- * parses those as local time, avoiding the UTC-midnight off-by-one
- * that `new Date("YYYY-MM-DD")` causes in negative-offset timezones.
- */
-
 export const formatDate = (dateStr) => {
   if (!dateStr) return "TBA";
   const d = dayjs(dateStr);

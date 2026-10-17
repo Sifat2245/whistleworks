@@ -106,6 +106,7 @@ export default function EditEvaluationModal({
   onClose,
   evaluation,
   campId,
+  onSuccess,
 }) {
   const activeCampId = campId || evaluation?.camp_id || evaluation?.camp?.id;
   const { data: recommendedLevels = [], isLoading: levelsLoading } =
@@ -182,7 +183,8 @@ export default function EditEvaluationModal({
 
   const { mutate: updateEvaluation, isPending: isUpdating } =
     useUpdateEvaluation(activeCampId, {
-      onSuccess: () => {
+      onSuccess: (data, variables, context) => {
+        onSuccess?.(data, variables, context);
         onClose();
       },
     });

@@ -55,6 +55,23 @@ vi.mock("@/hooks/api/useEvaluation", () => ({
   buildEvaluationFormData: vi.fn(() => new FormData()),
 }));
 
+vi.mock("../EditEvaluationModal", () => ({
+  default: ({ isOpen, onClose, onSuccess, evaluation }) => {
+    if (!isOpen) return null;
+    return (
+      <div data-testid="edit-modal">
+        <span>Editing {evaluation?.referee?.name}</span>
+        <button data-testid="save-edit-btn" onClick={() => onSuccess?.()}>
+          Save
+        </button>
+        <button data-testid="close-edit-btn" onClick={onClose}>
+          Close
+        </button>
+      </div>
+    );
+  },
+}));
+
 vi.mock("sweetalert2", () => ({
   default: {
     fire: vi.fn(() => Promise.resolve({ isConfirmed: true })),
@@ -92,6 +109,7 @@ describe("EvaluationsList Component", () => {
     expect(screen.getAllByText("Stephen Curry").length).toBeGreaterThan(0);
     expect(screen.getAllByText("steph@warriors.com").length).toBeGreaterThan(0);
     expect(screen.getAllByText("58").length).toBeGreaterThan(0);
+    expect(screen.getByText("9.667 / 10")).toBeInTheDocument();
     expect(screen.getAllByText("NCAA D1").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Director Bob").length).toBeGreaterThan(0);
 
@@ -140,5 +158,30 @@ describe("EvaluationsList Component", () => {
     await waitFor(() => {
       expect(mockDeleteMutate).toHaveBeenCalledWith(55);
     });
+  });
+
+  it("refetches and invalidates queries when evaluation is updated", () => {
+    render(
+      <EvaluationsList
+        campId={13}
+        campName="Orlando Elite 2026"
+        evaluatePath="/director-dashboard/evaluate/13"
+      />,
+      { wrapper: createWrapper() }
+    );
+
+    const editBtns = screen.getAllByTitle("Edit evaluation");
+    expect(editBtns.length).toBeGreaterThan(0);
+    fireEvent.click(editBtns[0]);
+
+    // Mock edit modal should be displayed
+    expect(screen.getByTestId("edit-modal")).toBeInTheDocument();
+    expect(screen.getByText("Editing Stephen Curry")).toBeInTheDocument();
+
+    // Click save in the modal which triggers onSuccess
+    const saveBtn = screen.getByTestId("save-edit-btn");
+    fireEvent.click(saveBtn);
+
+    expect(mockRefetch).toHaveBeenCalled();
   });
 });

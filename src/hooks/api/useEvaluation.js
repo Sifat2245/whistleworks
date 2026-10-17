@@ -211,23 +211,38 @@ export const invalidateEvaluationQueries = (queryClient, campId) => {
     queryClient.invalidateQueries({
       queryKey: ["my-evaluations", Number(campId)],
     });
+    queryClient.invalidateQueries({
+      queryKey: ["my-evaluations", String(campId)],
+    });
     queryClient.invalidateQueries({ queryKey: ["camp-evaluations", campId] });
     queryClient.invalidateQueries({
       queryKey: ["camp-evaluations", Number(campId)],
     });
+    queryClient.invalidateQueries({
+      queryKey: ["camp-evaluations", String(campId)],
+    });
     queryClient.invalidateQueries({ queryKey: ["evaluation-stats", campId] });
     queryClient.invalidateQueries({
       queryKey: ["evaluation-stats", Number(campId)],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["evaluation-stats", String(campId)],
     });
     queryClient.invalidateQueries({ queryKey: ["referees-ranking", campId] });
     queryClient.invalidateQueries({
       queryKey: ["referees-ranking", Number(campId)],
     });
     queryClient.invalidateQueries({
+      queryKey: ["referees-ranking", String(campId)],
+    });
+    queryClient.invalidateQueries({
       queryKey: ["rankings", "evaluations", campId],
     });
     queryClient.invalidateQueries({
       queryKey: ["rankings", "evaluations", Number(campId)],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["rankings", "evaluations", String(campId)],
     });
   }
 };
@@ -286,7 +301,12 @@ export const useUpdateEvaluation = (campId, options = {}) => {
     mutationFn: ({ evaluationId, formData }) =>
       updateEvaluation(evaluationId, formData),
     onSuccess: (response, variables, context) => {
-      invalidateEvaluationQueries(queryClient, campId);
+      const targetCampId =
+        campId ||
+        variables?.campId ||
+        variables?.camp_id ||
+        variables?.formData?.get?.("camp_id");
+      invalidateEvaluationQueries(queryClient, targetCampId);
       if (variables?.evaluationId) {
         queryClient.invalidateQueries({
           queryKey: evaluationKeys.details(variables.evaluationId),

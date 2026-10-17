@@ -55,8 +55,10 @@ export const useMyRegistrations = (page = 1, perPage = 10) => {
 };
 
 // ── Previous camps (paginated, cached) ────────────────────────
-export const useRefereePreviousCamps = (page = 1) => {
+export const useRefereePreviousCamps = (page = 1, options = {}) => {
   const { getPreviousCamps } = useRefereeCampService();
+
+  const isEnabled = options.enabled !== undefined ? options.enabled : page != null;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: refereeCampKeys.previousCamps(page),
@@ -66,6 +68,8 @@ export const useRefereePreviousCamps = (page = 1) => {
     },
     staleTime: 5 * 60 * 1000,
     placeholderData: (previousData) => previousData,
+    enabled: Boolean(isEnabled),
+    ...options,
   });
 
   return {

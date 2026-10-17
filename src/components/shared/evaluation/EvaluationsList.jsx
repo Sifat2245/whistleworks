@@ -198,7 +198,14 @@ export default function EvaluationsList({
                     const evaluator = ev?.evaluator;
                     const totalScore = ev?.total_score ?? 0;
                     const maxScore = ev?.max_score ?? 60;
-                    const avgScore = ev?.average_score ?? 0;
+                    const rawAvgScore =
+                      ev?.average_score != null &&
+                      String(ev.average_score).split(".")[1]?.length >= 3
+                        ? Number(ev.average_score)
+                        : maxScore > 0
+                          ? (totalScore / maxScore) * 10
+                          : Number(ev?.average_score || 0);
+                    const avgScore = Number(rawAvgScore || 0).toFixed(3);
                     const percentage = ev?.percentage ?? Math.round((totalScore / maxScore) * 100);
                     const recommendedLevel =
                       ev?.current_recommended_level ||
@@ -330,7 +337,14 @@ export default function EvaluationsList({
                 const referee = ev?.referee;
                 const totalScore = ev?.total_score ?? 0;
                 const maxScore = ev?.max_score ?? 60;
-                const avgScore = ev?.average_score ?? 0;
+                const rawAvgScore =
+                  ev?.average_score != null &&
+                  String(ev.average_score).split(".")[1]?.length >= 3
+                    ? Number(ev.average_score)
+                    : maxScore > 0
+                      ? (totalScore / maxScore) * 10
+                      : Number(ev?.average_score || 0);
+                const avgScore = Number(rawAvgScore || 0).toFixed(3);
                 const recommendedLevel =
                   ev?.current_recommended_level ||
                   ev?.recommended_level ||
@@ -441,6 +455,7 @@ export default function EvaluationsList({
           setIsEditOpen(false);
           setEditingEvaluation(null);
         }}
+        onSuccess={refetch}
         evaluation={editingEvaluation}
         campId={campId}
       />

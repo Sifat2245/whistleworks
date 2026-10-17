@@ -93,8 +93,10 @@ export const useCancelRegistration = (options) => {
 };
 
 // ── Previous camps (paginated, cached) ────────────────────────
-export const useEvaluatorPreviousCamps = (page = 1) => {
+export const useEvaluatorPreviousCamps = (page = 1, options = {}) => {
   const { getPreviousCamps } = useEvaluatorCampRegistrationService();
+
+  const isEnabled = options.enabled !== undefined ? options.enabled : page != null;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: evaluatorCampKeys.previousCamps(page),
@@ -104,6 +106,8 @@ export const useEvaluatorPreviousCamps = (page = 1) => {
     },
     staleTime: 5 * 60 * 1000,
     placeholderData: (previousData) => previousData,
+    enabled: Boolean(isEnabled),
+    ...options,
   });
 
   return {

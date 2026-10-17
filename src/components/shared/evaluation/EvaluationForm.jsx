@@ -461,7 +461,6 @@ export default function EvaluationForm({
           <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
             <LuLock className="text-amber-500" />
             <span>Private Notes</span>
-            <span className="text-slate-400 font-normal">(Staff only)</span>
           </label>
           <textarea
             {...register("private_comments")}
@@ -476,7 +475,6 @@ export default function EvaluationForm({
           <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
             <LuMessageSquare className="text-blue-500" />
             <span>Referee Feedback</span>
-            <span className="text-slate-400 font-normal">(Shared with official)</span>
           </label>
           <textarea
             {...register("referee_feedback")}

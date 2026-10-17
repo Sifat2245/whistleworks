@@ -74,7 +74,14 @@ export default function EvaluationDetailsModal({
 
   const totalScore = evaluation?.total_score ?? 0;
   const maxScore = evaluation?.max_score ?? 60;
-  const averageScore = evaluation?.average_score ?? 0;
+  const rawAvgScore =
+    evaluation?.average_score != null &&
+    String(evaluation.average_score).split(".")[1]?.length >= 3
+      ? Number(evaluation.average_score)
+      : maxScore > 0
+        ? (totalScore / maxScore) * 10
+        : Number(evaluation?.average_score || 0);
+  const averageScore = Number(rawAvgScore || 0).toFixed(3);
   const percentage = evaluation?.percentage ?? Math.round((totalScore / maxScore) * 100);
 
   const submittedAt = evaluation?.submitted_at

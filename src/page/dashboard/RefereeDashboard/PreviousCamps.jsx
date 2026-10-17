@@ -13,20 +13,21 @@ export default function PreviousCamps() {
   const [page, setPage] = useState(1);
 
   const isEvaluator = role === "evaluator";
+  const isReferee = role === "referee";
 
   const {
     registrations: evaluatorRegistrations,
     pagination: evaluatorPagination,
     isLoading: evaluatorLoading,
     isError: evaluatorError,
-  } = useEvaluatorPreviousCamps(isEvaluator ? page : null);
+  } = useEvaluatorPreviousCamps(page, { enabled: isEvaluator });
 
   const {
     previousCamps: refereeCampData,
     pagination: refereePagination,
     isLoading: refereeLoading,
     isError: refereeError,
-  } = useRefereePreviousCamps(!isEvaluator ? page : null);
+  } = useRefereePreviousCamps(page, { enabled: isReferee });
 
   const isLoading = isEvaluator ? evaluatorLoading : refereeLoading;
   const isError = isEvaluator ? evaluatorError : refereeError;
