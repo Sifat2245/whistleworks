@@ -4,5 +4,6 @@ export function maskEmail(email) {
   const atIndex = email.indexOf("@");
   if (atIndex === -1) return email;
 
-  return email.slice(0, 3) + "***" + email.slice(atIndex);
-}
+  const prefixLen = Math.min(3, atIndex);
+  return email.slice(0, prefixLen) + "***" + email.slice(atIndex);
+}
