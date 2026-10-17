@@ -16,7 +16,6 @@ import {
   LuEye,
   LuLock,
   LuMessageSquare,
-  LuAward,
 } from "react-icons/lu";
 
 const CRITERIA_CONFIG = [
@@ -299,18 +298,13 @@ export default function EditEvaluationModal({
 
         {/* Recommended Level Selection */}
         <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm border border-amber-100">
-              <LuAward />
-            </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-semibold text-slate-800">
-                Officiating Level Recommendation
-              </h4>
-              <p className="text-[11px] text-slate-400">
-                Update highest recommended competitive level
-              </p>
-            </div>
+          <div>
+            <h4 className="text-xs sm:text-sm font-semibold text-slate-800">
+              Officiating Level Recommendation
+            </h4>
+            <p className="text-[11px] text-slate-400">
+              Update highest recommended competitive level
+            </p>
           </div>
 
           <Controller
@@ -320,8 +314,9 @@ export default function EditEvaluationModal({
             render={({ field }) => (
               <Select
                 {...field}
+                value={field.value || undefined}
                 placeholder={levelsLoading ? "Loading levels..." : "Select level..."}
-                className="w-full text-left"
+                className="w-full text-left [&_.ant-select-selector]:!border [&_.ant-select-selector]:!border-slate-300 [&_.ant-select-selector]:!rounded-xl hover:[&_.ant-select-selector]:!border-[#00AEEF] focus-within:[&_.ant-select-selector]:!border-[#00AEEF] shadow-2xs"
                 size="large"
                 options={levelOptions}
                 disabled={levelsLoading}

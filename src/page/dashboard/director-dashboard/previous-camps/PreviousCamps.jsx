@@ -3,7 +3,7 @@ import { FiRefreshCw } from "react-icons/fi";
 import BackBtn from "@/components/common/BackBtn";
 import PaginationV2 from "@/components/common/PaginationV2";
 import CampCard from "@/page/dashboard/director-dashboard/dashboard/components/CampCard";
-import MyCampCartSkeleton from "@/page/dashboard/director-dashboard/dashboard/components/MyCampCartSkeleton";
+import CampCardSkeleton from "@/page/dashboard/director-dashboard/dashboard/components/CampCardSkeleton";
 import { useGetPreviousCamps } from "@/hooks/api/director-hooks/useCamps";
 
 const DirectorPreviousCamps = () => {
@@ -39,7 +39,7 @@ const DirectorPreviousCamps = () => {
 
         {/* Loading State */}
         {isLoading ? (
-          <MyCampCartSkeleton />
+          <CampCardSkeleton />
         ) : isError ? (
           <div className="rounded-xl border border-red-100 bg-red-50/60 p-10 text-center">
             <h2 className="text-lg font-semibold text-gray-900">

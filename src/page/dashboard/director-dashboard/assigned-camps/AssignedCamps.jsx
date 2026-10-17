@@ -1,6 +1,6 @@
 import BackBtn from "@/components/common/BackBtn";
 import CommonSectionTitle from "@/components/common/CommonSectionTitle";
-import MyCampCartSkeleton from "@/page/dashboard/director-dashboard/dashboard/components/MyCampCartSkeleton";
+import CampCardSkeleton from "@/page/dashboard/director-dashboard/dashboard/components/CampCardSkeleton";
 import AssignedCampCard from "./components/AssignedCampCard";
 import { useGetAssignedCamps } from "@/hooks/api/director-hooks/useCamps";
 import { LuShieldCheck, LuInbox } from "react-icons/lu";
@@ -33,7 +33,7 @@ const AssignedCamps = () => {
       {isLoading ? (
         <div className="mt-6 space-y-5">
           {[...Array(2)].map((_, index) => (
-            <MyCampCartSkeleton key={index} />
+            <CampCardSkeleton key={index} />
           ))}
         </div>
       ) : camps.length === 0 ? (

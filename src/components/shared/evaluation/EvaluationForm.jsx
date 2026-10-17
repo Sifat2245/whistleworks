@@ -18,7 +18,6 @@ import {
   LuEye,
   LuLock,
   LuMessageSquare,
-  LuAward,
 } from "react-icons/lu";
 
 const CRITERIA = [
@@ -318,9 +317,10 @@ export default function EvaluationForm({
               render={({ field }) => (
                 <Select
                   {...field}
+                  value={field.value || undefined}
                   showSearch
                   placeholder="Search and select referee official..."
-                  className="w-full text-left"
+                  className="w-full text-left focus-within:[&_.ant-select-selector]:!border-[#00AEEF] shadow-2xs"
                   size="large"
                   options={convertedRefOptions}
                   filterOption={(input, option) =>
@@ -422,18 +422,13 @@ export default function EvaluationForm({
 
       {/* ── 3. Recommended Officiating Level ── */}
       <div>
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-base border border-amber-100">
-            <LuAward />
-          </div>
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-slate-900">
-              Officiating Level Recommendation
-            </h3>
-            <p className="text-xs text-slate-400">
-              Select the highest recommended competition level for this official
-            </p>
-          </div>
+        <div className="border-b border-slate-100 pb-3 mb-4">
+          <h3 className="text-base sm:text-lg font-semibold text-slate-900">
+            Officiating Level Recommendation
+          </h3>
+          <p className="text-xs text-slate-400">
+            Select the highest recommended competition level for this official
+          </p>
         </div>
 
         <Controller
@@ -443,8 +438,9 @@ export default function EvaluationForm({
           render={({ field }) => (
             <Select
               {...field}
+              value={field.value || undefined}
               placeholder={levelsLoading ? "Loading levels..." : "Select highest level..."}
-              className="w-full text-left"
+              className="w-full text-left shadow-2xs"
               size="large"
               options={levelOptions}
               disabled={levelsLoading}

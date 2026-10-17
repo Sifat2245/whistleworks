@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -404,6 +404,73 @@ describe("SignIn Page Component", () => {
 
       capturedMutationOptions.onError(mockError);
       expect(toast.error).toHaveBeenCalledWith("Invalid credentials provided");
+    });
+
+    it("displays backend validation error message for invalid email on field and in toast", async () => {
+      render(
+        <MemoryRouter>
+          <SignIn />
+        </MemoryRouter>
+      );
+
+      const mockError = {
+        response: {
+          status: 422,
+          data: {
+            status: false,
+            message: "Validation failed",
+            data: {
+              email: ["The selected email is invalid."],
+            },
+            code: 422,
+          },
+        },
+      };
+
+      act(() => {
+        capturedMutationOptions.onError(mockError);
+      });
+
+      expect(toast.error).toHaveBeenCalledWith("The selected email is invalid.");
+      expect(
+        await screen.findByText("The selected email is invalid.")
+      ).toBeInTheDocument();
+    });
+
+    it("clears email error when user modifies the email input", async () => {
+      const user = userEvent.setup();
+      render(
+        <MemoryRouter>
+          <SignIn />
+        </MemoryRouter>
+      );
+
+      const mockError = {
+        response: {
+          data: {
+            status: false,
+            message: "Validation failed",
+            data: {
+              email: ["The selected email is invalid."],
+            },
+            code: 422,
+          },
+        },
+      };
+
+      act(() => {
+        capturedMutationOptions.onError(mockError);
+      });
+      expect(
+        await screen.findByText("The selected email is invalid.")
+      ).toBeInTheDocument();
+
+      const emailInput = screen.getByPlaceholderText("Enter your email");
+      await user.type(emailInput, "a");
+
+      expect(
+        screen.queryByText("The selected email is invalid.")
+      ).not.toBeInTheDocument();
     });
 
     it("redirects to /auth/verify-otp and stores email when code is 403 and is_otp_verified is false", () => {

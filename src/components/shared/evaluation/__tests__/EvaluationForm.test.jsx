@@ -60,7 +60,7 @@ describe("Unified EvaluationForm Component", () => {
       wrapper: createWrapper(),
     });
 
-    expect(screen.getByText("Select Referee")).toBeInTheDocument();
+    expect(screen.getAllByText("Select Referee").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Evaluation Criteria")).toBeInTheDocument();
     expect(screen.getByText("Call / No Call Accuracy")).toBeInTheDocument();
     expect(screen.getByText("Communication Skills")).toBeInTheDocument();

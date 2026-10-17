@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { SiStripe } from "react-icons/si";
 import { FiExternalLink, FiRefreshCw, FiPlus } from "react-icons/fi";
-import MyCamps from "@/page/dashboard/director-dashboard/dashboard/components/MyCampus";
+import MyCamps from "@/page/dashboard/director-dashboard/dashboard/components/MyCamps";
 import {
   useStripeConnectionStatus,
   useConnectStripe,

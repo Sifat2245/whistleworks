@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import LoaderV2 from "@/components/common/LoaderV2";
 import { useForgotPassword } from "@/hooks/api/useAuth";
+import { getErrorMessage } from "@/utils/formErrors";
 
 const ForgetPassword = () => {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ const ForgetPassword = () => {
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm();
 
@@ -32,12 +35,18 @@ const ForgetPassword = () => {
       }, 1500);
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Something went wrong! Please try again.");
+      const displayMessage = getErrorMessage(
+        error,
+        setError,
+        "Something went wrong! Please try again."
+      );
+      toast.error(displayMessage);
     },
   });
 
   const onSubmit = (data) => {
     // console.log("Forget Password Data:", data);
+    clearErrors();
     forgotPasswordMutation.mutate(data);
   };
 
@@ -64,6 +73,9 @@ const ForgetPassword = () => {
             pattern: {
               value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
               message: "Enter a valid email address",
+            },
+            onChange: () => {
+              if (errors.email) clearErrors("email");
             },
           }}
         />

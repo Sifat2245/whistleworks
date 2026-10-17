@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import LoaderV2 from "@/components/common/LoaderV2";
 import { useAuth } from "@/hooks/useAuth";
 import { useSignIn } from "@/hooks/api/useAuth";
+import { getErrorMessage } from "@/utils/formErrors";
 
 const SignIn = () => {
   const { handleLogin, userRefetch } = useAuth();
@@ -17,6 +18,8 @@ const SignIn = () => {
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm();
 
@@ -91,11 +94,13 @@ const SignIn = () => {
         return;
       }
 
-      toast.error(errorResponse?.message || "Sign in failed");
+      const displayMessage = getErrorMessage(err, setError, "Sign in failed");
+      toast.error(displayMessage);
     },
   });
   const onSubmit = (data) => {
     // console.log("Sign In Data:", data);
+    clearErrors();
     signInMutation.mutate(data);
   };
 
@@ -127,6 +132,9 @@ const SignIn = () => {
               value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
               message: "Enter a valid email address",
             },
+            onChange: () => {
+              if (errors.email) clearErrors("email");
+            },
           }}
         />
 
@@ -142,6 +150,9 @@ const SignIn = () => {
             minLength: {
               value: 6,
               message: "Password must be at least 6 characters",
+            },
+            onChange: () => {
+              if (errors.password) clearErrors("password");
             },
           }}
         />
