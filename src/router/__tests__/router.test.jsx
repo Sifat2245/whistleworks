@@ -16,6 +16,8 @@ describe("Application Router Configuration", () => {
     const childPaths = rootRoute.children.map((c) => c.path || (c.index ? "index" : ""));
     expect(childPaths).toContain("index");
     expect(childPaths).toContain("about-us");
+    expect(childPaths).toContain("contact-us");
+    expect(childPaths).toContain("contact");
     expect(childPaths).toContain("privacy-policy");
     expect(childPaths).toContain("terms-conditions");
     expect(childPaths).toContain("faq");

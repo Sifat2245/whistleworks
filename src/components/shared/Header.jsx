@@ -36,6 +36,7 @@ const Header = () => {
     { name: "All Camps", path: "/all-camps" },
     { name: "About Us", path: "/about-us" },
     { name: "FAQ", path: "/faq" },
+    { name: "Contact", path: "/contact-us" },
   ];
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);

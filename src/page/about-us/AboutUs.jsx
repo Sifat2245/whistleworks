@@ -52,22 +52,22 @@ const AboutUs = () => {
   return (
     <div className="w-full bg-slate-50 min-h-screen text-slate-900 overflow-hidden font-sans">
       {/* ── 1. Modern Hero Section ────────────────────────────────── */}
-      <section className="relative bg-slate-950 text-white pt-20 pb-24 lg:pt-28 lg:pb-32 overflow-hidden">
+      <section className="relative bg-slate-950 text-white pt-10 pb-12 sm:pt-14 sm:pb-16 lg:pt-16 lg:pb-18 overflow-hidden">
         {/* Soft Radial Light Orbs */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[50rem] h-[25rem] bg-primary/15 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 right-10 w-96 h-96 bg-sky-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[38rem] h-[18rem] bg-primary/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 right-10 w-72 h-72 bg-sky-500/10 rounded-full blur-[80px] pointer-events-none" />
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-primary text-xs font-bold uppercase tracking-wider mb-6 shadow-inner">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-primary text-xs font-bold uppercase tracking-wider mb-3.5">
             <LuSparkles className="text-amber-400 text-xs" />
             <span>Official Training & Camp Tech</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1] mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.15] mb-3">
             {heroItem.title || "Elevating Sports Officiating"}
           </h1>
 
-          <p className="text-lg sm:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-light">
+          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
             {heroItem.description ||
               "Developing better officials through elite training, honest feedback, and innovative technology."}
           </p>
@@ -76,24 +76,24 @@ const AboutUs = () => {
 
       {/* ── 2. Full-Width Metrics Bar ──────────────────────────────── */}
       {owner_info?.stats && owner_info.stats.length > 0 && (
-        <section className="bg-white border-b border-slate-200/80 py-10 shadow-xs">
+        <section className="bg-white border-b border-slate-200/80 py-5 sm:py-6 shadow-xs">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x-0 md:divide-x divide-slate-100">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-x-0 md:divide-x divide-slate-100">
               {owner_info.stats.map((stat, idx) => (
-                <div key={idx} className="px-4">
-                  <p className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                <div key={idx} className="px-3">
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
                     {stat.value}
                   </p>
-                  <p className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 mt-2">
+                  <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">
                     {stat.label}
                   </p>
                 </div>
               ))}
-              <div className="px-4 hidden md:block">
-                <p className="text-3xl sm:text-5xl font-black text-primary tracking-tight">
+              <div className="px-3 hidden md:block">
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-primary tracking-tight">
                   100%
                 </p>
-                <p className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 mt-2">
+                <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">
                   Official Development
                 </p>
               </div>

@@ -10,6 +10,8 @@ describe("routeTitles utility", () => {
   it("returns correct titles for static public routes", () => {
     expect(getTitleForPathname("/")).toBe(ROUTE_TITLES["/"]);
     expect(getTitleForPathname("/about-us")).toBe("About Us");
+    expect(getTitleForPathname("/contact-us")).toBe("Contact Us");
+    expect(getTitleForPathname("/contact")).toBe("Contact Us");
     expect(getTitleForPathname("/all-camps")).toBe("Explore Camps");
     expect(getTitleForPathname("/faq")).toBe("FAQ");
     expect(getTitleForPathname("/whats-new")).toBe("What's New");

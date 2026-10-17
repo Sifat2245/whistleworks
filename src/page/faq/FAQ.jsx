@@ -243,43 +243,43 @@ export default function FAQ() {
   return (
     <div className="w-full bg-slate-50 min-h-screen text-slate-900 pb-20 font-sans">
       {/* ── Hero Banner Section ─────────────────────────────────── */}
-      <section className="relative bg-slate-950 text-white pt-16 pb-20 lg:pt-24 lg:pb-28 overflow-hidden">
+      <section className="relative bg-slate-950 text-white pt-10 pb-12 sm:pt-12 sm:pb-14 lg:pt-14 lg:pb-16 overflow-hidden">
         {/* Soft Radial Ambient Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[48rem] h-[22rem] bg-primary/20 rounded-full blur-[130px] pointer-events-none" />
-        <div className="absolute bottom-0 right-10 w-80 h-80 bg-sky-500/10 rounded-full blur-[90px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[38rem] h-[18rem] bg-primary/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 right-10 w-72 h-72 bg-sky-500/10 rounded-full blur-[80px] pointer-events-none" />
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-primary text-xs font-bold uppercase tracking-wider mb-5 shadow-inner">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-primary text-xs font-bold uppercase tracking-wider mb-3">
             <LuInfo className="text-primary text-sm animate-pulse" />
             <span>Support & Help Center</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-4">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-2.5">
             Frequently Asked Questions
           </h1>
 
-          <p className="text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed font-light mb-8">
+          <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed font-normal mb-6">
             Everything you need to know about officiating camp discovery, account setup, game assignments, and payments.
           </p>
 
           {/* Interactive Search Bar */}
-          <div className="relative max-w-2xl mx-auto">
-            <div className="relative flex items-center bg-slate-900/90 border border-slate-700/80 rounded-2xl shadow-2xl focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30 transition-all overflow-hidden backdrop-blur-md">
-              <LuSearch className="text-slate-400 text-xl ml-5 shrink-0" />
+          <div className="relative max-w-xl mx-auto">
+            <div className="relative flex items-center bg-slate-900/90 border border-slate-700/80 rounded-xl focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30 transition-all overflow-hidden backdrop-blur-md">
+              <LuSearch className="text-slate-400 text-lg ml-4 shrink-0" />
               <input
                 type="text"
                 placeholder="Search questions, topics, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent px-4 py-4 text-white text-base placeholder-slate-400 focus:outline-none"
+                className="w-full bg-transparent px-3.5 py-3 text-white text-sm placeholder-slate-400 focus:outline-none"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="p-2 mr-3 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 mr-2.5 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
                   title="Clear search"
                 >
-                  <LuX className="text-lg" />
+                  <LuX className="text-base" />
                 </button>
               )}
             </div>
@@ -288,7 +288,7 @@ export default function FAQ() {
       </section>
 
       {/* ── Main Content Container ───────────────────────────────── */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
 
         {/* Category Pills Navigation */}
         <div className="flex items-center justify-between gap-4 flex-wrap border-b border-slate-200/80 pb-6 mb-8">

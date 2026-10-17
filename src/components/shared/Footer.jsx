@@ -71,6 +71,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/contact-us" className="text-slate-600 hover:text-primary transition-colors flex items-center gap-1.5">
+                  Contact Us
+                </Link>
+              </li>
+              <li>
                 <Link to="/privacy-policy" className="text-slate-600 hover:text-primary transition-colors flex items-center gap-1.5">
                   Privacy Policy
                 </Link>
@@ -109,6 +114,14 @@ const Footer = () => {
                 </span>
               </div>
             </a>
+
+            <Link
+              to="/contact-us"
+              className="mt-3 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold text-xs transition-colors w-full"
+            >
+              <span>Online Contact Form</span>
+              <LuArrowRight className="text-xs" />
+            </Link>
           </div>
 
           {/* Column 4: Platform Access / Portal */}
@@ -167,6 +180,9 @@ const Footer = () => {
             </Link>
             <Link to="/faq" className="hover:text-slate-900 transition-colors">
               FAQ
+            </Link>
+            <Link to="/contact-us" className="hover:text-slate-900 transition-colors">
+              Contact
             </Link>
           </div>
         </div>

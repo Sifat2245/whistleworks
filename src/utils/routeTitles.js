@@ -5,6 +5,8 @@ export const ROUTE_TITLES = {
   // ── Public Pages ───────────────────────────────────────
   "/": "WhistleWorks - Official Referee Camp Management & Scheduling",
   "/about-us": "About Us",
+  "/contact-us": "Contact Us",
+  "/contact": "Contact Us",
   "/all-camps": "Explore Camps",
   "/faq": "FAQ",
   "/whats-new": "What's New",

@@ -47,6 +47,7 @@ import DirectorPreviousCamps from "@/page/dashboard/director-dashboard/previous-
 import AssignedCamps from "@/page/dashboard/director-dashboard/assigned-camps/AssignedCamps";
 import AiDirectorAssistant from "@/page/dashboard/director-dashboard/ai-assistant/AiDirectorAssistant";
 import WhatsNew from "@/page/whats-new/WhatsNew";
+import ContactUs from "@/page/contact-us/ContactUs";
 import NotFound from "@/page/not-found/NotFound";
 
 const router = createBrowserRouter([
@@ -61,6 +62,14 @@ const router = createBrowserRouter([
       {
         path: "about-us",
         element: <AboutUs />,
+      },
+      {
+        path: "contact-us",
+        element: <ContactUs />,
+      },
+      {
+        path: "contact",
+        element: <ContactUs />,
       },
       {
         path: "privacy-policy",
