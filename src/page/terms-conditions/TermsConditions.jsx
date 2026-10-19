@@ -20,7 +20,10 @@ const TermsAndConditions = () => {
     refetchOnReconnect: false,
   });
 
-  const termsHtml = apiResponse?.data?.description ?? "";
+  const rawData = apiResponse?.data ?? apiResponse;
+  const terms = Array.isArray(rawData) ? rawData[0] : rawData;
+  const termsHtml =
+    terms?.description ?? (typeof terms === "string" ? terms : "");
 
   if (isLoading) {
     return (
