@@ -250,9 +250,9 @@ const AboutUs = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {features_item.map((feature) => (
+                {features_item.map((feature, idx) => (
                   <div
-                    key={feature.id}
+                    key={feature.id || feature.title || idx}
                     className="p-6 bg-slate-50 rounded-3xl border border-slate-200/70 hover:bg-white hover:border-primary/40 hover:shadow-lg transition-all group"
                   >
                     <div className="w-12 h-12 rounded-2xl bg-white text-primary flex items-center justify-center shadow-xs border border-slate-200 mb-4 group-hover:scale-110 transition-transform">
