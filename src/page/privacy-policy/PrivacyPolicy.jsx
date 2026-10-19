@@ -8,21 +8,28 @@ const PrivacyPolicy = () => {
     data: apiResponse,
     isLoading,
     isError,
-    error,           // added for better error display
+    error,
+    refetch,
   } = useQuery({
     queryKey: ["privacy-policy"],
     queryFn: () => axiosInstance.get("/privacy-policy").then((res) => res.data),
     staleTime: 1000 * 60 * 10, // 10 minutes
+    gcTime: 1000 * 60 * 60,
     retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
-  // Fix 1: Looking at your sample response → data is an OBJECT, not array
-  const policy = apiResponse?.data; // NOT apiResponse?.data?.[0]
+  // Support both object and array response formats safely
+  const rawData = apiResponse?.data ?? apiResponse;
+  const policy = Array.isArray(rawData) ? rawData[0] : rawData;
+  const rawDescription =
+    policy?.description ?? (typeof policy === "string" ? policy : "");
 
   // Very minimal client-side HTML cleanup (not real sanitization, just basic)
   // We remove <script>, <iframe>, <object>, <embed>, onclick=... etc.
-  const basicSafeHtml = policy?.description
-    ? policy.description
+  const basicSafeHtml = rawDescription
+    ? rawDescription
         // Remove script tags and their content
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
         // Remove event handlers (very basic regex – not 100% reliable)
@@ -52,8 +59,8 @@ const PrivacyPolicy = () => {
               : "No content available"}
           </p>
           <button
-            onClick={() => window.location.reload()}
-            className="px-8 py-3 bg-primary text-white rounded-lg hover:bg-opacity-90 transition"
+            onClick={() => refetch()}
+            className="px-8 py-3 bg-primary text-white rounded-lg hover:bg-opacity-90 transition cursor-pointer"
           >
             Try Again
           </button>
