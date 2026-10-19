@@ -228,6 +228,9 @@ export default function AiDirectorAssistant() {
           <h2 className="truncate text-sm font-semibold text-slate-800">
             {title}
           </h2>
+          <span className="text-xs text-slate-400 shrink-0">
+            (Beta version for testing purpose)
+          </span>
           {conversation.uuid && (
             <button
               type="button"

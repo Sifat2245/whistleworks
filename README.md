@@ -1,793 +1,692 @@
-# Whistle Works 🏆
+# WhistleWorks 🏆
 
-> **Referee Camp Management Made Simple** — A comprehensive platform for managing sports referee training camps, built for camp directors, evaluators, and referees.
+> **The Premier Sports Officiating, Referee Camp Management, Evaluation & Game Scheduling Platform**  
+> Streamlining the entire lifecycle of sports referee development camps — from multi-court scheduling and position-wise crew assignments to real-time rubric evaluations, Stripe Connect direct payouts, and cross-camp AI intelligence.
 
-Whistle Works is a full-featured web application that streamlines the entire lifecycle of referee training camps — from creation and scheduling to evaluation and performance tracking. It serves three distinct user roles (Directors, Evaluators, and Referees) with role-specific dashboards and capabilities.
+[![React](https://img.shields.io/badge/React-19.0-61dafb?logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6.1-646cff?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![TanStack Query](https://img.shields.io/badge/TanStack_Query-v5-ff4154?logo=react-query&logoColor=white)](https://tanstack.com/query)
+[![Vitest](https://img.shields.io/badge/Vitest-5.0_(135_Suites_|_564_Passing)-729b1b?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Ant Design](https://img.shields.io/badge/Ant_Design-v5-0170fe?logo=antdesign&logoColor=white)](https://ant.design/)
 
 ---
 
 ## 📋 Table of Contents
 
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Architecture Overview](#-architecture-overview)
-- [User Roles & Permissions](#-user-roles--permissions)
-- [Route Map](#-route-map)
-- [Key Features](#-key-features)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [API Integration](#-api-integration)
-- [Authentication Flow](#-authentication-flow)
-- [State Management](#-state-management)
-- [UI Component Library](#-ui-component-library)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Contributing](#-contributing)
+- [WhistleWorks 🏆](#whistleworks-)
+  - [📋 Table of Contents](#-table-of-contents)
+  - [🌟 Platform Overview](#-platform-overview)
+  - [👥 Core User Roles \& Permissions](#-core-user-roles--permissions)
+  - [🔄 Comprehensive User Flows](#-comprehensive-user-flows)
+    - [1. Camp Director Flow](#1-camp-director-flow)
+    - [2. Referee / Official Flow](#2-referee--official-flow)
+    - [3. Evaluator / Clinician Flow](#3-evaluator--clinician-flow)
+    - [4. Public Guest \& Discovery Flow](#4-public-guest--discovery-flow)
+  - [⚡ Deep Dive: Flagship \& New Features](#-deep-dive-flagship--new-features)
+    - [🤖 AI Director Assistant (`/director-dashboard/ai-assistant`)](#-ai-director-assistant-director-dashboardai-assistant)
+    - [🎯 Position-Wise Referee Assignment](#-position-wise-referee-assignment)
+    - [📊 Standardized Rubric Evaluations \& 3-Decimal Precision](#-standardized-rubric-evaluations--3-decimal-precision)
+    - [💳 Stripe Connect Direct Split Payouts \& Coupons](#-stripe-connect-direct-split-payouts--coupons)
+    - [🛡️ Role-Isolated API Endpoints (Previous Camps)](#️-role-isolated-api-endpoints-previous-camps)
+    - [🔔 Real-Time In-App Notification Center](#-real-time-in-app-notification-center)
+    - [📨 Public Support \& Contact Us Form](#-public-support--contact-us-form)
+  - [🏗 System Architecture \& Tech Stack](#-system-architecture--tech-stack)
+    - [Technology Stack](#technology-stack)
+    - [Data Flow Architecture](#data-flow-architecture)
+    - [HTTP \& Authentication Architecture](#http--authentication-architecture)
+  - [📁 Repository Directory Map](#-repository-directory-map)
+  - [🗺 Comprehensive Route Map](#-comprehensive-route-map)
+    - [Public \& Informational Routes](#public--informational-routes)
+    - [Authentication Routes](#authentication-routes)
+    - [Camp Director Suite (`/director-dashboard`)](#camp-director-suite-director-dashboard)
+    - [Evaluator Portal (`/evaluator-dashboard`)](#evaluator-portal-evaluator-dashboard)
+    - [Referee Portal (`/referee-dashboard`)](#referee-portal-referee-dashboard)
+  - [🚀 Getting Started \& Local Setup](#-getting-started--local-setup)
+    - [Prerequisites](#prerequisites)
+    - [1. Clone \& Install Dependencies](#1-clone--install-dependencies)
+    - [2. Environment Variables Setup](#2-environment-variables-setup)
+    - [3. Running Development Server](#3-running-development-server)
+    - [4. Production Build \& Preview](#4-production-build--preview)
+  - [🧪 Testing Suite \& Quality Assurance](#-testing-suite--quality-assurance)
+    - [Test Coverage Summary](#test-coverage-summary)
+    - [Running Tests](#running-tests)
+    - [Vitest Global Setup \& Mocking Guidelines](#vitest-global-setup--mocking-guidelines)
+  - [📘 New Developer Onboarding Guide](#-new-developer-onboarding-guide)
+    - [Code Conventions](#code-conventions)
+    - [How to Implement a New Feature (Step-by-Step Playbook)](#how-to-implement-a-new-feature-step-by-step-playbook)
+    - [Troubleshooting Common Issues](#troubleshooting-common-issues)
+  - [📄 License \& Credits](#-license--credits)
 
 ---
 
-## 🛠 Tech Stack
+## 🌟 Platform Overview
 
-### Frontend Core
+**WhistleWorks** is an end-to-end sports technology platform specifically engineered for basketball, soccer, volleyball, and multi-sport officiating camps. Running a referee camp involves severe operational bottlenecks: scheduling dozens of courts, assigning officiating crews with balanced mechanics experience, collecting registrations, issuing evaluator scorecards, generating weighted rankings, and distributing payouts.
 
-| Technology        | Version | Purpose                               |
-| ----------------- | ------- | ------------------------------------- |
-| **React**         | 19      | UI framework                          |
-| **Vite**          | 6.1     | Build tool & dev server               |
-| **React Router**  | 7.1     | Client-side routing                   |
-| **Tailwind CSS**  | 4.0     | Utility-first CSS framework           |
-| **React Query**   | 5.90    | Server state management & caching     |
-
-### UI & Design
-
-| Library               | Purpose                                |
-| --------------------- | -------------------------------------- |
-| **Ant Design (antd)** | Pre-built UI components (DatePicker, Select, Modal, Tabs, etc.) |
-| **Framer Motion**     | Animations & transitions               |
-| **React Hook Form**   | Form validation & management           |
-| **React Icons**       | Icon library                           |
-| **react-hot-toast**   | Toast notifications                    |
-| **sweetalert2**       | Confirmation dialogs & modals          |
-| **react-fast-marquee**| Auto-scrolling partner logos           |
-| **react-phone-number-input** | International phone number input |
-| **clsx** + **tailwind-merge** | Conditional class merging (shadcn-style `cn()` utility) |
-
-### Editor & Maps
-
-| Library                    | Purpose                              |
-| -------------------------- | ------------------------------------ |
-| **@tiptap/react**          | Rich text editor (camp descriptions) |
-| **@react-google-maps/api** | Google Maps Places Autocomplete      |
-| **use-places-autocomplete**| Alternative Google Places integration|
-
-### Data & Networking
-
-| Library                | Purpose                       |
-| ---------------------- | ----------------------------- |
-| **Axios**              | HTTP client with interceptors |
-| **@tanstack/react-table**| Data tables for rankings     |
-| **date-fns**           | Date formatting & manipulation|
-| **dayjs**              | Lightweight date library      |
-
-### Dev Tools
-
-| Tool                    | Purpose                    |
-| ----------------------- | -------------------------- |
-| **ESLint**              | Code linting               |
-| **@vitejs/plugin-react-swc** | Fast SWC-based React compilation |
-| **Path Alias (@/)**     | Clean imports using `@/` prefix |
+WhistleWorks unites all stakeholders in a single responsive web application:
+- **Camp Directors** gain total command over multi-day schedules, court allocations, automated slot assignment, direct Stripe Express payouts, and an interactive **AI Director Assistant** for cross-camp analytics.
+- **Referees** discover top clinics, register with promo codes, check in 24 hours prior, track real-time game court assignments, and receive actionable evaluator scorecards.
+- **Evaluators** score officials on court positioning, call accuracy, and game control using standard rubrics, providing both private director notes and constructive official feedback.
 
 ---
 
-## 📁 Project Structure
+## 👥 Core User Roles & Permissions
+
+| Role | Primary Objectives | Dashboard Route | Key Permissions |
+| :--- | :--- | :--- | :--- |
+| **Camp Director** | Create camps, staff courts, assign crews, review live evaluations, calculate rankings, manage Stripe direct payouts, and query AI assistant. | `/director-dashboard` | • Full camp CRUD<br>• Court & slot generation<br>• Position-wise crew assignment<br>• Stripe Express onboarding<br>• Announcement broadcasts<br>• AI Director Assistant query access |
+| **Referee (Official)** | Find camps, register with split payment, check in on game day, view schedule & partner crews, review performance scorecards. | `/referee-dashboard` | • Camp registration & checkout<br>• 24h game day check-in<br>• Assigned game slot & partner crew views<br>• Evaluation history & 3-decimal score reports<br>• Past camp records |
+| **Evaluator (Clinician)** | View assigned court games, assess referee mechanics & control, submit standardized scorecards, recommend advancement levels. | `/evaluator-dashboard` | • Camp discovery & registration<br>• Court-specific game schedule viewer<br>• Rubric scoring & feedback submission<br>• Real-time camp roster inspection<br>• Past evaluation history |
+| **Public Guest** | Discover camps by sport/state, read official itineraries, view FAQ and company story, submit contact requests. | `/` (Root Layout) | • Unauthenticated camp search<br>• Itinerary & pricing preview<br>• Contact form transmission<br>• Public CMS knowledge base |
+
+---
+
+## 🔄 Comprehensive User Flows
+
+### 1. Camp Director Flow
+
+```mermaid
+flowchart TD
+    A[Director Logs In] --> B[Director Dashboard]
+    B --> C{Stripe Connected?}
+    C -- No --> D[Stripe Express Onboarding Flow]
+    D --> E[Stripe Connection Success]
+    C -- Yes --> F[Create New Camp]
+    F --> G[Build Schedule & Multi-Court Grid]
+    G --> H[Manage Roster: Referees & Evaluators]
+    H --> I[Assign Crews & Position-wise Referees]
+    I --> J[Live Camp: Monitor Evaluations & Rankings]
+    J --> K[Query AI Director Assistant]
+    K --> L[Broadcast Announcements / Export Reports]
+```
+
+1. **Onboarding & Stripe Connect**: Director connects their Stripe account via Stripe Connect Express to receive registration funds directly.
+2. **Camp Creation**: Director configures camp dates, location (Google Places Autocomplete), sport type, software & camp fees, and rich Tiptap overview.
+3. **Schedule & Court Matrix**: Sets daily operational hours, court names (Court 1, Court 2, etc.), game slot durations, and concurrent game limits.
+4. **Position-wise Staffing**: Organizes referees into 2-person or 3-person crews, assigning specific court positions (*Lead, Center, Trail* for Basketball, or *Center Referee, AR1, AR2* for Soccer).
+5. **Live Camp Oversight**: Observes live evaluator submissions, reviews real-time rank lists, updates ranking criteria weights, and broadcasts urgent announcements to courts.
+6. **AI Analytics**: Uses the **AI Director Assistant** to compare referee mechanics across multiple camps, find top performers, or inspect evaluator consistency.
+
+---
+
+### 2. Referee / Official Flow
+
+```mermaid
+flowchart TD
+    A[Referee Discovers Camp] --> B[Camp Details Page]
+    B --> C[Apply Coupon Code & Validate]
+    C --> D[Stripe Split Checkout]
+    D --> E[Payment Success -> Registered Tab]
+    E --> F[24h Pre-Camp Check-In]
+    F --> G[Active Camps & My Games]
+    G --> H[View Court, Time Slot, Position & Crew Partners]
+    H --> I[Post-Camp: View Evaluations & 3-Decimal Scores]
+```
+
+1. **Discovery & Registration**: Referees browse public camps or use `/referee-dashboard/find-camps` with filters (sport, date, location).
+2. **Checkout & Split Payments**: Optional discount coupons are validated against the backend (`/v2/referee/camp/:id/validate-coupon`). The payment is split: camp fee goes directly to the Director, while software fee goes to the platform.
+3. **Pre-Camp Check-In**: Exactly 24 hours prior to camp start, the check-in button activates. Checking in confirms active attendance.
+4. **Game Assignments**: Referee accesses **My Games** to view assigned game slots, assigned court number, officiating position (e.g., *Crew Chief*, *Umpire*), and partner crew members.
+5. **Scorecards & Development**: Once evaluators submit grades, the referee inspects detailed breakdowns across 6 metrics (Call Accuracy, Mechanics, Communication, etc.) with exact 3-decimal averages.
+
+---
+
+### 3. Evaluator / Clinician Flow
+
+```mermaid
+flowchart TD
+    A[Evaluator Logs In] --> B[My Camps / Find Camps]
+    B --> C[Register as Evaluator for Camp]
+    C --> D[Camp Details & Court Schedule]
+    D --> E[Select Game Slot & Referee Crew]
+    E --> F[Complete Standardized Rubric Form]
+    F --> G[Add Private Notes & Referee Feedback]
+    G --> H[Submit Evaluation -> Triggers Instant Score Recalculation]
+```
+
+1. **Staff Registration**: Evaluator selects upcoming camp and requests evaluator registration.
+2. **Schedule Inspection**: Views court schedules and assigned referee pairings for each game slot.
+3. **Scoring Rubric**: Evaluates each assigned official on:
+   - Call Accuracy
+   - Consistency of Calls
+   - Court Positioning & Mechanics
+   - Game Awareness & Control
+   - Fitness & Mobility
+   - Communication Skills
+4. **Private vs Public Feedback**: Evaluator enters private notes reserved exclusively for the Director's eyes, and constructive notes shared with the official.
+5. **Advancement Recommendation**: Selects recommended advancement level (e.g., *High School Varsity, Junior College, NCAA D3, NCAA D1*).
+
+---
+
+### 4. Public Guest & Discovery Flow
+
+```mermaid
+flowchart LR
+    A[Guest Visits /] --> B[Browse All Camps]
+    B --> C[Filter Sport / Date / Location]
+    C --> D[Public Camp Details]
+    D --> E[Sign Up / Sign In]
+    A --> F[About Us CMS]
+    A --> G[Knowledge Base / FAQ]
+    A --> H[Contact Us Form]
+```
+
+1. Guests explore upcoming camps without an account.
+2. Interactive search, location filtering, and sport categorization narrow down options.
+3. Informational public CMS pages provide company history (`/about-us`), searchable FAQ accordions (`/faq`), platform updates (`/whats-new`), and public contact inquiry routing (`/contact-us`).
+
+---
+
+## ⚡ Deep Dive: Flagship & New Features
+
+### 🤖 AI Director Assistant (`/director-dashboard/ai-assistant`)
+
+The **AI Director Assistant** is a specialized cross-camp intelligence suite built exclusively for Camp Directors. It queries real-time database records across rosters, evaluations, court schedules, and past camp archives:
+
+- **Entity `@mention` System**: Directors can type `@` to mention specific camps, referees, or evaluators directly inside prompt queries.
+- **Dynamic Widget & Card Renderers**: Responses automatically generate specialized UI cards:
+  - `RefereeComparisonCard`: Side-by-side metric comparison between two or more officials.
+  - `TopPerformersTable`: Highlighting top-ranked officials sorted by overall evaluation score.
+  - `CampMetricsCard`: Quick summary of registered officials, court coverage, and evaluation completion.
+  - `EvaluatorReportCard`: Analysis of evaluator grading variance and feedback thoroughness.
+  - `AiChartWidgetCard` & `AiTableWidgetCard`: Visual bar/radar charts and structured tabular data.
+- **Session Management**: Rename, delete, and persist multiple conversation sessions.
+- **Quota Circle**: Visual tracking indicator for monthly director AI query limits.
+- **Markdown & Code Streaming**: Fast streaming responses parsed with `react-markdown` and `remark-gfm`.
+
+---
+
+### 🎯 Position-Wise Referee Assignment
+
+Rather than assigning generic referee slots, WhistleWorks features sport-aware, position-specific crew assignments (`src/utils/refereePositions.js`, `RefereeAssignModal.jsx`, `CourtSlotBox.jsx`):
+
+- **Sport-Specific Officiating Mechanics**:
+  - **Basketball**: *Crew Chief*, *Referee*, *Umpire* (2-person or 3-person mechanics).
+  - **Soccer / Football**: *Center Referee*, *Assistant Referee 1 (AR1)*, *Assistant Referee 2 (AR2)*, *Fourth Official*.
+  - **Volleyball**: *First Referee (R1)*, *Second Referee (R2)*, *Line Judge 1*, *Line Judge 2*.
+- **Targeted Position Selection**: Directors can click directly on an empty position slot (e.g., "Assign Trail") to open the assignment modal focused on that specific role.
+- **Collision & Overbooking Prevention**: Prevents scheduling the same referee onto multiple courts during the same time slot, flagging busy or checked-in states.
+- **Court Blocking**: Supports reserving or blocking specific court slots for clinics, breaks, or drills.
+
+---
+
+### 📊 Standardized Rubric Evaluations & 3-Decimal Precision
+
+WhistleWorks employs an objective, multi-criteria evaluation model:
+- **Consistent 3-Decimal Precision (`.toFixed(3)`)**: All composite averages, overall referee performance scores, and ranking reports display exactly three digits after the decimal point (e.g., `88.425 / 100`). This ensures mathematical precision when sorting tie-breakers among hundreds of camp attendees.
+- **Role-Aware Feedback Visibility**: Evaluator comments are partitioned into public official feedback and confidential camp director notes.
+- **Instant Mutation & Live Refetching**: Submitting or updating an evaluation instantly triggers query invalidation and refetching, updating the live ranking leaderboard without page reloads.
+
+---
+
+### 💳 Stripe Connect Direct Split Payouts & Coupons
+
+- **Stripe Connect Express**: Directors link their bank accounts with one-click onboarding via `/api/director/stripe-connection/generate-account-link`.
+- **Automated Split Transactions**:
+  - `Camp Fee` → Dispatched directly to the Camp Director's connected Stripe account.
+  - `Software Fee` → Routed to the WhistleWorks platform administrator.
+- **Real-Time Coupon Engine**: Referees enter promotional coupons at checkout. The system validates discount validity, expiration, and usage limits via `/v2/referee/camp/:id/validate-coupon` before initiating Stripe checkout.
+
+---
+
+### 🛡️ Role-Isolated API Endpoints (Previous Camps)
+
+To maintain strict security and eliminate `403 Forbidden` console warnings when navigating past camp archives, the application utilizes dedicated role-specific service hooks:
+- **Referee Archive**: Consumes `GET /api/v1/referee/camp/previous-camps?page=1` via `useRefereePreviousCamps()`.
+- **Evaluator Archive**: Consumes `GET /api/evaluator/camp-registration/previous-camps` via `useEvaluatorPreviousCamps()`.
+- **Director Archive**: Consumes director-specific archives via `useDirectorPreviousCamps()`.
+- Each hook checks `userRole === 'expectedRole'` before executing, ensuring zero cross-role network requests.
+
+---
+
+### 🔔 Real-Time In-App Notification Center
+
+- **Infinite Scrolling Feed**: Powered by `useInfiniteQuery`, loading notifications smoothly as the user scrolls.
+- **Unread Badge & Polling**: Background heartbeat polling every 30-60s keeps unread notification badges updated.
+- **Optimistic Interactions**: Mark-as-read, delete, and clear-all actions update the UI optimistically before server synchronization completes.
+
+---
+
+### 📨 Public Support & Contact Us Form
+
+- Located at `/contact-us` and `/contact`.
+- Transmits inquiries via `multipart/form-data` to `POST /api/contact-form` via unauthenticated public Axios client (`useContactService`).
+- Includes validation for `name`, `email`, `subject`, and `message`, with responsive feedback alerts and zero extraneous clutter.
+
+---
+
+## 🏗 System Architecture & Tech Stack
+
+### Technology Stack
 
 ```
-whistle-works/
-├── public/                          # Static assets
-│   ├── referee/                     # Referee dashboard icons
-│   ├── dashboard-logo.svg           # Dashboard logo
-│   ├── rankingData.json             # Ranking data (demo)
-│   ├── site.webmanifest             # PWA manifest
-│   └── _redirects                   # Netlify SPA redirect rules
-│
+Frontend Core:        React 19.0.0 (SPA)
+Routing:              React Router DOM v7.1.5 (createBrowserRouter)
+Build Tool:           Vite 6.1.0 with @vitejs/plugin-react-swc
+Styling:              Tailwind CSS v4.0.4 + Vanilla CSS + clsx + tailwind-merge (cn helper)
+UI Component Library: Ant Design v5.24.6 (Select, DatePicker, Modal, Tabs, Popover)
+Icons:                Lucide React (react-icons/lu) + React Icons (react-icons/fi, /fa6, /io5)
+Rich Text:            TipTap v3 (@tiptap/react, @tiptap/starter-kit)
+Animations:           Framer Motion v12.23.24
+State & Caching:      TanStack React Query v5.90.12
+HTTP Client:          Axios v1.7.9
+Markdown & AI:        React Markdown v10 + Remark GFM v4
+Testing:              Vitest v5.0.1 + JSDOM v30 + @testing-library/react v16
+Linting:              ESLint v9.19 with react-hooks & tanstack-query plugins
+```
+
+### Data Flow Architecture
+
+```mermaid
+flowchart LR
+    UI[React 19 Component] --> Hook[Custom TanStack Query Hook]
+    Hook --> Service[Domain API Service]
+    Service --> Axios[useAxiosSecure / useAxiosPublic]
+    Axios --> Backend[Laravel 11 REST API]
+    Backend --> DB[(MySQL Database)]
+```
+
+### HTTP & Authentication Architecture
+
+1. **`useAxiosPublic()`**: Used for unauthenticated public routes (Home, CMS, All Camps, Contact Form, Sign In/Up).
+2. **`useAxiosSecure()`**: Used for all authenticated portal queries and mutations. Automatically:
+   - Injects the `Authorization: Bearer <token>` header from `localStorage`.
+   - Intercepts `401 Unauthorized` responses to purge expired tokens, display an informative toast alert, and safely redirect to `/auth/signin`.
+
+---
+
+## 📁 Repository Directory Map
+
+```
+whistleworks/
+├── .agents/                     # AI Agent configuration & specialized skills
+│   └── skills/                  # Accessibility, performance, framer-motion, design skills
+├── docs/                        # Architecture manuals & project roadmaps
+├── public/                      # Static assets, SVG icons, PWA manifest, _redirects
 ├── src/
-│   ├── main.jsx                     # App entry point
-│   ├── App.jsx                      # Root app component
-│   ├── index.css                    # Global styles & Tailwind CSS v4 config
-│   │
-│   ├── assets/                      # Shared media assets (images, logos, etc.)
-│   │
-│   ├── components/                  # Shared UI components
-│   │   ├── common/                  # Atomic & reusable UI primitives (Logo, BackBtn, Loader, etc.)
-│   │   └── shared/                  # Layout/navigation components (Header, Footer, DashboardHeader, UserPopover, etc.)
-│   │
-│   ├── context/                     # React Context definitions (AuthContext, etc.)
-│   │
-│   ├── providers/                   # Context providers (AuthProvider.jsx, etc.)
-│   │
-│   ├── services/                    # API Service layers (handles raw HTTP requests)
-│   │   ├── auth.service.js          # Authentication services
-│   │   ├── cms.service.js           # Public CMS pages (Home, About) services
-│   │   ├── stripeConnection.service.js # Stripe onboarding & status services
-│   │   ├── director-services/       # Director-specific services (camp, roster, crew, schedules, etc.)
-│   │   ├── referee-services/        # Referee-specific services (registrations, my-games, performance, check-ins)
-│   │   └── evaluator-services/      # Evaluator-specific services (schedules, registrations, evaluations)
-│   │
-│   ├── hooks/                       # Custom React hooks
-│   │   ├── axiosInstace.jsx         # Default Axios instance for route loaders
-│   │   ├── useAuth.jsx              # Legacy/helper auth hooks
-│   │   ├── useAxiosPublic.jsx       # Public Axios instance hook
-│   │   ├── useAxiosSecure.jsx       # Secure Axios instance hook with 401 interceptor
-│   │   ├── useCampSchedule.js       # Schedule fetching hook
-│   │   ├── infinity-scroll-hook.js  # Reusable infinite scroll hook
-│   │   │
-│   │   └── api/                     # TanStack Query (React Query) hooks mapped to API services
-│   │       ├── useAuth.js           # Auth query/mutation hooks
-│   │       ├── useCms.js            # CMS query hooks
-│   │       ├── useStripConnection.js # Stripe integration query/mutation hooks
-│   │       ├── useEvaluation.js     # Referee evaluations hooks
-│   │       ├── useNoAuthCamps.js    # Public camps hooks
-│   │       ├── useRankings.js       # Rankings & settings hooks
-│   │       ├── useRegisteredReferees.js
-│   │       ├── useRefereeDetails.js
-│   │       ├── director-hooks/      # Director-specific API hooks (useCamps, useCrews, useBuildSchedule, etc.)
-│   │       ├── referee-hooks/       # Referee-specific API hooks (useRefereePerformance, useCampRegistration, etc.)
-│   │       └── evaluator-hooks/     # Evaluator-specific API hooks (useEvaluatorCamps, useEvaluatorSchedule, etc.)
-│   │
-│   ├── lib/
-│   │   └── utils.js                 # Shared helper utilities (e.g., tailwind merge cn() helper)
-│   │
-│   ├── utils/                       # Pure utility/helper functions
-│   │   ├── formatDate.js            # Date formatter
-│   │   ├── maskEmail.js             # Email masking
-│   │   └── validatePassword.js      # Password validation
-│   │
-│   ├── router/
-│   │   └── router.jsx               # React Router config and route definitions
-│   │
-│   ├── routes/
-│   │   └── RoleBasedPrivateRoute.jsx # Route authentication & role check guard
-│   │
-│   ├── layout/                      # High-level layout wrappers
-│   │   ├── RootLayout.jsx           # Public site layout (Header + Footer)
-│   │   ├── AuthLayout.jsx           # Authentication layouts
-│   │   ├── DirectorLayout.jsx       # Director dashboard layout
-│   │   ├── EvolatorLayout.jsx       # Evaluator dashboard layout
-│   │   └── RefereeLayout.jsx        # Referee dashboard layout
-│   │
-│   └── page/                        # Page-level components
-│       ├── home/                    # Landing page
-│       ├── about-us/                # About page
-│       ├── all-camps/               # Public camps list
-│       ├── faq/                     # FAQ page
-│       ├── privacy-policy/          # Privacy Policy
-│       ├── terms-conditions/        # Terms & Conditions
-│       ├── auth/                    # Auth pages (SignIn, SignUp, VerifyOtp, ResetPassword, etc.)
-│       └── dashboard/               # Role-based dashboard page trees
-│           ├── NoticePopup.jsx      # Dashboard notice banner
-│           ├── profile/             # Profile page
-│           ├── campDetailsPage/     # Tabbed view for camp details, roster, and reports
-│           │   ├── camp-details/    # Camp info & registration modal (with Stripe and coupon discount)
-│           │   ├── roster/          # Camp roster view
-│           │   └── ranking-report/  # Ranking reports view
-│           ├── director-dashboard/  # Camp Director dashboard subpages with local components
-│           │   ├── dashboard/       # Main dashboard home (with Stripe connect card)
-│           │   ├── create-new-camp/ # Create camp page (displays camp fee and software fee)
-│           │   ├── edit-camp/       # Edit camp page
-│           │   ├── build-schedule/  # Camp schedule configuration
-│           │   ├── court-list/      # Court and slot management
-│           │   ├── evaluate/        # Referee evaluation pages
-│           │   ├── ranking/         # Director ranking view
-│           │   ├── crews/           # Crew management
-│           │   └── strip-connection-success/ # Stripe onboarding callback target
-│           ├── EvolatorDashboard/   # Evaluator dashboard subpages
-│           └── RefereeDashboard/    # Referee dashboard subpages
-│
-├── package.json
-├── vite.config.js
-├── eslint.config.js
-├── jsconfig.json
-└── index.html
+│   ├── assets/                  # Shared images, sports banners, vector graphics
+│   ├── components/
+│   │   ├── common/              # Atomic primitives (CommonSubmitBtn, CommonInputWrapper,
+│   │   │   │                    #  SectionCard, BackBtn, LoaderV2, PaginationV2)
+│   │   │   └── __test__/        # Vitest unit tests for common primitives
+│   │   └── shared/              # Global layout components (Header, Footer, NotificationBell,
+│   │       │                    #  SportIcon, CampCard, UserPopover)
+│   │       └── __tests__/       # Vitest unit tests for shared components
+│   ├── context/                 # React Context definitions (AuthContext)
+│   ├── hooks/                   # General utility hooks (useAuth, useAxiosSecure, useDocumentTitle)
+│   │   ├── api/                 # TanStack Query hook layer:
+│   │   │   ├── director-hooks/  # Camps, schedules, crews, rankings, AI queries
+│   │   │   ├── referee-hooks/   # Registered camps, check-ins, performance, my games
+│   │   │   ├── evaluator-hooks/ # Evaluator camps, scoring, court schedules
+│   │   │   └── __tests__/       # Unit tests for all API hooks
+│   │   └── __tests__/           # Unit tests for core custom hooks
+│   ├── layout/                  # Page shell wrappers (RootLayout, DirectorLayout,
+│   │   │                        #  RefereeLayout, EvolatorLayout, AuthLayout)
+│   │   └── __tests__/           # Unit tests for layout shells
+│   ├── lib/                     # Global library utilities (cn class merge, permissions)
+│   │   └── __tests__/           # Unit tests for library helpers
+│   ├── page/                    # Route page components:
+│   │   ├── about-us/            # Public About page (founder story, stats, mission)
+│   │   ├── all-camps/           # Camp discovery catalog & public details
+│   │   ├── auth/                # Sign In, Sign Up, OTP verify, password reset
+│   │   ├── contact-us/          # Contact inquiry form & tests
+│   │   ├── dashboard/           # Authenticated role portals:
+│   │   │   ├── director-dashboard/
+│   │   │   │   ├── ai-assistant/# AI Director Assistant suite (chat, widgets, cards)
+│   │   │   │   ├── build-schedule/ # Schedule & time slot builder
+│   │   │   │   ├── court-list/  # Multi-court & position-wise referee assignment
+│   │   │   │   ├── create-new-camp/ # Camp wizard with Google Places
+│   │   │   │   ├── crews/       # Crew builder & details
+│   │   │   │   ├── ranking/     # Weighted ranking tables
+│   │   │   │   └── evaluate/    # Director referee evaluations
+│   │   │   ├── EvolatorDashboard/ # Evaluator active camps & scoring
+│   │   │   ├── RefereeDashboard/  # Referee active camps, my games & performance
+│   │   │   ├── campDetailsPage/ # Shared tabbed camp details & rosters
+│   │   │   └── profile/         # User profile settings & password update modal
+│   │   ├── faq/                 # Searchable FAQ accordion
+│   │   ├── home/                # Dynamic landing page with partner marquee
+│   │   ├── privacy-policy/, terms-conditions/, whats-new/
+│   ├── providers/               # Global providers (AuthProvider, QueryProvider)
+│   ├── router/                  # React Router definitions & route tests
+│   ├── routes/                  # RoleBasedPrivateRoute guard & test suite
+│   ├── services/                # Raw HTTP API client layer (Axios functions):
+│   │   ├── director-services/   # Camp, crew, court, export, schedule services
+│   │   ├── referee-services/    # Registration, check-in, performance services
+│   │   ├── evaluator-services/  # Evaluator schedule, evaluation services
+│   │   └── __tests__/           # Unit tests for all HTTP service files
+│   ├── setupTests.js            # Global Vitest configuration & browser API mocks
+│   ├── utils/                   # Shared utility helpers (refereePositions, routeTitles)
+│   │   └── __tests__/           # Unit tests for utility functions
+│   ├── App.jsx
+│   ├── index.css                # Tailwind CSS v4 directives & theme variables
+│   └── main.jsx                 # Application entry point
+├── index.html                   # HTML document template with meta tags
+├── package.json                 # Dependency manifests & NPM scripts
+├── vite.config.js               # Vite & Vitest configuration
+└── eslint.config.js             # ESLint v9 configuration
 ```
 
 ---
 
-## 🏗 Architecture Overview
+## 🗺 Comprehensive Route Map
 
-### Application Flow
+### Public & Informational Routes
 
-```
-User → Browser → Vite Dev Server → React App
-                                      │
-                           ┌──────────┴──────────┐
-                           │   Router (react-router-dom) │
-                           └──────────┬──────────┘
-                                      │
-                    ┌─────────────────┼─────────────────┐
-                    │                 │                 │
-              Public Routes     Auth Routes       Dashboard Routes
-              (RootLayout)    (AuthLayout)    (RoleBasedPrivateRoute)
-                                                      │
-                                    ┌─────────────────┼─────────────────┐
-                                    │                 │                 │
-                              Director          Evaluator          Referee
-                              Layout            Layout             Layout
-```
+| Path | Component | Layout | Access |
+| :--- | :--- | :--- | :--- |
+| `/` | `Home` | `RootLayout` | Public |
+| `/all-camps` | `AllCamps` | `RootLayout` | Public |
+| `/all-camps/:id` | `CampDetailsPageForNoAuth` | `RootLayout` | Public |
+| `/about-us` | `AboutUs` | `RootLayout` | Public |
+| `/faq` | `FAQ` | `RootLayout` | Public |
+| `/contact-us`, `/contact` | `ContactUs` | `RootLayout` | Public |
+| `/whats-new` | `WhatsNew` | `RootLayout` | Public |
+| `/privacy-policy` | `PrivacyPolicy` | `RootLayout` | Public |
+| `/terms-conditions` | `TermsConditions` | `RootLayout` | Public |
 
-### Data Flow
+### Authentication Routes
 
-```
-Component → Custom Hook → Axios Instance (useAxiosPublic/Secure)
-                              │
-                              ▼
-                    React Query (useQuery/useMutation)
-                              │
-                              ▼
-                    API Backend (Laravel)
-                              │
-                              ▼
-                    Database (MySQL)
-```
+| Path | Component | Layout | Purpose |
+| :--- | :--- | :--- | :--- |
+| `/auth/signin` | `SignIn` | `AuthLayout` | Email/password login |
+| `/auth/signup` | `SignUp` | `AuthLayout` | New account registration |
+| `/auth/verify-otp` | `VerifyOtp` | `AuthLayout` | OTP verification |
+| `/auth/forget-password` | `ForgetPassword` | `AuthLayout` | Request password reset |
+| `/auth/reset-password-otp` | `ResetPasswordOtp` | `AuthLayout` | Reset password OTP verification |
+| `/auth/reset-password` | `ResetPassword` | `AuthLayout` | Set new password |
 
-- **Public Axios Instance** (`useAxiosPublic`): Used for unauthenticated requests (login, signup, public camp data).
-- **Secure Axios Instance** (`useAxiosSecure`): Used for authenticated requests; automatically attaches JWT token and handles 401 responses (auto-logout on session expiry).
-- **Axios Instance** (`axiosInstace`): Used for route loaders within React Router's `loader` functions.
+### Camp Director Suite (`/director-dashboard`)
 
-### State Management
+*Protected by `<RoleBasedPrivateRoute allowedRoles={['director']}>`*
 
-| State Type     | Solution                    | Usage                                  |
-| -------------- | --------------------------- | -------------------------------------- |
-| **Server State** | React Query (TanStack Query) | All API data — camps, rosters, evaluations, notifications |
-| **Auth State**   | React Context (AuthProvider) | User data, login/logout, access token  |
-| **Form State**   | React Hook Form             | Form inputs, validation, submission    |
-| **UI State**     | Local useState / URL params | Modals, tabs, dropdowns, filters       |
+| Path | Component | Description |
+| :--- | :--- | :--- |
+| `/director-dashboard` | `Dashboard` | Camp list overview, active camp metrics, Stripe card |
+| `/director-dashboard/create-new-camp` | `CreateNewCamp` | Multi-step camp creation form |
+| `/director-dashboard/camp-overview/:id` | `CampOverview` | Camp details, publish toggle, action menu |
+| `/director-dashboard/edit-camp/:id` | `EditCampPage` | Edit existing camp data |
+| `/director-dashboard/build-schedule/:id`| `BuildSchedule` | Daily operating hours & court schedule builder |
+| `/director-dashboard/court-list/:id` | `CreatedCourt` | Court management & position-wise referee assignment |
+| `/director-dashboard/camp-schedules/:id`| `CampSchedules` | View published schedule matrix |
+| `/director-dashboard/roster/:id` | `Roster` | Registered referees and evaluators |
+| `/director-dashboard/active-crews/:id` | `ActiveCrews` | Referee crew list & creation modal |
+| `/director-dashboard/crew-details/:crewId` | `CrewDetailsPage`| Inspect crew members & game slots |
+| `/director-dashboard/evaluate/:id` | `Evaluate` | Director evaluation center |
+| `/director-dashboard/evaluation/:id` | `DirectorEvaluationPage`| Direct scoring interface |
+| `/director-dashboard/ranking/:id` | `Ranking` | Live referee ranking leaderboard & weight settings |
+| `/director-dashboard/make-announcement/:id`| `MakeAnnouncement`| Broadcast announcements to attendees |
+| `/director-dashboard/ai-assistant` | `AiDirectorAssistant` | Cross-camp AI intelligence assistant |
+| `/director-dashboard/previous-camps` | `DirectorPreviousCamps`| Past archived camps |
+| `/director-dashboard/assigned-camps` | `AssignedCamps` | Camps assigned to co-directors |
+| `/director-dashboard/profile` | `Profile` | Profile information & password modal |
+| `/director-dashboard/stripe-connection-success` | `StripeConnectionSuccess`| Stripe Connect onboarding redirect |
 
----
+### Evaluator Portal (`/evaluator-dashboard`)
 
-## 👥 User Roles & Permissions
+*Protected by `<RoleBasedPrivateRoute allowedRoles={['evaluator']}>`*
 
-The application has three distinct roles, each with its own dashboard and feature set:
+| Path | Component | Description |
+| :--- | :--- | :--- |
+| `/evaluator-dashboard` | `MyCamps` | Registered & active camps |
+| `/evaluator-dashboard/camp/:id` | `CampDetailsPage` | Camp details, court schedules, rosters |
+| `/evaluator-dashboard/find-camps` | `EvolatorFindCamp` | Discover camps seeking evaluators |
+| `/evaluator-dashboard/previous-camps` | `PreviousCamps` | Archive of past evaluated camps |
+| `/evaluator-dashboard/profile` | `Profile` | Evaluator profile & settings |
 
-### 1. 🎯 Director (Camp Director)
-- Create, edit, and delete camps
-- Build schedules and manage courts
-- View and manage rosters (referees, evaluators, crews)
-- Evaluate referee performance
-- View ranking reports with settings
-- Create and manage crews
-- Send announcements
-- View camp overview and details
+### Referee Portal (`/referee-dashboard`)
 
-### 2. 📋 Evaluator (Evaluator/Clinician)
-- View registered/active camps
-- Browse and register for available camps
-- View camp details, schedules, and rosters
-- Submit referee performance evaluations
-- View ranking reports
-- View assigned game schedules
-- Access previous camp history
+*Protected by `<RoleBasedPrivateRoute allowedRoles={['referee']}>`*
 
-### 3. 🏅 Referee (Referee)
-- Browse and register for training camps
-- Check in to registered camps
-- View assigned game schedules
-- View personal performance metrics and breakdowns
-- View ranking reports
-- Receive feedback from evaluators
-- Access previous camp history
+| Path | Component | Description |
+| :--- | :--- | :--- |
+| `/referee-dashboard` | `ActiveCamps` | Registered camps, check-in button, active camps |
+| `/referee-dashboard/camp/:id` | `CampDetailsPage` | Camp details, itinerary, my game assignments |
+| `/referee-dashboard/find-camps` | `FindCamps` | Discover & register for camps |
+| `/referee-dashboard/previous-camps` | `PreviousCamps` | Past attended camps archive |
+| `/referee-dashboard/payment-success` | `PaymentSuccess` | Post-registration success screen |
+| `/referee-dashboard/payment-cancel` | `PaymentCancel` | Checkout cancellation screen |
+| `/referee-dashboard/profile` | `Profile` | Referee profile, jersey number, contact details |
 
 ---
 
-## 🗺 Route Map
-
-### Public Routes (`/`)
-
-| Path                  | Page                     | Description                    |
-| --------------------- | ------------------------ | ------------------------------ |
-| `/`                   | Home                     | Landing page with CMS content  |
-| `/about-us`           | AboutUs                  | About page (CMS-driven)        |
-| `/all-camps`          | AllCamps                 | Browse all camps with filters  |
-| `/all-camps/:id`      | CampDetailsPageForNoAuth | Public camp details            |
-| `/privacy-policy`     | PrivacyPolicy            | Privacy policy                 |
-| `/terms-conditions`   | TermsConditions          | Terms and conditions           |
-
-### Auth Routes (`/auth`)
-
-| Path                           | Page              | Description               |
-| ------------------------------ | ----------------- | ------------------------- |
-| `/auth/signin`                 | SignIn            | User login                |
-| `/auth/signup`                 | SignUp            | User registration         |
-| `/auth/verify-otp`             | VerifyOtp         | Email verification OTP    |
-| `/auth/forget-password`        | ForgetPassword    | Password reset request    |
-| `/auth/reset-password-otp`     | ResetPasswordOtp  | Password reset OTP        |
-| `/auth/reset-password`         | ResetPassword     | Set new password          |
-
-### Director Dashboard (`/director-dashboard`)
-
-| Path                                       | Page              | Description                 |
-| ------------------------------------------ | ----------------- | --------------------------- |
-| `/director-dashboard`                      | Dashboard         | Main dashboard (All Camps)   |
-| `/director-dashboard/previous-camps`       | DirectorPreviousCamps | Previous camps (placeholder) |
-| `/director-dashboard/create-new-camp`      | CreateNewCamp     | Create a new camp           |
-| `/director-dashboard/camp-overview/:id`    | CampOverview      | View camp details           |
-| `/director-dashboard/edit-camp/:id`        | EditCampPage      | Edit existing camp          |
-| `/director-dashboard/build-schedule/:id`   | BuildSchedule     | Build camp schedule         |
-| `/director-dashboard/court-list/:id`       | CreatedCourt      | Manage courts               |
-| `/director-dashboard/camp-schedules/:id`   | CampSchedules     | View schedules              |
-| `/director-dashboard/ranking/:id`          | Ranking           | Referee rankings            |
-| `/director-dashboard/roster/:id`           | Roster            | Camp roster (referees)      |
-| `/director-dashboard/evaluate/:id`         | Evaluate          | Evaluate referees           |
-| `/director-dashboard/active-evaluate/:id`  | ActiveEvaluate    | Active evaluations          |
-| `/director-dashboard/active-crews/:id`     | ActiveCrews       | Manage crews                |
-| `/director-dashboard/crew-details/:crewId` | CrewDetailsPage   | Crew details                |
-| `/director-dashboard/make-announcement/:id`| MakeAnnouncement  | Send announcements          |
-| `/director-dashboard/profile`              | Profile           | User profile                |
-| `/director-dashboard/stripe-connection-success`| StripeConnectionSuccess| Stripe onboarding success callback |
-
-### Evaluator Dashboard (`/evaluator-dashboard`)
-
-| Path                                       | Page              | Description                      |
-| ------------------------------------------ | ----------------- | -------------------------------- |
-| `/evaluator-dashboard`                     | MyCamps           | My registered camps (default)    |
-| `/evaluator-dashboard/active-camps`        | MyCamp            | My registered camps              |
-| `/evaluator-dashboard/camp/:id`            | CampDetailsPage   | Camp details (tabbed view)       |
-| `/evaluator-dashboard/previous-camps`      | PreviousCamps     | Past camp history                |
-| `/evaluator-dashboard/find-camps`          | EvolatorFindCamp  | Browse available camps           |
-| `/evaluator-dashboard/profile`             | Profile           | User profile                     |
-
-### Referee Dashboard (`/referee-dashboard`)
-
-| Path                                       | Page              | Description                      |
-| ------------------------------------------ | ----------------- | -------------------------------- |
-| `/referee-dashboard`                       | ActiveCamps       | My camps (default)               |
-| `/referee-dashboard/active-camps`          | ActiveCamps       | Checked-in & registered camps    |
-| `/referee-dashboard/camp/:id`              | CampDetailsPage   | Camp details (tabbed view)       |
-| `/referee-dashboard/previous-camps`        | PreviousCamps     | Past camp history                |
-| `/referee-dashboard/find-camps`            | FindCamps         | Browse available camps           |
-| `/referee-dashboard/payment-success`       | PaymentSuccess    | Payment success page             |
-| `/referee-dashboard/payment-cancel`        | PaymentCancel     | Payment cancelled page           |
-| `/referee-dashboard/profile`               | Profile           | User profile                     |
-
----
-
-## ✨ Key Features
-
-### 🔐 Authentication & Security
-- Email/password registration with role selection
-- Email verification via OTP
-- Password reset flow (request → OTP → reset)
-- JWT token-based authentication
-- Auto-logout on session expiry (401 handling)
-- Role-based access control (guards on all dashboard routes)
-- Remember me functionality
-
-### 🏕 Camp Management (Director)
-- **Create Camp**: Rich form with Google Places Autocomplete, Tiptap rich text editor for descriptions, sports type selection, date pickers, timezone selection, and software fee display
-- **Edit Camp**: Update all camp details
-- **Camp Overview**: View camp info with edit/delete actions (only for camp creator)
-- **Camp Status**: Active/inactive management
-
-### 📅 Schedule & Court Management
-- **Build Schedule**: Daily time range setup for each camp date
-- **Court Management**: Create and manage multiple courts per camp
-- **Game Slots**: Assign referees to specific game slots/courts
-- **Schedule Publishing**: Control schedule visibility
-
-### 📋 Roster Management
-- **Referees**: View all registered referees with search/filter
-- **Evaluators**: View and manage approved evaluators
-- **Crews**: Create and manage referee crews
-- **Roster Details**: View member information with detailed modals
-
-### 📝 Evaluation System
-- **Evaluation Form**: Comprehensive multi-criteria evaluation:
-  - Call Accuracy
-  - Communication Skills
-  - Consistency of Calls
-  - Court Position & Mechanics
-  - Fitness & Mobility
-  - Game Awareness
-- **Evaluation Guidelines**: Reference guidelines for scoring
-- **Private Comments**: Evaluator-only notes
-- **Referee Feedback**: Feedback shared with referees
-- **Recommended Level**: Suggested referee level advancement
-
-### 📊 Performance & Rankings
-- **Overall Performance**: Aggregated scores and statistics
-- **Performance Breakdown**: Detailed metrics across evaluation criteria
-- **Ranking Report**: Sorted referee rankings with scoring details
-- **Ranking Settings**: Configure ranking parameters and weights
-- **Recent Feedback**: Latest evaluator comments
-
-### 👥 Crew Management
-- Create and manage referee crews
-- Add/remove members to crews
-- View crew details
-- Crew assignments to game slots
-
-### 🔔 Notification System
-- **Real-time Notifications**: In-app notification center
-- **Notification Bell**: Unread count badge with dropdown
-- **Infinite Scroll**: Paginated notification loading
-- **Actions**: Mark as read, mark all read, delete, clear all
-- **Types**: Assignments, announcements, schedule changes, removals
-- **Auto-refresh**: Polling every 30-60 seconds
-
-### 📢 Announcement System (Director)
-- Send announcements to:
-  - All members
-  - All evaluators
-  - All referees
-  - Specific users (multi-select)
-- Subject and message fields with validation
-
-### 🔍 Camp Discovery & Filtering
-- **Advanced Filters**: Sport type, location, date range
-- **Sort Options**: Upcoming first, newest, oldest
-- **Pagination**: Page-based navigation
-- **URL Sync**: Filter state persisted in URL query params
-- **Camp Cards**: Rich card display with logo, location, dates, price, sport type
-
-### 💳 Payment & Stripe Connect Integration
-- **Stripe Account Onboarding**: Camp Directors can securely link their Stripe accounts via the Connect Onboarding flow to receive registration payments directly.
-- **Express Dashboard Access**: Fully onboarded Directors can access their Stripe Express dashboard from Whistle Works for payout/account management.
-- **Split Payment Flow**:
-  - **Camp Fee**: The base camp registration price (configured by the Director) goes directly to the Camp Director's connected Stripe account.
-  - **Technology / Software Fee**: The sport-specific software/technology fee (set by admin) goes directly to the Admin's Stripe account.
-- **Discount Coupons**: Referees can apply valid coupon codes during checkout (validated via `/v2/referee/camp/:id/validate-coupon`). The checkout payload includes coupon code context to apply discounts to the final Stripe Checkout session.
-- **Payment Success & Cancel Pages**: Routes for successful (`/payment-success`) and cancelled (`/payment-cancel`) registration checkout flows.
-
-### 👤 User Profile Management
-- View and edit profile information
-- Avatar upload
-- Phone number with country code
-- Address with Google Places Autocomplete
-- Role-based profile paths
-
-### 🏠 CMS-Driven Public Pages
-- **Home Page**: Hero, Features, Training Camps, Partners (marquee), Testimonials, CTA
-- **About Page**: Mission, Founder/CEO info, stats, team members, features grid
-- All content managed via CMS API endpoints
-
----
-
-## 🚀 Getting Started
+## 🚀 Getting Started & Local Setup
 
 ### Prerequisites
 
-- **Node.js** (v18 or later)
-- **npm**, **yarn**, **pnpm**, or **bun** (package manager)
-- **Google Maps API Key** (for Places Autocomplete)
+- **Node.js**: `v18.0.0` or higher (Node 20+ recommended)
+- **Package Manager**: `npm` (v9+), `pnpm`, or `yarn`
+- **Modern Browser**: Chrome, Firefox, Edge, Safari
 
-### Installation
+### 1. Clone & Install Dependencies
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd whistle-works
+git clone https://github.com/Whistle-Works/whistleworks-frontend.git
+cd whistleworks
 
-# Install dependencies
+# Install packages
 npm install
-# or
-pnpm install
-# or
-yarn install
-# or
-bun install
 ```
 
-### Environment Setup
+### 2. Environment Variables Setup
 
-Create a `.env` file in the project root:
+Create a `.env` file in the root directory:
 
 ```env
-VITE_BASE_URL=http://localhost:8000              # Backend API base URL
-VITE_ACCESS_TOKEN=access_token                   # Local storage key name for JWT
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key # Google Maps API key
+# Backend REST API Base URL
+VITE_BASE_URL=https://admin.whistleworks.org
+
+# LocalStorage Key for Auth JWT Bearer Token
+VITE_ACCESS_TOKEN=access_token
+
+# Google Maps Places API Key (Autocomplete for camp locations & user addresses)
+VITE_GOOGLE_MAPS_API_KEY=AIzaSyYourGoogleMapsApiKeyHere
 ```
 
-### Development
+### 3. Running Development Server
 
 ```bash
 npm run dev
-# or
-pnpm dev
 ```
 
-The app will be available at `http://localhost:5173`.
+The application starts locally at `http://localhost:5173`. Hot Module Replacement (HMR) is enabled via `@vitejs/plugin-react-swc`.
 
-### Build for Production
+### 4. Production Build & Preview
 
 ```bash
+# Compile and bundle with Vite
 npm run build
-# Output: dist/
-```
 
-### Preview Production Build
-
-```bash
+# Preview production build locally
 npm run preview
 ```
 
-### Lint
+---
+
+## 🧪 Testing Suite & Quality Assurance
+
+WhistleWorks features an automated test suite powered by **Vitest v5** and **React Testing Library**:
+
+### Test Coverage Summary
+
+- **Total Test Suites**: **135 Files**
+- **Total Unit & Integration Tests**: **564 Passing Tests**
+- **Zero Failures / Zero Flaky Tests**
+
+```
+Test Coverage Areas:
+├── Services Layer:        100% of auth, cms, contact, ranking, director, referee & evaluator HTTP services
+├── TanStack Query Hooks:  100% of useAuth, useCms, useContact, director-hooks, referee-hooks, evaluator-hooks
+├── Shared UI Primitives:  CampCard, Header, Footer, SportIcon, EvaluationsList, SectionCard, CommonSubmitBtn
+├── Layout Shells:         RootLayout, DirectorLayout, RefereeLayout, EvolatorLayout, AuthLayout
+├── Core Utilities:        refereePositions, formatDate, maskEmail, validatePassword, formErrors, campFormat
+├── Router & Guards:       React Router DOM tree, RoleBasedPrivateRoute role redirection, routeTitles mapping
+└── AI Director Assistant: aiChat, aiPresentation, assistantPermissions, chat input, widgets, and cards
+```
+
+### Running Tests
 
 ```bash
-npm run lint
+# Run all tests once in terminal
+npm run test:run
+
+# Run tests in interactive watch mode
+npm run test
+
+# Launch Vitest visual browser UI
+npm run test:ui
+
+# Generate test coverage report
+npm run test:coverage
+
+# Run a specific test file
+npx vitest run src/page/contact-us/__tests__/ContactUs.test.jsx
+```
+
+### Vitest Global Setup & Mocking Guidelines
+
+Global test environment is configured in [src/setupTests.js](file:///home/sifat/Projects/whistleworks/src/setupTests.js), automatically providing:
+- `@testing-library/jest-dom` matchers (`toBeInTheDocument()`, `toHaveValue()`, etc.).
+- DOM API mocks: `IntersectionObserver`, `ResizeObserver`, and `window.matchMedia`.
+- Automatic DOM `cleanup()` after each test.
+
+When testing components that interact with the router or React Query, wrap them with test providers:
+
+```jsx
+import { render } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  });
+
+export const renderWithProviders = (ui) => {
+  const queryClient = createTestQueryClient();
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>
+  );
+};
 ```
 
 ---
 
-## 🔑 Environment Variables
+## 📘 New Developer Onboarding Guide
 
-| Variable                    | Required | Description                                |
-| --------------------------- | -------- | ------------------------------------------ |
-| `VITE_BASE_URL`             | ✅ Yes   | Backend API base URL (e.g., `http://localhost:8000`) |
-| `VITE_ACCESS_TOKEN`         | ✅ Yes   | localStorage key name for JWT token        |
-| `VITE_GOOGLE_MAPS_API_KEY`  | ✅ Yes   | Google Maps API key for Places Autocomplete|
+### Code Conventions
 
----
-
-## 🔌 API Integration
-
-All API requests are routed through Axios instances with consistent error handling.
-
-### API Base URL Pattern
-
-```
-{VITE_BASE_URL}/api/{endpoint}
-```
-
-### Axios Instance Types
-
-| Instance             | Auth Header | Usage                                      |
-| -------------------- | ----------- | ------------------------------------------ |
-| `useAxiosPublic()`   | ❌ No       | Login, signup, CMS content, public camp data|
-| `useAxiosSecure()`   | ✅ Bearer   | All authenticated requests                 |
-| `axiosInstace`       | ✅ Bearer   | Route loaders (React Router `loader` fn)   |
-
-### Key API Endpoints
-
-#### Authentication
-- `POST /api/login` — User login
-- `POST /api/register` — User registration
-- `GET /api/logout` — User logout
-- `GET /api/user-details` — Fetch authenticated user
-
-#### Camps
-- `GET /api/v1/camp/list` — List camps (with filters)
-- `GET /api/v1/camp/details/:id` — Camp details
-- `POST /api/v1/camp/create` — Create camp
-- `DELETE /api/v1/camp/delete/:id` — Delete camp
-- `GET /api/v1/camp/edit/:id` — Get camp edit data
-- `GET /api/v1/camp/sports-type` — Sports types
-- `GET /api/v1/camp/locations` — Available locations
-
-#### Schedule & Courts
-- `GET /api/v1/camp/:id/schedule` — Camp schedule
-- `GET /api/v1/camp/:id/date-range` — Date range data
-
-#### Roster
-- `GET /api/roster/camp/details/:camp_id` — Full roster details
-
-#### Evaluations
-- `POST /api/referee/evaluation/upsert` — Submit/update evaluation
-- `GET /api/referee/evaluation/camp/:id/all-referees` — All referees for evaluation
-
-#### Rankings
-- `GET /api/referee/evaluation/camp/:id/all-referees` — Ranking data
-
-#### Notifications
-- `GET /api/notifications` — List notifications (paginated)
-- `GET /api/notifications/counts` — Unread count
-- `POST /api/notifications/:id/mark-as-read` — Mark single read
-- `POST /api/notifications/mark-all-as-read` — Mark all read
-- `DELETE /api/notifications/delete/:id` — Delete notification
-- `DELETE /api/notifications/clear-read` — Clear read notifications
-
-#### Announcements
-- `POST /api/director/announcement/store` — Send announcement
-
-#### CMS
-- `GET /api/cms/home` — Home page CMS content
-- `GET /api/cms/about` — About page CMS content
-
-#### Referee-specific
-- `POST /api/v1/referee/camp/:id/register` — Register for camp
-- `POST /api/v1/referee/camp/:id/checkin` — Check in to camp
-- `GET /api/v1/referee/camp/my-checkins` — My checked-in camps
-- `GET /api/v1/referee/camp/my-registrations` — My registrations
-- `GET /api/referee/camp/:id/assigned-slots` — Assigned game slots
-- `GET /api/referee/my-evaluations/:camp_id` — My performance data
-
-#### Evaluator-specific
-- `POST /api/evaluator/camp-registration/register` — Register as evaluator
-- `GET /api/evaluator/camp-registration/my-registrations` — My registrations
+1. **Path Alias**: Always import using `@/` to reference `src/` (e.g., `import { cn } from "@/lib/utils"`).
+2. **Design Primitives**: Before coding a custom button, text input, loader, back button, or modal card, inspect `src/components/common/` first:
+   - `CommonSubmitBtn`: Standard button supporting `primary`, `secondary`, `danger` variants, loading state, and link mode.
+   - `CommonInputWrapper`: Form field with label, error display, and password reveal toggle.
+   - `BackBtn` / `ActiveCmpsBackBtn`: Consistent navigation back button.
+   - `LoaderV2` / `ScreenLoading`: Standard loading spinners.
+   - `SectionCard`: Themed container with header icon badge, title, and description.
+3. **Icons**: Use `react-icons/lu` (Lucide) or `react-icons/fi`. **Always verify the icon exists** before importing (e.g., use `LuCircleCheck`, not `LuCheckCircle2`; use `LuCircleHelp`, not `LuHelpCircle`).
+4. **Class Merging**: Always use `cn(...)` from `@/lib/utils` when accepting dynamic `className` props.
+5. **No Ad-Hoc `fetch()`**: Never write raw `fetch()` calls in components. Use `useAxiosSecure` for authenticated APIs and encapsulate inside `src/services/` and `src/hooks/api/`.
 
 ---
 
-## 🔐 Authentication Flow
+### How to Implement a New Feature (Step-by-Step Playbook)
 
-```
-User → Sign In / Sign Up
-           │
-           ▼
-     [Backend validates]
-           │
-     ┌─────┴─────┐
-     │           │
-   Success     Error
-     │           │
-     ▼           ▼
- JWT Token   Show error
- stored in   toast + 
- localStorage  message
-     │
-     ▼
- [AuthProvider]
-     │
-     ├─ Store token
-     ├─ Fetch user data
-     └─ Set isLoggedIn = true
-           │
-           ▼
-    [RoleBasedPrivateRoute]
-           │
-     ┌─────┴─────┐
-     │           │
-  Matches    Doesn't match
-   role?       role?
-     │           │
-     ▼           ▼
-  Render     Redirect to
-  Dashboard  appropriate
-             dashboard
-```
+Follow this 5-step checklist whenever introducing a new API-driven feature:
 
-### Token Management
-- **Storage**: JWT stored in `localStorage` under the key specified by `VITE_ACCESS_TOKEN`
-- **Refresh**: User data is re-fetched on mount if token exists
-- **Expiry**: 401 responses trigger auto-logout + toast notification
-- **Storage Sync**: Cross-tab storage change listener keeps auth state in sync
-
----
-
-## 📦 State Management
-
-### React Query (TanStack Query)
-
-React Query is the primary state management solution, handling all API data:
-
+#### Step 1: Write the HTTP Service Layer
+Create or edit the service file in `src/services/[domain]/your-feature.service.js`:
 ```javascript
-// Query Example
-const { data, isLoading } = useQuery({
-  queryKey: ["camp-details", campId],
-  queryFn: async () => {
-    const response = await axiosSecure.get(`/v1/camp/details/${campId}`);
-    return response?.data?.data;
-  },
-  enabled: !!campId,
-  staleTime: 5 * 60 * 1000, // 5 minutes
-});
+import useAxiosSecure from "@/hooks/useAxiosSecure";
 
-// Mutation Example
-const mutation = useMutation({
-  mutationFn: async (formData) => {
-    const response = await axiosSecure.post("/endpoint", formData);
-    return response?.data;
-  },
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["related-data"] });
-    toast.success("Success!");
-  },
-});
+export const useYourFeatureService = () => {
+  const axiosSecure = useAxiosSecure();
+
+  const getFeatureData = async (paramId) => {
+    const res = await axiosSecure.get(`/api/v1/feature/${paramId}`);
+    return res.data;
+  };
+
+  return { getFeatureData };
+};
 ```
+*Write a unit test in `src/services/[domain]/__tests__/your-feature.service.test.jsx`.*
 
-### Auth Context
-
+#### Step 2: Create the TanStack Query Hook
+Encapsulate caching in `src/hooks/api/[domain]-hooks/useYourFeature.js`:
 ```javascript
-const { userData, handleLogin, handleLogout, isLoggedIn, accessToken, isLoading } = useAuth();
+import { useQuery } from "@tanstack/react-query";
+import { useYourFeatureService } from "@/services/your-feature.service";
+
+export const useFeatureData = (paramId) => {
+  const { getFeatureData } = useYourFeatureService();
+
+  return useQuery({
+    queryKey: ["feature-data", paramId],
+    queryFn: () => getFeatureData(paramId),
+    enabled: !!paramId,
+    staleTime: 5 * 60 * 1000,
+  });
+};
 ```
+*Write a unit test in `src/hooks/api/__tests__/useYourFeature.test.jsx`.*
 
----
+#### Step 3: Build the UI Component
+Construct the page/component in `src/page/...` utilizing common primitives:
+```jsx
+import { useFeatureData } from "@/hooks/api/useYourFeature";
+import LoaderV2 from "@/components/common/LoaderV2";
 
-## 🎨 UI Component Library
+const YourFeaturePage = ({ id }) => {
+  const { data, isLoading, error } = useFeatureData(id);
 
-### Custom Components
+  if (isLoading) return <LoaderV2 />;
+  if (error) return <p className="text-red-500">Failed to load feature.</p>;
 
-| Component              | Description                                  |
-| ---------------------- | -------------------------------------------- |
-| `CommonTitle`          | Section heading with consistent styling      |
-| `CommonText`           | Body text with responsive sizing             |
-| `CommonInputWrapper`   | Form input with label, errors, validation    |
-| `CommonSubmitBtn`      | Styled button (primary/secondary variants)   |
-| `CampCard`             | Camp display card with all relevant info     |
-| `PaginationV2`         | Reusable pagination component                |
-| `Loader` / `LoaderV2`  | Loading spinners                             |
-| `ScreenLoading`        | Full-page loading overlay                    |
-| `StarRating`           | Star rating display                          |
-| `Icon`                 | SVG icon wrapper                             |
-| `BackBtn`              | Navigation back button                       |
-| `Profile`              | User profile page component                  |
-| `EditProfileModal`     | Profile editing modal                        |
+  return <div className="p-6">{/* Render feature content */}</div>;
+};
 
-### Third-Party Components
+export default YourFeaturePage;
+```
+*Write a component test in `__tests__/YourFeaturePage.test.jsx`.*
 
-- **Ant Design**: `Select`, `DatePicker`, `Modal`, `Tabs`, `Spin`, `Alert`, `Avatar`, `Card`, `Descriptions`, `Input`, `Popover`, `Result`, `Image`
-- **Framer Motion**: Page/section entrance animations, modals, popups
-- **Tiptap**: Rich text editor for camp descriptions with Bold, Italic, Heading, Bullet List, Ordered List
-- **react-fast-marquee**: Auto-scrolling partner logos
+#### Step 4: Register Route & Page Title
+1. Add the route to [src/router/router.jsx](file:///home/sifat/Projects/whistleworks/src/router/router.jsx) wrapped inside the appropriate layout or `<RoleBasedPrivateRoute>`.
+2. Add the dynamic page title in [src/utils/routeTitles.js](file:///home/sifat/Projects/whistleworks/src/utils/routeTitles.js) so `<DynamicTitleManager />` syncs the browser tab title automatically.
 
----
-
-## 🧪 Testing
-
-> **Note**: The project currently does not have formal unit or integration tests configured. Testing infrastructure (Jest, Vitest, React Testing Library) can be added as needed.
-
+#### Step 5: Validate Lint & Tests
+Before committing or creating a pull request, run the test and linter checks:
 ```bash
-# Run linting
+# 1. ESLint (Must pass with 0 errors)
 npm run lint
-```
 
----
+# 2. Vitest Test Suite (All 135+ suites must pass)
+npm run test:run
 
-## 🚢 Deployment
-
-The project uses Vite for building, outputting to the `dist/` directory.
-
-### Build
-
-```bash
+# 3. Production Build (Rollup bundle verification)
 npm run build
 ```
 
-### Static Deployment
+---
 
-Deploy the `dist/` folder to any static hosting provider:
+### Troubleshooting Common Issues
 
-- **Netlify**: The `public/_redirects` file handles SPA routing
-- **Vercel**: Configure `vercel.json` with rewrites
-- **Firebase Hosting**: Configure `firebase.json` rewrites
-- **Apache/Nginx**: Serve `index.html` for all non-file routes
-
-### SPA Routing
-
-The `public/_redirects` file includes Netlify-compatible redirect rules for SPA routing:
-
-```
-/* /index.html 200
-```
+| Issue / Error | Likely Cause | Solution |
+| :--- | :--- | :--- |
+| **`401 Unauthorized` Loop** | Stale or expired token in `localStorage`. | Clear `localStorage.removeItem("access_token")` or let `useAxiosSecure` auto-logout redirect to `/auth/signin`. |
+| **`403 Forbidden` on Previous Camps** | Referees fetching Evaluator archive or vice-versa. | Use `useRefereePreviousCamps` for Referees and `useEvaluatorPreviousCamps` for Evaluators. Verify `userRole` condition. |
+| **Missing Export / React Icon Error** | Icon name mismatch in `react-icons/lu`. | Check exact name with `node -e "console.log(require('react-icons/lu').LuIconName)"`. (e.g. `LuCircleCheck`, not `LuCheckCircle`). |
+| **Tailwind v4 styles not applying** | Unrecognized utility or missing `@theme` rule. | Tailwind v4 uses `@tailwindcss/vite`. Use standard utilities or the `cn()` helper in `@/lib/utils`. |
+| **Vitest `ResizeObserver` or `matchMedia` error** | Browser API not present in standard Node `jsdom`. | Verify [src/setupTests.js](file:///home/sifat/Projects/whistleworks/src/setupTests.js) is included in `vite.config.js` `setupFiles`. |
 
 ---
 
-## 🤝 Contributing
+## 📄 License & Credits
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run linting (`npm run lint`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Code Style
-
-- The project uses ESLint with React-specific rules
-- PropTypes validation is disabled (`react/prop-types: off`)
-- Path aliases (`@/`) are used for all imports
-- Follow existing patterns for consistency
-
----
-
-## 📝 License
-
-This project is proprietary software. All rights reserved.
-
----
-
-## 🙏 Acknowledgments
-
-- Built with [React](https://reactjs.org/), [Vite](https://vitejs.dev/), and [Tailwind CSS](https://tailwindcss.com/)
-- UI components from [Ant Design](https://ant.design/)
-- State management by [TanStack Query](https://tanstack.com/query)
-- Icons by [React Icons](https://react-icons.github.io/react-icons/)
-- Animations by [Framer Motion](https://www.framer.com/motion/)
+- **Copyright**: © Drew Bontrager, LLC. All rights reserved.
+- **Platform Architecture & Development**: WhistleWorks Engineering Team.
+- **Core Technologies**: React 19, Vite 6, Tailwind CSS v4, TanStack Query v5, Ant Design v5, Framer Motion, Vitest.

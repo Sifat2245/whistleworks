@@ -739,4 +739,15 @@ describe("AI director conversations", () => {
     expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
     expect(URL.revokeObjectURL).toHaveBeenCalled();
   });
+
+  it("renders beta version for testing purpose indicators", () => {
+    renderAssistant();
+
+    expect(
+      screen.getByText("(Beta version for testing purpose)"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Beta version for testing purpose"),
+    ).toBeInTheDocument();
+  });
 });

@@ -17,6 +17,11 @@ export default function AiChatEmptyState({ isSavedSession = false }) {
             ? "Send a message below to continue this conversation."
             : "Ask about your camps, referee evaluations, or evaluator results. Choose a camp below and use @ to mention an official or evaluator."}
         </p>
+        {!isSavedSession && (
+          <p className="text-xs text-slate-400">
+            Beta version for testing purpose
+          </p>
+        )}
       </div>
     </div>
   );
