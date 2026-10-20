@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { FiDownload, FiCopy, FiCheck } from "react-icons/fi";
+import { FiCopy, FiCheck } from "react-icons/fi";
 import toast from "react-hot-toast";
 import {
   aiResponseText,
-  exportAiResponseToFile,
 } from "@/page/dashboard/director-dashboard/ai-assistant/utils/aiPresentation";
 import AiMarkdownContent from "@/page/dashboard/director-dashboard/ai-assistant/components/AiMarkdownContent";
 import AiWidgetRenderer from "@/page/dashboard/director-dashboard/ai-assistant/components/AiWidgetRenderer";
@@ -33,18 +32,6 @@ const AiChatMessageItem = ({ message, onTypingProgress }) => {
       copiedTimer.current = window.setTimeout(() => setIsCopied(false), 2000);
     } catch {
       toast.error("Failed to copy response");
-    }
-  };
-
-  const handleExport = () => {
-    try {
-      const filename = exportAiResponseToFile({
-        ...message,
-        text: textContent,
-      });
-      toast.success(`Report downloaded: ${filename}`);
-    } catch {
-      toast.error("Failed to export report");
     }
   };
 
@@ -107,19 +94,6 @@ const AiChatMessageItem = ({ message, onTypingProgress }) => {
           ) : (
             <FiCopy className="size-3.5" />
           )}
-        </button>
-
-        <button
-          type="button"
-          onClick={handleExport}
-          title="Export report"
-          aria-label="Export report"
-          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer flex items-center gap-1 text-xs"
-        >
-          <FiDownload className="size-3.5" />
-          <span className="text-[11px] font-medium hidden sm:inline">
-            Export Report
-          </span>
         </button>
 
         {message.scope && (

@@ -168,14 +168,16 @@ function ReadOnlyRefereeNotePopover({
       type="button"
       onClick={handleTriggerClick}
       className={cn(
-        "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition cursor-pointer shrink-0 shadow-2xs",
+        "inline-flex items-center justify-center transition cursor-pointer shrink-0 min-w-[28px] min-h-[28px]",
+        "p-1.5 sm:px-2.5 sm:py-0.5 sm:gap-1 rounded-full text-[11px] font-medium",
+        "bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 shadow-2xs",
         className
       )}
-      title="View referee note"
+      title={`Note: ${currentNotes}`}
       aria-label="View referee note"
     >
       <LuPencil className="w-3 h-3 text-amber-600" />
-      <span>Note</span>
+      <span className="hidden sm:inline">Note</span>
     </button>
   );
 
@@ -414,15 +416,22 @@ function EditableRefereeNotePopover({
       onClick={handleTriggerClick}
       className={cn(
         "inline-flex items-center justify-center transition cursor-pointer shrink-0 min-w-[28px] min-h-[28px]",
+        "p-1.5 sm:px-2 sm:py-0.5 sm:gap-1 rounded-lg text-[11px] font-medium",
         hasNotes
-          ? "p-1 rounded-md text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 shadow-2xs"
-          : "p-1 rounded-md text-gray-400 hover:text-primary hover:bg-gray-100 border border-transparent hover:border-gray-200",
+          ? "text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 shadow-2xs"
+          : "text-gray-500 bg-gray-50 border border-gray-200 hover:border-primary/30 hover:bg-primary/5 hover:text-primary",
         className
       )}
-      title={hasNotes ? "View/edit referee note" : "Add referee note"}
+      title={hasNotes ? `Note: ${currentNotes}` : "Add referee note"}
       aria-label={hasNotes ? "View/edit referee note" : "Add referee note"}
     >
-      <LuPencil className="w-3.5 h-3.5" />
+      <LuPencil
+        className={cn(
+          "w-3 h-3",
+          hasNotes ? "text-primary" : "text-gray-400 group-hover:text-primary"
+        )}
+      />
+      <span className="hidden sm:inline">Note</span>
     </button>
   );
 
