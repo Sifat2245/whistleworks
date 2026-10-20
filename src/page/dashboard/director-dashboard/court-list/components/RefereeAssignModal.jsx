@@ -16,6 +16,7 @@ import {
   getPositionReferee,
   formatRefereePosition,
 } from "@/utils/refereePositions";
+import RefereeNotePopover from "@/page/dashboard/director-dashboard/roster/components/RefereeNotePopover";
 
 const { Search } = Input;
 
@@ -597,6 +598,11 @@ const RefereeAssignModal = ({
                               ? `#${ref.jourcy_number || ref.jersey_number}`
                               : ""}
                           </p>
+                          <RefereeNotePopover
+                            campId={campId}
+                            referee={ref}
+                            readOnly={true}
+                          />
                           {isCurrentlyAssigned && (
                             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
                               Currently Assigned

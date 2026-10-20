@@ -289,67 +289,59 @@ const CampSchedules = () => {
       </div>
 
       {/* Search + Export */}
-      <div className="mt-6 flex items-center justify-between gap-4">
+      <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
         <Input
           placeholder="Search by court, referee, date..."
           prefix={<LuSearch className="text-lg text-[#666]" />}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full md:w-96 h-12 rounded-[10px] border-border focus:border-primary"
+          className="w-full sm:w-80 md:w-96 h-11 sm:h-12 rounded-[10px] border-border focus:border-primary"
           allowClear
         />
 
         <button
           onClick={() => exportSchedule()}
           disabled={isExporting || totalGames === 0}
-          className="inline-flex shrink-0 items-center gap-2 px-5 py-3 rounded-[10px] border border-border bg-white text-[#333] font-semibold text-sm whitespace-nowrap transition-all duration-300 hover:border-primary hover:text-primary hover:shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex shrink-0 items-center justify-center gap-2 px-5 py-2.5 sm:py-3 rounded-[10px] border border-border bg-white text-[#333] font-semibold text-sm whitespace-nowrap transition-all duration-300 hover:border-primary hover:text-primary hover:shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <LuDownload className="text-base" />
           {isExporting ? "Exporting..." : "Export CSV"}
         </button>
       </div>
 
-      {/* Schedule table */}
-      <div className="mt-4 bg-white border border-border rounded-[10px] overflow-hidden">
-        <div className="overflow-x-auto hide-scrollbar">
-          <div className="min-w-[640px] md:min-w-full">
-            <div className="grid grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-5 md:px-6 py-4 border-b border-border bg-[#FAFAFA] text-xs md:text-sm font-semibold text-[#666] uppercase tracking-wider">
-              <div>Date & Time</div>
-              <div className="text-center">Location</div>
-              <div className="text-center">Court</div>
-              <div className="text-center">Assigned Referees</div>
-            </div>
+      {/* Schedule Table (Desktop) / Cards (Mobile) */}
+      <div className="mt-4 md:bg-white md:border md:border-border md:rounded-[10px] md:overflow-hidden">
+        {/* Desktop Table Header */}
+        <div className="hidden md:grid md:grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-5 md:px-6 py-4 border-b border-border bg-[#FAFAFA] text-xs md:text-sm font-semibold text-[#666] uppercase tracking-wider">
+          <div>Date & Time</div>
+          <div className="text-center">Location</div>
+          <div className="text-center">Court</div>
+          <div className="text-center">Assigned Referees</div>
+        </div>
 
-            <div
-              ref={scrollContainerRef}
-              className="divide-y divide-border max-h-[65vh] overflow-y-auto"
-            >
-              {visibleGames.map((game) => (
-                <GameRow
-                  key={game.id}
-                  game={game}
-                  onRefereeClick={handleRefereeClick}
-                  onCrewClick={handleCrewClick}
-                />
-              ))}
+        {/* Unified Scroll Container for Desktop Rows and Mobile Cards */}
+        <div
+          ref={scrollContainerRef}
+          className="space-y-3.5 md:space-y-0 md:divide-y md:divide-border max-h-[70vh] overflow-y-auto"
+        >
+          {visibleGames.map((game) => (
+            <GameRow
+              key={game.id}
+              game={game}
+              onRefereeClick={handleRefereeClick}
+              onCrewClick={handleCrewClick}
+            />
+          ))}
 
-              <div ref={loaderRef} className="py-6 text-center">
-                {visibleCount < filteredGames.length ? (
-                  <Spin />
-                ) : (
-                  <p className="text-sm text-gray-400">All games loaded</p>
-                )}
-              </div>
-            </div>
+          <div ref={loaderRef} className="py-6 text-center">
+            {visibleCount < filteredGames.length ? (
+              <Spin />
+            ) : (
+              <p className="text-sm text-gray-400">All games loaded</p>
+            )}
           </div>
         </div>
       </div>
-
-      {filteredGames.length > 0 && (
-        <p className="text-center text-xs text-gray-500 mt-3 md:hidden">
-          ← Swipe left/right to see all columns →
-        </p>
-      )}
 
       {/* Referee Details Modal */}
       <ScheduleRefereeModal

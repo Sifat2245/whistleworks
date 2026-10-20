@@ -5,7 +5,8 @@ import { useAuth } from "./useAuth";
 const ACCESS_TOKEN_KEY = import.meta.env.VITE_ACCESS_TOKEN;
 const useAxiosSecure = () => {
   const baseURL = `${import.meta.env.VITE_BASE_URL}/api`;
-  const { logout } = useAuth();
+  const auth = useAuth() || {};
+  const logout = auth.logout || (() => {});
   const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
   const axiosSecure = axios.create({
     baseURL: baseURL,

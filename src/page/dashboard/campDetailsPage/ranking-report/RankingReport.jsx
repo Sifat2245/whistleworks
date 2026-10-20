@@ -2,11 +2,11 @@ import RankingReportTable from "@/page/dashboard/campDetailsPage/ranking-report/
 
 export default function RankingReport({ camp_id, campName, sports_type_name }) {
   return (
-    <section>
-      <h2 className="text-3xl font-medium mb-4">
+    <section className="py-2 sm:py-4">
+      <h2 className="text-2xl sm:text-3xl font-semibold mb-2 sm:mb-4 text-slate-900">
         Ranking - {campName}
       </h2>
-      <p className="text-[#666666] mb-5">
+      <p className="text-sm sm:text-base text-[#666666] mb-4 sm:mb-5">
         Performance rankings based on evaluation scores
       </p>
       <RankingReportTable
