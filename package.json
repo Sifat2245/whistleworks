@@ -25,8 +25,8 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "node api.js && vite",
-    "build": "node api.js && vite build",
+    "dev": "vite",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
