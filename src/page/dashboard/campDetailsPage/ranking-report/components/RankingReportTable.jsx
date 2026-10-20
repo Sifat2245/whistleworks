@@ -10,6 +10,7 @@ import {
   computeLevelCounts,
   LEVEL_LABELS,
 } from "@/lib/recommendedLevels";
+import RankingRefereeCard from "./RankingRefereeCard";
 
 const { Option } = Select;
 
@@ -186,21 +187,24 @@ export default function RankingReportTable({ camp_id }) {
   }
 
   return (
-    <div className="w-full rounded-2xl border border-border p-5 bg-white">
-      <h1 className="text-2xl font-semibold mb-6">Complete Rankings</h1>
+    <div className="w-full rounded-2xl border border-border p-4 sm:p-6 bg-white">
+      <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-4 sm:mb-6">
+        Complete Rankings
+      </h1>
 
-      <div className="flex flex-wrap items-center gap-4 mb-8">
+      {/* Responsive Filters */}
+      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
         <Input
           placeholder="Search referee name..."
           allowClear
-          className="w-64"
+          className="w-full sm:w-64 h-10 rounded-lg"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <Select
           placeholder={levelsLoading ? "Loading levels..." : "Filter by recommended level"}
           allowClear
-          className="w-56"
+          className="w-full sm:w-56 h-10"
           value={level}
           onChange={setLevel}
         >
@@ -213,7 +217,7 @@ export default function RankingReportTable({ camp_id }) {
         <Select
           placeholder="Min overall score"
           allowClear
-          className="w-48"
+          className="w-full sm:w-48 h-10"
           value={minScore}
           onChange={setMinScore}
         >
@@ -223,27 +227,59 @@ export default function RankingReportTable({ camp_id }) {
             </Option>
           ))}
         </Select>
-        <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={handleResetFilters}
+          className="w-full sm:w-auto h-10 flex items-center justify-center cursor-pointer"
+        >
           Reset Filters
         </Button>
       </div>
 
-      <ConfigProvider
-        theme={{
-          token: {
-            colorPrimary: "#1890ff",
-          },
-        }}
-      >
-        <Table
-          columns={columns}
-          dataSource={filteredData}
-          pagination={false}
-          scroll={{ x: 1500 }}
-          rowClassName="hover:bg-gray-50"
-          locale={{ emptyText: "No data matching your filters" }}
-        />
-      </ConfigProvider>
+      {/* Desktop Table View (md and up) */}
+      <div className="hidden md:block">
+        <ConfigProvider
+          theme={{
+            token: {
+              colorPrimary: "#1890ff",
+            },
+          }}
+        >
+          <Table
+            columns={columns}
+            dataSource={filteredData}
+            pagination={false}
+            scroll={{ x: 1500 }}
+            rowClassName="hover:bg-gray-50"
+            locale={{ emptyText: "No data matching your filters" }}
+          />
+        </ConfigProvider>
+      </div>
+
+      {/* Mobile Card View (below md) */}
+      <div className="block md:hidden space-y-3.5">
+        {filteredData.length > 0 ? (
+          filteredData.map((record) => (
+            <RankingRefereeCard
+              key={record.key}
+              record={record}
+              levels={levels}
+            />
+          ))
+        ) : (
+          <div className="py-8 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200 p-4">
+            <p className="text-sm font-medium">No referees match your filters</p>
+            <Button
+              size="small"
+              icon={<ReloadOutlined />}
+              onClick={handleResetFilters}
+              className="mt-3 cursor-pointer"
+            >
+              Reset Filters
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

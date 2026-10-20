@@ -196,62 +196,63 @@ export default function Schedule({ camp_id }) {
   }
 
   return (
-    <section className="py-6">
-      <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-8 gap-6">
-        <div className="text-center md:text-left">
-          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">
+    <section className="py-4 sm:py-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">
             Games Overview
           </h1>
-          <p className="text-base text-[#666666] mt-2">
+          <p className="text-sm sm:text-base text-[#666666] mt-1 sm:mt-2">
             {displayedGames} of {totalGames} game{totalGames !== 1 ? "s" : ""}{" "}
             scheduled
           </p>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
           <Input
             placeholder="Search by court, referee, date..."
             prefix={<CiSearch className="text-xl text-[#666666]" />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full md:w-96 h-12 rounded-xl border-gray-300 focus:border-[#00AEEF]"
+            className="w-full sm:w-80 md:w-96 h-11 sm:h-12 rounded-xl border-gray-300 focus:border-[#00AEEF]"
             allowClear
           />
-          <button className="border border-gray-300 rounded-xl p-3 hover:bg-gray-50 transition">
+          <button className="border border-gray-300 rounded-xl p-2.5 sm:p-3 hover:bg-gray-50 transition shrink-0 cursor-pointer">
             <CiFilter className="text-xl text-[#666666]" />
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="grid grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-6 py-5 border-b border-gray-200 bg-gray-50 text-sm font-semibold text-gray-700 uppercase tracking-wider">
-            <div>Date & Time</div>
-            <div className="text-center">Location</div>
-            <div className="text-center">Court</div>
-            <div className="text-center">Assigned Referees</div>
-          </div>
+      {/* Schedule Table (Desktop) / Cards (Mobile) */}
+      <div className="md:bg-white md:rounded-2xl md:border md:border-gray-200 md:shadow-sm md:overflow-hidden">
+        {/* Desktop Table Header */}
+        <div className="hidden md:grid md:grid-cols-[2fr_1.2fr_1fr_2.5fr] gap-4 px-6 py-5 border-b border-gray-200 bg-gray-50 text-sm font-semibold text-gray-700 uppercase tracking-wider">
+          <div>Date & Time</div>
+          <div className="text-center">Location</div>
+          <div className="text-center">Court</div>
+          <div className="text-center">Assigned Referees</div>
+        </div>
 
-          <div
-            ref={scrollContainerRef}
-            className="divide-y divide-gray-100 h-[650px] overflow-y-auto"
-          >
-            {visibleGames.map((game) => (
-              <GameRow
-                key={game.id}
-                game={game}
-                onRefereeClick={handleRefereeClick}
-                onCrewClick={handleCrewClick}
-              />
-            ))}
+        {/* Unified Scroll Container for Desktop Rows and Mobile Cards */}
+        <div
+          ref={scrollContainerRef}
+          className="space-y-3.5 md:space-y-0 md:divide-y md:divide-gray-100 max-h-[70vh] md:h-[650px] overflow-y-auto"
+        >
+          {visibleGames.map((game) => (
+            <GameRow
+              key={game.id}
+              game={game}
+              onRefereeClick={handleRefereeClick}
+              onCrewClick={handleCrewClick}
+            />
+          ))}
 
-            <div ref={loaderRef} className="py-6 text-center">
-              {visibleCount < filteredGames.length ? (
-                <Spin />
-              ) : (
-                <p className="text-sm text-gray-400">All games loaded</p>
-              )}
-            </div>
+          <div ref={loaderRef} className="py-6 text-center">
+            {visibleCount < filteredGames.length ? (
+              <Spin />
+            ) : (
+              <p className="text-sm text-gray-400">All games loaded</p>
+            )}
           </div>
         </div>
       </div>
