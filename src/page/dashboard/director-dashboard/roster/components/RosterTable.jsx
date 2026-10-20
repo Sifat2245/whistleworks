@@ -25,6 +25,7 @@ import {
 } from "react-icons/lu";
 import { cn } from "@/lib/utils";
 import RefereeDetailsModal from "./RefereeDetailsModal";
+import RefereeNotePopover from "./RefereeNotePopover";
 import { useExportReferees } from "@/hooks/api/director-hooks/useExport";
 import {
   useCheckInReferee,
@@ -333,12 +334,18 @@ const RosterTable = ({
               className="w-10 h-10 text-xs"
             />
             <div>
-              <button
-                onClick={() => openModal(row.original)}
-                className="font-semibold text-gray-900 hover:text-primary hover:underline cursor-pointer focus:outline-none transition-colors text-left text-sm"
-              >
-                {row.original.name || "Unnamed Referee"}
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => openModal(row.original)}
+                  className="font-semibold text-gray-900 hover:text-primary hover:underline cursor-pointer focus:outline-none transition-colors text-left text-sm"
+                >
+                  {row.original.name || "Unnamed Referee"}
+                </button>
+                <RefereeNotePopover
+                  campId={campId}
+                  referee={row.original}
+                />
+              </div>
               {row.original.address && (
                 <div className="text-xs text-gray-500 truncate max-w-[200px]">
                   {row.original.address}
@@ -655,12 +662,18 @@ const RosterTable = ({
                   className="w-11 h-11 text-sm shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <button
-                    onClick={() => openModal(referee)}
-                    className="font-semibold text-gray-900 hover:text-primary truncate block w-full text-left transition-colors text-sm"
-                  >
-                    {referee.name || "Unnamed Referee"}
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => openModal(referee)}
+                      className="font-semibold text-gray-900 hover:text-primary truncate block text-left transition-colors text-sm"
+                    >
+                      {referee.name || "Unnamed Referee"}
+                    </button>
+                    <RefereeNotePopover
+                      campId={campId}
+                      referee={referee}
+                    />
+                  </div>
                   <p className="text-xs text-gray-500 truncate">
                     {referee.address || "No location specified"}
                   </p>

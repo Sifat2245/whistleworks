@@ -15,6 +15,7 @@ const mockReferees = [
     total_assignments: 1,
     status: "available",
     can_assign: true,
+    notes: "Prefers lead position",
   },
   {
     id: 102,
@@ -195,6 +196,30 @@ describe("RefereeAssignModal Component", () => {
     expect(screen.getByText(/Court Positions \(1\/2\)/i)).toBeInTheDocument();
 
     fireEvent.click(refItem);
+    expect(screen.getByText(/Court Positions \(0\/2\)/i)).toBeInTheDocument();
+  });
+
+  it("shows note button only when notes is present and opens note popover without toggling selection", async () => {
+    render(
+      <RefereeAssignModal
+        isModalOpen={true}
+        handleCloseModal={vi.fn()}
+        selectedCourt={mockCourt}
+        selectedTimeSlot={mockTimeSlot}
+        campId={1}
+        maxReferees={2}
+      />
+    );
+
+    // Note button should exist only for Alex Johnson who has notes
+    const noteButtons = screen.getAllByRole("button", { name: /view referee note/i });
+    expect(noteButtons).toHaveLength(1);
+
+    // Clicking note button should open popover with the note
+    fireEvent.click(noteButtons[0]);
+    expect(await screen.findByText("Prefers lead position")).toBeInTheDocument();
+
+    // Clicking note button should NOT have selected the referee
     expect(screen.getByText(/Court Positions \(0\/2\)/i)).toBeInTheDocument();
   });
 });
