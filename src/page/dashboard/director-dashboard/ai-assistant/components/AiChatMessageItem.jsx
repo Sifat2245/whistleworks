@@ -2,9 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { FiCopy, FiCheck } from "react-icons/fi";
 import toast from "react-hot-toast";
-import {
-  aiResponseText,
-} from "@/page/dashboard/director-dashboard/ai-assistant/utils/aiPresentation";
+import { aiResponseText } from "@/page/dashboard/director-dashboard/ai-assistant/utils/aiPresentation";
 import AiMarkdownContent from "@/page/dashboard/director-dashboard/ai-assistant/components/AiMarkdownContent";
 import AiWidgetRenderer from "@/page/dashboard/director-dashboard/ai-assistant/components/AiWidgetRenderer";
 import useTypedResponse from "@/page/dashboard/director-dashboard/ai-assistant/hooks/useTypedResponse";

@@ -715,7 +715,7 @@ describe("AI director conversations", () => {
     });
     expect(within(dialog).getByText("1,690")).toBeInTheDocument();
   });
-  it("copies full response text and exports the returned widget data", async () => {
+  it("copies full response text and does not render export report button", async () => {
     api.send.mockResolvedValueOnce(
       envelope({
         session_uuid: "new",
@@ -735,9 +735,9 @@ describe("AI director conversations", () => {
     const copy = vi.spyOn(navigator.clipboard, "writeText");
     await user.click(screen.getByRole("button", { name: "Copy response" }));
     expect(copy).toHaveBeenCalledWith("Report from API");
-    await user.click(screen.getByRole("button", { name: "Export report" }));
-    expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
-    expect(URL.revokeObjectURL).toHaveBeenCalled();
+    expect(
+      screen.queryByRole("button", { name: /export report/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders beta version for testing purpose indicators", () => {

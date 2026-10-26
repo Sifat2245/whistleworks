@@ -56,20 +56,29 @@ const rankBadgeClass = (rank) => {
   return "bg-[#333]";
 };
 
+const EMPTY_ARRAY = [];
+
 const Rankings = ({ campId }) => {
   const {
-    evaluations: rawEvaluations,
+    evaluations: rawEvaluations = EMPTY_ARRAY,
     isLoading,
     isError,
     error,
   } = useRefereeEvaluations(campId);
 
-  const { data: recommendedLevels = [] } =
+  const { data: recommendedLevels = EMPTY_ARRAY } =
     useRecommendedLevels(campId);
-  const levels = resolveLevels(recommendedLevels);
+
+  const levels = useMemo(
+    () => resolveLevels(recommendedLevels),
+    [recommendedLevels],
+  );
+
+  const [sorting, setSorting] = useState([]);
 
   const processedData = useMemo(() => {
-    const mapped = rawEvaluations.map((item) => {
+    const list = rawEvaluations || EMPTY_ARRAY;
+    const mapped = list.map((item) => {
       const averages = item.averages || {};
       const levelCounts = computeLevelCounts(item, levels, recommendedLevels);
       const overall = averages.overall || 0;
@@ -104,7 +113,10 @@ const Rankings = ({ campId }) => {
 
   const totalEvals = useMemo(
     () =>
-      rawEvaluations.reduce((sum, r) => sum + (r.total_evaluations || 0), 0),
+      (rawEvaluations || EMPTY_ARRAY).reduce(
+        (sum, r) => sum + (r.total_evaluations || 0),
+        0,
+      ),
     [rawEvaluations],
   );
 
@@ -305,8 +317,13 @@ const Rankings = ({ campId }) => {
   const table = useReactTable({
     data: processedData,
     columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    autoResetPageIndex: false,
   });
 
   if (isLoading) {

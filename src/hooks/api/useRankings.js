@@ -1,6 +1,7 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRankingService } from "@/services/ranking.service";
 import Swal from "sweetalert2";
+import toast from "react-hot-toast";
 
 const handleRankingError = (error, defaultMsg) => {
   const errorData = error?.response?.data;
@@ -33,6 +34,8 @@ export const rankingKeys = {
   ],
 };
 
+const EMPTY_EVALUATIONS = [];
+
 // ── Get referee evaluations / rankings for a camp ───────────────
 export const useRefereeEvaluations = (campId) => {
   const { getRefereeEvaluations } = useRankingService();
@@ -49,7 +52,7 @@ export const useRefereeEvaluations = (campId) => {
   });
 
   return {
-    evaluations: data || [],
+    evaluations: data ?? EMPTY_EVALUATIONS,
     isLoading,
     isError,
     error,
@@ -140,5 +143,43 @@ export const useRefereeEvaluationHistory = (campId, refereeId, enabled) => {
     enabled: !!campId && !!refereeId && enabled,
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+  });
+};
+
+// ── Delete referee evaluation ──────────────────────────────────
+export const useDeleteRefereeEvaluation = (campId, refereeId, options) => {
+  const { deleteRefereeEvaluation } = useRankingService();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["rankings", "delete-evaluation", campId, refereeId],
+    mutationFn: (evaluationId) =>
+      deleteRefereeEvaluation({ campId, refereeId, evaluationId }),
+    onSuccess: (response) => {
+      toast.success(
+        response?.data?.message || "Evaluation deleted successfully.",
+      );
+      queryClient.invalidateQueries({
+        queryKey: rankingKeys.refereeHistory(campId, refereeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: rankingKeys.evaluations(campId),
+      });
+    },
+    onError: (error) => {
+      if (
+        !handleRankingError(
+          error,
+          "You do not have permission to delete this evaluation.",
+        )
+      ) {
+        toast.error(
+          error?.response?.data?.message ||
+            error?.response?.data?.data ||
+            "Failed to delete evaluation.",
+        );
+      }
+    },
+    ...options,
   });
 };

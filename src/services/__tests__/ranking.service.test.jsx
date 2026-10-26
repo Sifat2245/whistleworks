@@ -5,6 +5,7 @@ import { useRankingService } from "../ranking.service";
 const mockAxiosSecure = vi.hoisted(() => ({
   get: vi.fn(),
   put: vi.fn(),
+  delete: vi.fn(),
 }));
 
 vi.mock("@/hooks/useAxiosSecure", () => ({ default: () => mockAxiosSecure }));
@@ -39,6 +40,19 @@ describe("ranking.service", () => {
     result.current.getRefereeEvaluationHistory("camp-123", "ref-5", 3);
     expect(mockAxiosSecure.get).toHaveBeenCalledWith(
       "/camp/camp-123/referee/ref-5/history?page=3"
+    );
+  });
+
+  it("deletes referee evaluation", () => {
+    const { result } = renderHook(() => useRankingService());
+
+    result.current.deleteRefereeEvaluation({
+      campId: "camp-123",
+      refereeId: "ref-5",
+      evaluationId: "eval-9",
+    });
+    expect(mockAxiosSecure.delete).toHaveBeenCalledWith(
+      "/camp/camp-123/referee/ref-5/evaluation/eval-9"
     );
   });
 });

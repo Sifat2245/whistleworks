@@ -17,5 +17,10 @@ export const useRankingService = () => {
       axiosSecure.get(
         `/camp/${campId}/referee/${refereeId}/history?page=${page}`,
       ),
+
+    deleteRefereeEvaluation: ({ campId, refereeId, evaluationId }) =>
+      axiosSecure.delete(
+        `/camp/${campId}/referee/${refereeId}/evaluation/${evaluationId}`,
+      ),
   };
 };

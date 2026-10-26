@@ -6,12 +6,14 @@ import {
   useRankingSettings,
   useUpdateRankingSettings,
   useRefereeEvaluationHistory,
+  useDeleteRefereeEvaluation,
 } from "../useRankings";
 
 const mockGetRefereeEvaluations = vi.fn();
 const mockGetRankingSettings = vi.fn();
 const mockUpdateRankingSettings = vi.fn();
 const mockGetRefereeEvaluationHistory = vi.fn();
+const mockDeleteRefereeEvaluation = vi.fn();
 
 vi.mock("@/services/ranking.service", () => ({
   useRankingService: () => ({
@@ -19,6 +21,7 @@ vi.mock("@/services/ranking.service", () => ({
     getRankingSettings: mockGetRankingSettings,
     updateRankingSettings: mockUpdateRankingSettings,
     getRefereeEvaluationHistory: mockGetRefereeEvaluationHistory,
+    deleteRefereeEvaluation: mockDeleteRefereeEvaluation,
   }),
 }));
 
@@ -107,5 +110,26 @@ describe("useRankings hooks", () => {
 
     expect(mockGetRefereeEvaluationHistory).toHaveBeenCalledWith(5, 10, 1);
     expect(result.current.data.pages[0].evaluations).toHaveLength(1);
+  });
+
+  it("deletes referee evaluation and invalidates queries", async () => {
+    mockDeleteRefereeEvaluation.mockResolvedValueOnce({
+      data: { message: "Evaluation deleted successfully." },
+    });
+
+    const { result } = renderHook(
+      () => useDeleteRefereeEvaluation(5, 10),
+      { wrapper: createWrapper() }
+    );
+
+    await act(async () => {
+      await result.current.mutateAsync(22);
+    });
+
+    expect(mockDeleteRefereeEvaluation).toHaveBeenCalledWith({
+      campId: 5,
+      refereeId: 10,
+      evaluationId: 22,
+    });
   });
 });

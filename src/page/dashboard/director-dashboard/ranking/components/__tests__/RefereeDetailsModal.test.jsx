@@ -1,12 +1,26 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import RefereeDetailsModal from "../RefereeDetailsModal";
+import Swal from "sweetalert2";
 
 const mockUseRefereeEvaluationHistory = vi.fn();
+const mockDeleteMutate = vi.fn();
+const mockUseDeleteRefereeEvaluation = vi.fn(() => ({
+  mutate: mockDeleteMutate,
+  isPending: false,
+}));
 
 vi.mock("@/hooks/api/useRankings", () => ({
   useRefereeEvaluationHistory: (...args) =>
     mockUseRefereeEvaluationHistory(...args),
+  useDeleteRefereeEvaluation: (...args) =>
+    mockUseDeleteRefereeEvaluation(...args),
+}));
+
+vi.mock("sweetalert2", () => ({
+  default: {
+    fire: vi.fn(),
+  },
 }));
 
 describe("RefereeDetailsModal", () => {
@@ -131,5 +145,103 @@ describe("RefereeDetailsModal", () => {
     const closeBtn = screen.getByRole("button", { name: /close modal/i });
     fireEvent.click(closeBtn);
     expect(handleClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("triggers deletion confirmation with Swal and executes mutation when confirmed", async () => {
+    mockUseRefereeEvaluationHistory.mockReturnValue({
+      data: {
+        pages: [
+          {
+            evaluations: [
+              {
+                id: 101,
+                submitted_at: "2026-10-13 14:00",
+                evaluators: ["Director1 User"],
+                average_score: 9.8,
+              },
+            ],
+          },
+        ],
+      },
+      isLoading: false,
+      hasNextPage: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
+    });
+
+    Swal.fire.mockResolvedValueOnce({ isConfirmed: true });
+
+    render(
+      <RefereeDetailsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        referee={defaultReferee}
+        campId={16}
+      />,
+    );
+
+    const deleteButtons = screen.getAllByRole("button", {
+      name: /delete evaluation/i,
+    });
+    expect(deleteButtons.length).toBeGreaterThan(0);
+
+    fireEvent.click(deleteButtons[0]);
+
+    expect(Swal.fire).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Delete Evaluation?",
+        icon: "warning",
+        showCancelButton: true,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockDeleteMutate).toHaveBeenCalledWith(
+        101,
+        expect.any(Object),
+      );
+    });
+  });
+
+  it("does not execute delete mutation when cancellation is chosen", async () => {
+    mockUseRefereeEvaluationHistory.mockReturnValue({
+      data: {
+        pages: [
+          {
+            evaluations: [
+              {
+                id: 101,
+                submitted_at: "2026-10-13 14:00",
+                evaluators: ["Director1 User"],
+                average_score: 9.8,
+              },
+            ],
+          },
+        ],
+      },
+      isLoading: false,
+      hasNextPage: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
+    });
+
+    Swal.fire.mockResolvedValueOnce({ isConfirmed: false });
+
+    render(
+      <RefereeDetailsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        referee={defaultReferee}
+        campId={16}
+      />,
+    );
+
+    const deleteButtons = screen.getAllByRole("button", {
+      name: /delete evaluation/i,
+    });
+    fireEvent.click(deleteButtons[0]);
+
+    expect(Swal.fire).toHaveBeenCalled();
+    expect(mockDeleteMutate).not.toHaveBeenCalled();
   });
 });

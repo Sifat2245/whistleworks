@@ -8,7 +8,12 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import { useRefereeEvaluationHistory } from "@/hooks/api/useRankings";
+import { LuTrash2, LuLoaderCircle } from "react-icons/lu";
+import Swal from "sweetalert2";
+import {
+  useRefereeEvaluationHistory,
+  useDeleteRefereeEvaluation,
+} from "@/hooks/api/useRankings";
 
 const SCORE_ITEMS = [
   { key: "call_accuracy", label: "Call Accuracy" },
@@ -78,6 +83,36 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
     isFetchingNextPage,
     isLoading,
   } = useRefereeEvaluationHistory(campId, refereeId, isOpen);
+
+  const deleteMutation = useDeleteRefereeEvaluation(campId, refereeId);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDelete = useCallback(
+    (evaluationId) => {
+      if (!evaluationId) return;
+
+      Swal.fire({
+        title: "Delete Evaluation?",
+        text: "Are you sure you want to delete this evaluation? This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#64748b",
+        confirmButtonText: "Yes, delete",
+        cancelButtonText: "Cancel",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setDeletingId(evaluationId);
+          deleteMutation.mutate(evaluationId, {
+            onSettled: () => {
+              setDeletingId(null);
+            },
+          });
+        }
+      });
+    },
+    [deleteMutation],
+  );
 
   const evaluations = useMemo(() => {
     return (
@@ -311,14 +346,41 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
           </div>
         ),
       },
+      {
+        id: "actions",
+        header: "Action",
+        cell: ({ row }) => {
+          const evalId = row.original?.id || row.original?.evaluation_id;
+          const isDeleting = deleteMutation.isPending && deletingId === evalId;
+          return (
+            <div className="flex items-center justify-center">
+              <button
+                type="button"
+                onClick={() => handleDelete(evalId)}
+                disabled={deleteMutation.isPending}
+                className="p-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Delete Evaluation"
+                aria-label="Delete Evaluation"
+              >
+                {isDeleting ? (
+                  <LuLoaderCircle className="w-4 h-4 animate-spin text-red-600" />
+                ) : (
+                  <LuTrash2 className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          );
+        },
+      },
     ],
-    [],
+    [handleDelete, deletingId, deleteMutation.isPending],
   );
 
   const table = useReactTable({
     data: evaluations,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    autoResetPageIndex: false,
   });
 
   // Close on Escape key
@@ -545,9 +607,31 @@ const RefereeDetailsModal = ({ isOpen, onClose, referee, campId }) => {
                                 by {evaluatorName}
                               </p>
                             </div>
-                            <span className="shrink-0 inline-block px-3 py-1 bg-primary/10 text-primary font-bold rounded-full text-sm">
-                              {avgDisplay}
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="inline-block px-3 py-1 bg-primary/10 text-primary font-bold rounded-full text-sm">
+                                {avgDisplay}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleDelete(
+                                    evalItem?.id || evalItem?.evaluation_id,
+                                  )
+                                }
+                                disabled={deleteMutation.isPending}
+                                className="p-1.5 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 transition cursor-pointer disabled:opacity-50"
+                                title="Delete Evaluation"
+                                aria-label="Delete Evaluation"
+                              >
+                                {deleteMutation.isPending &&
+                                deletingId ===
+                                  (evalItem?.id || evalItem?.evaluation_id) ? (
+                                  <LuLoaderCircle className="w-4 h-4 animate-spin text-red-600" />
+                                ) : (
+                                  <LuTrash2 className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
                           </div>
 
                           <div className="mt-3 grid grid-cols-2 gap-2">
