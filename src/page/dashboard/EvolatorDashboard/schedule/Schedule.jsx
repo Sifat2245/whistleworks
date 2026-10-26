@@ -5,7 +5,9 @@ import { Input, Spin } from "antd";
 import { CiFilter, CiSearch } from "react-icons/ci";
 import { useCampRosterDetails } from "@/hooks/api/evaluator-hooks/useEvaluatorSchedule";
 import { useState, useMemo, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import useInfiniteScroll from "@/hooks/infinity-scroll-hook";
+import EvaluatorNoteModal from "@/page/dashboard/EvolatorDashboard/schedule/components/EvaluatorNoteModal";
 
 export default function Schedule({ camp_id }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,6 +15,9 @@ export default function Schedule({ camp_id }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [isCrewModalOpen, setIsCrewModalOpen] = useState(false);
+  const [noteTarget, setNoteTarget] = useState(null);
+  const { userData } = useAuth() || {};
+  const isEvaluator = userData?.role === "evaluator";
 
   const {
     data: campData,
@@ -104,13 +109,17 @@ export default function Schedule({ camp_id }) {
         id: slot.id,
         date,
         time,
+        start_time: slot.start_time,
         location,
         court,
         referees,
         status: slot.status,
+        timezone: slot.timezone,
+        evaluator_note: isEvaluator ? slot.evaluator_note : undefined,
+        evaluator_note_id: isEvaluator ? slot.evaluator_note_id : undefined,
       };
     });
-  }, [campData]);
+  }, [campData, isEvaluator]);
 
   // filtered Games
   const filteredGames = useMemo(() => {
@@ -142,6 +151,10 @@ export default function Schedule({ camp_id }) {
 
   const totalGames = games.length;
   const displayedGames = filteredGames.length;
+  const noteGame =
+    noteTarget && String(noteTarget.campId) === String(camp_id)
+      ? games.find((game) => game.id === noteTarget.gameId)
+      : null;
 
   if (isLoading) {
     return (
@@ -244,6 +257,15 @@ export default function Schedule({ camp_id }) {
               game={game}
               onRefereeClick={handleRefereeClick}
               onCrewClick={handleCrewClick}
+              onNoteClick={
+                isEvaluator
+                  ? (selectedGame) =>
+                      setNoteTarget({
+                        campId: camp_id,
+                        gameId: selectedGame.id,
+                      })
+                  : undefined
+              }
             />
           ))}
 
@@ -258,6 +280,20 @@ export default function Schedule({ camp_id }) {
       </div>
 
       {/* Referee Details Modal */}
+      {isEvaluator && noteGame && (
+        <EvaluatorNoteModal
+          key={`${camp_id}:${noteGame.id}`}
+          campId={camp_id}
+          game={noteGame}
+          onClose={() =>
+            setNoteTarget((current) =>
+              current?.campId === camp_id && current?.gameId === noteGame.id
+                ? null
+                : current,
+            )
+          }
+        />
+      )}
       <ScheduleRefereeModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}

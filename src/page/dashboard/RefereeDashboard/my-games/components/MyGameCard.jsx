@@ -1,11 +1,23 @@
-import { formatRefereePosition } from "@/utils/refereePositions";
 import { useState } from "react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
-import { LuCalendar, LuMapPin, LuMessageSquare, LuUserCheck, LuClock } from "react-icons/lu";
-import RefereeDetailsPopup from "./RefereeDetailsPopup";
+import {
+  LuCalendar,
+  LuMapPin,
+  LuMessageSquare,
+  LuUserCheck,
+  LuClock,
+} from "react-icons/lu";
+import { formatRefereePosition } from "@/utils/refereePositions";
+import { cn } from "@/lib/utils";
+import ScheduleTimezone from "@/components/common/ScheduleTimezone";
+import RefereeDetailsPopup from "@/page/dashboard/RefereeDashboard/my-games/components/RefereeDetailsPopup";
+import { GAME_STATUSES } from "@/page/dashboard/RefereeDashboard/my-games/constants/gameStatuses";
 
-export default function MyGameCard({ game, camp }) {
+export default function MyGameCard({ game, camp, scheduleStatus }) {
   const [selectedReferee, setSelectedReferee] = useState(null);
+  const statusLabel = GAME_STATUSES.find(
+    (item) => item.value === scheduleStatus,
+  )?.label;
 
   // Extract raw date string (e.g. "2026-05-08") without browser local timezone shift
   const rawDateStr =
@@ -13,7 +25,9 @@ export default function MyGameCard({ game, camp }) {
       ? game.game_details.date.split("T")[0]
       : "";
 
-  const tz = camp?.timezone || "America/Chicago";
+  const timezone = game?.game_details?.timezone || camp?.timezone;
+  // Use a neutral anchor to format date/time strings when no API timezone exists.
+  const tz = timezone || "UTC";
 
   const startTimeStr = game?.game_details?.start_time || "00:00:00";
   const endTimeStr = game?.game_details?.end_time || "00:00:00";
@@ -30,11 +44,11 @@ export default function MyGameCard({ game, camp }) {
       : rawDateStr;
 
   const startTimeFormatted = !isNaN(startDateInTz?.getTime())
-    ? formatInTimeZone(startDateInTz, tz, "h:mm a z")
+    ? formatInTimeZone(startDateInTz, tz, "h:mm a")
     : startTimeStr;
 
   const endTimeFormatted = !isNaN(endDateInTz?.getTime())
-    ? formatInTimeZone(endDateInTz, tz, "h:mm a z")
+    ? formatInTimeZone(endDateInTz, tz, "h:mm a")
     : endTimeStr;
 
   const latitude = game.location.latitude;
@@ -76,8 +90,8 @@ export default function MyGameCard({ game, camp }) {
           if (document.hasFocus()) {
             const shouldCopy = confirm(
               `Multiple recipients (${phoneNumbers.length}) may not be supported.\n\n` +
-              `Would you like to copy all numbers to clipboard instead?\n\n` +
-              `${phoneNumbers.join(", ")}`
+                `Would you like to copy all numbers to clipboard instead?\n\n` +
+                `${phoneNumbers.join(", ")}`,
             );
             if (shouldCopy) {
               navigator.clipboard.writeText(phoneNumbers.join(", "));
@@ -96,7 +110,7 @@ export default function MyGameCard({ game, camp }) {
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-[#E8E8E8] shadow-xs hover:shadow-md hover:border-[#00AEEF]/40 transition-all duration-300 overflow-hidden flex flex-col justify-between font-sans">
+      <div className="min-w-0 bg-white rounded-xl border border-[#E8E8E8] shadow-xs hover:shadow-md hover:border-[#00AEEF]/40 transition-all duration-300 overflow-hidden flex flex-col justify-between font-sans">
         {/* ── Top Cover Banner ────────────────────────────────── */}
         <div className="relative h-44 bg-slate-900 overflow-hidden">
           {camp?.logo ? (
@@ -112,8 +126,23 @@ export default function MyGameCard({ game, camp }) {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/40 to-transparent p-4 flex flex-col justify-between">
             <div className="flex justify-end">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-xs">
-                {game.game_details.status || "Scheduled"}
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border backdrop-blur-xs",
+                  scheduleStatus === "upcoming"
+                    ? "bg-sky-950/90 text-sky-100 border-sky-300/40"
+                    : scheduleStatus === "past"
+                      ? "bg-slate-900/90 text-slate-200 border-slate-400/40"
+                      : "bg-emerald-950/90 text-emerald-100 border-emerald-300/40",
+                )}
+              >
+                {scheduleStatus === "ongoing" && (
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 rounded-full bg-emerald-300"
+                  />
+                )}
+                {statusLabel || game.game_details.status || "Scheduled"}
               </span>
             </div>
             <div>
@@ -137,9 +166,27 @@ export default function MyGameCard({ game, camp }) {
               <span>{dateFormatted}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-[#00AEEF] shadow-2xs">
+            <div className="flex flex-wrap items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-[#00AEEF] shadow-2xs">
               <LuClock className="text-xs" />
-              <span>{startTimeFormatted} – {endTimeFormatted}</span>
+              <span className="inline-flex items-center gap-1">
+                <span>{startTimeFormatted}</span>
+                <ScheduleTimezone
+                  timezones={timezone}
+                  date={rawDateStr}
+                  time={startTimeStr}
+                  className="text-current text-xs font-bold"
+                />
+              </span>
+              <span>–</span>
+              <span className="inline-flex items-center gap-1">
+                <span>{endTimeFormatted}</span>
+                <ScheduleTimezone
+                  timezones={timezone}
+                  date={rawDateStr}
+                  time={endTimeStr}
+                  className="text-current text-xs font-bold"
+                />
+              </span>
             </div>
           </div>
 
@@ -158,7 +205,9 @@ export default function MyGameCard({ game, camp }) {
 
             {game?.my_position && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-full border border-blue-200 shadow-2xs">
-                <span className="text-xs text-slate-500 font-medium">My Position:</span>
+                <span className="text-xs text-slate-500 font-medium">
+                  My Position:
+                </span>
                 <span className="text-xs font-bold text-[#00AEEF]">
                   {formatRefereePosition(game.my_position)}
                 </span>
@@ -178,18 +227,22 @@ export default function MyGameCard({ game, camp }) {
                 <div
                   key={ref.id}
                   onClick={() => handleRefereeClick(ref)}
-                  className={`flex flex-col items-center p-2 rounded-xl border transition-all ${ref.is_me
+                  className={`flex flex-col items-center p-2 rounded-xl border transition-all ${
+                    ref.is_me
                       ? "bg-emerald-50/60 border-emerald-200"
                       : "bg-slate-50 border-slate-200/80 hover:bg-white hover:border-[#00AEEF]/50 cursor-pointer"
-                    }`}
+                  }`}
                   style={{ minWidth: "90px" }}
                 >
                   <div className="relative">
                     <img
                       src={ref.avatar || "/default-avatar.png"}
                       alt={ref.name}
-                      className={`w-12 h-12 rounded-full object-cover border-2 ${ref.is_me ? "border-emerald-500 shadow-sm" : "border-slate-200"
-                        }`}
+                      className={`w-12 h-12 rounded-full object-cover border-2 ${
+                        ref.is_me
+                          ? "border-emerald-500 shadow-sm"
+                          : "border-slate-200"
+                      }`}
                       onError={(e) => {
                         e.target.src = "/default-avatar.png";
                       }}

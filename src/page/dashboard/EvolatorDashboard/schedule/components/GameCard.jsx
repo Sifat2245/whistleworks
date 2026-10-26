@@ -1,10 +1,10 @@
 import {
   LuCalendarDays,
-  LuClock,
   LuMapPin,
   LuLayoutGrid,
   LuUsers,
 } from "react-icons/lu";
+import GameSlotDateTime from "@/page/dashboard/EvolatorDashboard/schedule/components/GameSlotDateTime";
 
 const STATUS_STYLES = {
   completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -14,7 +14,12 @@ const STATUS_STYLES = {
   pending: "bg-amber-50 text-amber-700 border-amber-200",
 };
 
-export default function GameCard({ game, onRefereeClick, onCrewClick }) {
+export default function GameCard({
+  game,
+  onRefereeClick,
+  onCrewClick,
+  onNoteClick,
+}) {
   const hasReferees = (game.referees || []).length > 0;
   const statusKey = (game.status || "").toLowerCase();
   const statusLabel = (game.status || "").replace(/_/g, " ");
@@ -65,15 +70,7 @@ export default function GameCard({ game, onRefereeClick, onCrewClick }) {
         {/* Date & Time */}
         <div className="flex items-start gap-2.5 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
           <LuCalendarDays className="size-4 text-primary shrink-0 mt-0.5" />
-          <div className="min-w-0">
-            <p className="font-semibold text-slate-800 text-xs sm:text-sm">
-              {game.date}
-            </p>
-            <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-              <LuClock className="size-3 text-slate-400 shrink-0" />
-              <span>{game.time}</span>
-            </p>
-          </div>
+          <GameSlotDateTime game={game} onNoteClick={onNoteClick} />
         </div>
 
         {/* Location */}

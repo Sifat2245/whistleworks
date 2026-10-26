@@ -51,6 +51,7 @@ const mockCourtInfoData = {
           court_number: 1,
           location_id: 101,
           is_blocked: 0,
+          timezone: "America/Chicago",
           assignments: [],
           positions: [
             { id: 1, position: "Main Referee", is_assigned: false },
@@ -153,13 +154,52 @@ const renderCourtLists = () => {
       <MemoryRouter>
         <CourtLists campData={mockCampData} />
       </MemoryRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 };
 
 describe("CourtLists Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+  it("shows the court API timezone next to desktop and mobile slot times", () => {
+    renderCourtLists();
+    expect(screen.getAllByText("CDT")).toHaveLength(2);
+    expect(screen.getAllByText("09:00 AM")).toHaveLength(2);
+    expect(
+      screen.queryByRole("button", { name: /evaluator note/ }),
+    ).not.toBeInTheDocument();
+  });
+  it("does not invent a timezone when it is missing", () => {
+    const court = mockCourtInfoData.time_slots[0].courts[0];
+    const previous = court.timezone;
+    delete court.timezone;
+    try {
+      renderCourtLists();
+      expect(screen.getAllByText("09:00 AM")).toHaveLength(2);
+      expect(screen.queryByTitle(/Timezone:/)).not.toBeInTheDocument();
+    } finally {
+      court.timezone = previous;
+    }
+  });
+  it("uses only the selected location's court timezones", () => {
+    const courts = mockCourtInfoData.time_slots[0].courts;
+    courts.push({
+      ...courts[0],
+      slot_id: 9002,
+      location_id: 102,
+      timezone: "America/New_York",
+    });
+    try {
+      renderCourtLists();
+      expect(screen.getAllByText("CDT")).toHaveLength(2);
+      expect(screen.queryByText("EDT")).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: /Court Center B/ }));
+      expect(screen.getAllByText("EDT")).toHaveLength(2);
+      expect(screen.queryByText("CDT")).not.toBeInTheDocument();
+    } finally {
+      courts.pop();
+    }
   });
 
   it("renders overview stats, schedule coverage, date filters, and mode toggles", () => {
@@ -194,7 +234,7 @@ describe("CourtLists Component", () => {
     renderCourtLists();
 
     const searchInput = screen.getByPlaceholderText(
-      /search referee by name, email/i
+      /search referee by name, email/i,
     );
     fireEvent.change(searchInput, { target: { value: "Marcus" } });
 

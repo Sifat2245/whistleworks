@@ -25,6 +25,7 @@ import { HiLockClosed, HiLockOpen } from "react-icons/hi2";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import ScheduleTimezone from "@/components/common/ScheduleTimezone";
 import {
   useAvailableDates,
   useCourtInfo,
@@ -647,9 +648,10 @@ const CourtLists = ({ campData }) => {
                   className="flex border-b border-border last:border-b-0 hover:bg-primary/[0.02] transition-colors"
                 >
                   <div className="w-28 shrink-0 sticky left-0 bg-white z-10 border-r border-border px-3 py-5 flex flex-col items-center justify-center gap-3">
-                    <span className="text-sm font-semibold text-[#333]">
-                      {slot.time}
-                    </span>
+                    <div className="text-center">
+                      <span className="text-sm font-semibold text-[#333]">{slot.time}</span>
+                      <ScheduleTimezone timezones={filteredCourts.map((court) => court.timezone)} date={selectedDate} time={slot.time_24h} className="mt-1 justify-center w-full" />
+                    </div>
 
                     <button
                       onClick={() =>
@@ -734,6 +736,7 @@ const CourtLists = ({ campData }) => {
                     <p className="font-semibold text-[#333] leading-tight">
                       {slot.time}
                     </p>
+                    <ScheduleTimezone timezones={filteredCourts.map((court) => court.timezone)} date={selectedDate} time={slot.time_24h} className="mt-1" />
                     <p className="text-xs text-[#666]">
                       {filteredCourts.length} court
                       {filteredCourts.length === 1 ? "" : "s"}

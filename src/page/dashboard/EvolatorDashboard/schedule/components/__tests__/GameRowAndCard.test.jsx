@@ -86,4 +86,50 @@ describe("GameCard & GameRow Components", () => {
     const courtElements = screen.getAllByText("Court 3");
     expect(courtElements.length).toBeGreaterThanOrEqual(1);
   });
+  it("displays the API timezone without changing the local game time", () => {
+    render(
+      <GameCard
+        game={{
+          ...sampleGame,
+          date: "2026-08-20",
+          start_time: "10:00:00",
+          timezone: "America/Chicago",
+        }}
+      />,
+    );
+    expect(screen.getByText("10:00 AM - 11:30 AM")).toBeInTheDocument();
+    expect(screen.getByText("CDT")).toBeInTheDocument();
+  });
+  it("shows the saved note and opens its action from the date section", async () => {
+    const onNoteClick = vi.fn();
+    const game = {
+      ...sampleGame,
+      evaluator_note: "Review positioning",
+      evaluator_note_id: 91,
+    };
+    const user = userEvent.setup();
+    render(<GameCard game={game} onNoteClick={onNoteClick} />);
+    expect(screen.getByText("Review positioning")).toBeInTheDocument();
+    const button = screen.getByRole("button", {
+      name: /View or edit evaluator note/,
+    });
+    button.focus();
+    await user.keyboard("{Enter}");
+    expect(onNoteClick).toHaveBeenCalledWith(game);
+  });
+  it("does not expose note text or actions when the evaluator action is absent", () => {
+    render(
+      <GameCard
+        game={{
+          ...sampleGame,
+          evaluator_note: "Evaluator-only notes",
+          evaluator_note_id: 91,
+        }}
+      />,
+    );
+    expect(screen.queryByText("Evaluator-only notes")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /evaluator note/ }),
+    ).not.toBeInTheDocument();
+  });
 });

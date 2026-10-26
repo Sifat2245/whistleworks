@@ -4,6 +4,7 @@ import BackBtn from "@/components/common/BackBtn";
 import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
 import ScreenLoading from "@/components/common/ScreenLoading";
 import SectionCard from "@/components/common/SectionCard";
+import ScheduleTimezone from "@/components/common/ScheduleTimezone";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { useAuth } from "@/hooks/useAuth";
@@ -494,6 +495,18 @@ const CampOverview = () => {
               </p>
             </div>
           </div>
+
+          {campData?.timezone && (
+            <div className="flex items-center gap-3 mb-4">
+              <span className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <LuClock aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-xs text-[#666] mb-0.5">Timezone</p>
+                <ScheduleTimezone timezones={campData.timezone} date={startDate} className="text-[15px] text-[#333]" />
+              </div>
+            </div>
+          )}
 
           {dateRange.length > 0 && (
             <div className="bg-[#FAFAFA] border border-border rounded-lg px-4 py-3">

@@ -1,11 +1,11 @@
 import {
   LuCalendarDays,
-  LuClock,
   LuMapPin,
   LuLayoutGrid,
   LuUsers,
 } from "react-icons/lu";
 import GameCard from "./GameCard";
+import GameSlotDateTime from "@/page/dashboard/EvolatorDashboard/schedule/components/GameSlotDateTime";
 
 export { GameCard };
 
@@ -17,7 +17,12 @@ const STATUS_STYLES = {
   pending: "bg-amber-50 text-amber-700 border-amber-200",
 };
 
-export default function GameRow({ game, onRefereeClick, onCrewClick }) {
+export default function GameRow({
+  game,
+  onRefereeClick,
+  onCrewClick,
+  onNoteClick,
+}) {
   const hasReferees = (game.referees || []).length > 0;
   const statusKey = (game.status || "").toLowerCase();
   const statusLabel = (game.status || "").replace(/_/g, " ");
@@ -45,22 +50,15 @@ export default function GameRow({ game, onRefereeClick, onCrewClick }) {
           <span className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
             <LuCalendarDays size={18} />
           </span>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium text-[#333]">{game.date}</span>
-              {showStatus && (
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${statusClass}`}
-                >
-                  {statusLabel}
-                </span>
-              )}
-            </div>
-            <span className="flex items-center gap-1.5 text-sm text-[#666] mt-1">
-              <LuClock size={14} className="text-[#999]" />
-              {game.time}
-            </span>
-          </div>
+          <GameSlotDateTime game={game} onNoteClick={onNoteClick}>
+            {showStatus && (
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${statusClass}`}
+              >
+                {statusLabel}
+              </span>
+            )}
+          </GameSlotDateTime>
         </div>
 
         {/* Location */}
@@ -113,6 +111,7 @@ export default function GameRow({ game, onRefereeClick, onCrewClick }) {
           game={game}
           onRefereeClick={onRefereeClick}
           onCrewClick={onCrewClick}
+          onNoteClick={onNoteClick}
         />
       </div>
     </>

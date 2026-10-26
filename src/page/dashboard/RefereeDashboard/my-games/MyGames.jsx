@@ -1,173 +1,203 @@
 import { useState } from "react";
-import { Spin } from "antd";
-import MyGameCard from "./components/MyGameCard";
+import {
+  LuCalendarCheck,
+  LuInfo,
+  LuRefreshCw,
+  LuTriangleAlert,
+} from "react-icons/lu";
 import { useAssignedSlots } from "@/hooks/api/referee-hooks/useRefereeGames";
+import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
+import Loader from "@/components/common/Loader";
 import PaginationV2 from "@/components/common/PaginationV2";
-import { LuCalendarCheck, LuClock, LuInfo } from "react-icons/lu";
-import { FiCheckCircle } from "react-icons/fi";
+import GameStatusFilters from "@/page/dashboard/RefereeDashboard/my-games/components/GameStatusFilters";
+import MyGameCard from "@/page/dashboard/RefereeDashboard/my-games/components/MyGameCard";
+import { GAME_STATUSES } from "@/page/dashboard/RefereeDashboard/my-games/constants/gameStatuses";
 
 export default function MyGames({ camp_id }) {
-  const [currentPage, setCurrentPage] = useState(1);
+  // A different camp starts with Upcoming on page 1.
+  return <CampGames key={camp_id} campId={camp_id} />;
+}
 
+function CampGames({ campId }) {
+  const [{ status, page }, setView] = useState({ status: "upcoming", page: 1 });
   const {
     gameSlots,
     pagination,
     statistics,
     camp,
     isLoading,
+    isFetching,
+    isPlaceholderData,
     isError,
     error,
-  } = useAssignedSlots(camp_id, currentPage);
+    refetch,
+  } = useAssignedSlots(campId, page, status);
 
-  // Check for specific 403 error from API response
+  const activeStatus = GAME_STATUSES.find((item) => item.value === status);
   const isScheduleNotPublished =
     error?.response?.status === 403 &&
-    error?.response?.data?.status === false &&
-    error?.response?.data?.data === "This camp schedule is not published yet!";
-
-  const totalItems = pagination?.total || 0;
+    error?.response?.data?.message ===
+      "This camp schedule is not published yet!";
+  const totalItems = pagination?.total ?? gameSlots.length;
   const perPage = pagination?.per_page || 15;
+  const isChangingPage = isFetching && isPlaceholderData;
 
-  if (isLoading && !gameSlots.length) {
-    return (
-      <div className="w-full bg-white rounded-xl border border-[#E8E8E8] p-12 shadow-xs flex justify-center items-center">
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  // Handle unpublished schedule error
-  if (isScheduleNotPublished) {
-    return (
-      <div className="w-full bg-white rounded-xl border border-[#E8E8E8] md:p-8 p-6 shadow-xs font-sans text-center max-w-2xl mx-auto my-6">
-        <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center mx-auto text-2xl mb-4">
-          <LuInfo />
-        </div>
-        <h3 className="text-xl font-bold text-slate-900 mb-2">
-          Schedule Not Published
-        </h3>
-        <p className="text-slate-600 text-sm leading-relaxed max-w-md mx-auto">
-          This camp schedule is not published yet. You cannot view your assigned games until the director publishes the schedule.
-        </p>
-      </div>
-    );
-  }
-
-  // General Error / Empty State
-  if (isError || (!isLoading && gameSlots.length === 0)) {
-    return (
-      <div className="w-full bg-white rounded-xl border border-[#E8E8E8] md:p-8 p-6 shadow-xs font-sans text-center my-6">
-        <div className="py-12 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-          <h3 className="text-lg font-bold text-slate-800 mb-1">
-            No Game Assignments Found
-          </h3>
-          <p className="text-sm text-gray-500">
-            You haven&apos;t been assigned to any game slots yet for this camp.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Sort by date and start_time ascending (chronological order)
+  // Status comes from the API; sorting never reclassifies a game by browser time.
   const sortedSlots = [...gameSlots].sort((a, b) => {
     const dateA = (a?.game_details?.date || "").split("T")[0];
     const dateB = (b?.game_details?.date || "").split("T")[0];
-    if (dateA !== dateB) return dateA.localeCompare(dateB);
     const timeA = a?.game_details?.start_time || "";
     const timeB = b?.game_details?.start_time || "";
-    return timeA.localeCompare(timeB);
+    const order = dateA.localeCompare(dateB) || timeA.localeCompare(timeB);
+    return status === "past" ? -order : order;
   });
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleStatusChange = (nextStatus) => {
+    if (nextStatus !== status) setView({ status: nextStatus, page: 1 });
   };
 
   return (
-    <section className="w-full font-sans">
-      <div className="w-full bg-white rounded-xl border border-[#E8E8E8] md:p-6 p-4 my-6 shadow-xs space-y-6">
-        {/* ── Header Title & Subtitle ──────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E8E8] pb-4">
+    <section className="@container my-6 min-w-0 w-full rounded-xl border border-slate-200 bg-white font-sans shadow-xs">
+      <div className="space-y-5 border-b border-slate-200 p-4 sm:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="hidden size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xl text-sky-700 sm:inline-flex">
+              <LuCalendarCheck aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                My Assigned Games
+              </h3>
+              <p className="mt-1 max-w-lg text-xs leading-relaxed text-slate-500 sm:text-sm">
+                Know what&apos;s next, see games in progress, and revisit your
+                completed assignments.
+              </p>
+              {typeof statistics?.total_assigned_slots === "number" && (
+                <p className="mt-2 text-xs font-medium text-slate-600">
+                  {statistics.total_assigned_slots} total assigned games
+                </p>
+              )}
+            </div>
+          </div>
+          <CommonSubmitBtn
+            type="button"
+            variant="secondary"
+            onClick={() => refetch()}
+            disabled={isFetching || !campId}
+            className="min-h-11 shrink-0 gap-2 border-slate-200 px-3 text-xs text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
+          >
+            <LuRefreshCw aria-hidden="true" className="size-3.5" />
+            Refresh
+          </CommonSubmitBtn>
+        </div>
+        <GameStatusFilters
+          value={status}
+          onChange={handleStatusChange}
+          statistics={isError ? undefined : statistics}
+        />
+      </div>
+
+      <div
+        id="assigned-games-results"
+        aria-busy={isFetching}
+        className="min-w-0 p-4 sm:p-6"
+      >
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-xl md:text-2xl font-semibold text-[#333]">
-              My Assigned Games
-              <span className="text-sm font-normal text-gray-600 ml-2">
-                ({statistics?.total_assigned_slots || totalItems} total)
-              </span>
-            </h3>
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-              Review your scheduled officiating game slots, court locations, and assigned crew members.
+            <h4 className="text-base font-semibold text-slate-900">
+              {activeStatus.label} games
+            </h4>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+              {activeStatus.description}
             </p>
           </div>
+          <p role="status" className="text-xs font-medium text-slate-500">
+            {isFetching
+              ? "Loading " + status + " games…"
+              : !isError &&
+                totalItems +
+                  (totalItems === 1 ? " game" : " games") +
+                  (pagination?.total == null ? " on this page" : "")}
+          </p>
         </div>
 
-        {/* ── Stats Summary Bar ───────────────────────────────── */}
-        {statistics && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex items-center gap-3.5">
-              <div className="size-11 rounded-lg bg-blue-50 text-[#00AEEF] flex items-center justify-center text-xl shrink-0 border border-blue-100">
-                <LuCalendarCheck />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900 leading-none">
-                  {statistics.total_assigned_slots || 0}
-                </p>
-                <p className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wider">
-                  Total Slots
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex items-center gap-3.5">
-              <div className="size-11 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0 border border-emerald-100">
-                <LuClock />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900 leading-none">
-                  {statistics.upcoming_slots || 0}
-                </p>
-                <p className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wider">
-                  Upcoming
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex items-center gap-3.5">
-              <div className="size-11 rounded-lg bg-slate-200/80 text-slate-600 flex items-center justify-center text-xl shrink-0 border border-slate-300/60">
-                <FiCheckCircle />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900 leading-none">
-                  {statistics.completed_slots || 0}
-                </p>
-                <p className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wider">
-                  Completed
-                </p>
-              </div>
-            </div>
+        {isLoading || isChangingPage ? (
+          <div className="flex min-h-64 items-center justify-center gap-3 rounded-xl bg-slate-50 text-sm text-slate-600">
+            <Loader size={26} color="#00AEEF" />
+            <span>Loading {status} games…</span>
+          </div>
+        ) : isScheduleNotPublished ? (
+          <div
+            role="status"
+            className="rounded-xl border border-amber-200 bg-amber-50/50 px-5 py-12 text-center"
+          >
+            <LuInfo
+              aria-hidden="true"
+              className="mx-auto mb-4 size-7 text-amber-600"
+            />
+            <h4 className="text-lg font-semibold text-slate-900">
+              Schedule Not Published
+            </h4>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-600">
+              This camp schedule is not published yet. You cannot view your
+              assigned games until the director publishes the schedule.
+            </p>
+          </div>
+        ) : isError ? (
+          <div
+            role="alert"
+            className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-12 text-center"
+          >
+            <LuTriangleAlert
+              aria-hidden="true"
+              className="mx-auto mb-4 size-7 text-slate-500"
+            />
+            <h4 className="text-lg font-semibold text-slate-900">
+              Unable to load games
+            </h4>
+            <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
+              {error?.response?.data?.message ||
+                "Your games could not be loaded. Use Refresh to try again."}
+            </p>
+          </div>
+        ) : gameSlots.length === 0 ? (
+          <div
+            role="status"
+            className="rounded-xl border border-dashed border-slate-200 bg-slate-50/70 px-5 py-12 text-center"
+          >
+            <LuCalendarCheck
+              aria-hidden="true"
+              className="mx-auto mb-4 size-7 text-slate-400"
+            />
+            <h4 className="text-lg font-semibold text-slate-900">
+              {activeStatus.emptyTitle}
+            </h4>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-500">
+              {activeStatus.emptyDescription}
+            </p>
+          </div>
+        ) : (
+          <div className="grid min-w-0 grid-cols-1 gap-4 @[720px]:grid-cols-2 @[1080px]:grid-cols-3 sm:gap-5">
+            {sortedSlots.map((game) => (
+              <MyGameCard
+                key={game?.game_slot_id}
+                game={game}
+                camp={camp}
+                scheduleStatus={status}
+              />
+            ))}
           </div>
         )}
 
-        {/* ── Games Grid ──────────────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pt-2">
-          {sortedSlots.map((game) => (
-            <MyGameCard
-              key={game?.game_slot_id}
-              game={game}
-              camp={camp}
-            />
-          ))}
-        </div>
-
-        {/* ── Pagination ──────────────────────────────────────── */}
-        {totalItems > perPage && (
-          <div className="pt-6 border-t border-[#E8E8E8] flex justify-center">
+        {!isError && !isLoading && totalItems > perPage && (
+          <div className="mt-6 flex justify-center border-t border-slate-200 pt-3">
             <PaginationV2
-              handlePageClick={handlePageChange}
+              handlePageClick={(nextPage) =>
+                setView({ status, page: nextPage })
+              }
               perPage={perPage}
               totalItem={totalItems}
-              currentPage={currentPage}
+              currentPage={page}
             />
           </div>
         )}

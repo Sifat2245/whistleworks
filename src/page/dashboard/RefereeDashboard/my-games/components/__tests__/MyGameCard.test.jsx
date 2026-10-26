@@ -55,6 +55,19 @@ vi.mock("@/hooks/api/useRefereeDetails", () => ({
 }));
 
 describe("MyGameCard Component", () => {
+  it.each(["upcoming", "ongoing", "past"])(
+    "labels the card using the API's %s filter",
+    (status) => {
+      render(
+        <MyGameCard game={mockGame} camp={mockCamp} scheduleStatus={status} />,
+      );
+      expect(screen.getByText(status, { exact: false })).toBeInTheDocument();
+      expect(
+        screen.queryByText("assigned", { exact: true }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
   it("formats date and time accurately in camp timezone (May 8, 2026) without local browser timezone shift", () => {
     render(<MyGameCard game={mockGame} camp={mockCamp} />);
 
@@ -62,7 +75,54 @@ describe("MyGameCard Component", () => {
     expect(screen.getByText("Friday, May 8, 2026")).toBeInTheDocument();
 
     // Time must be 12:45 PM CDT – 1:45 PM CDT
-    expect(screen.getByText(/12:45 PM CDT – 1:45 PM CDT/i)).toBeInTheDocument();
+    expect(screen.getByText("12:45 PM")).toBeInTheDocument();
+    expect(screen.getByText("1:45 PM")).toBeInTheDocument();
+    expect(screen.getAllByText("CDT")).toHaveLength(2);
+    expect(screen.getAllByTitle("Timezone: America/Chicago")).toHaveLength(2);
+  });
+
+  it("prefers the game's timezone when it differs from the camp", () => {
+    render(
+      <MyGameCard
+        game={{
+          ...mockGame,
+          game_details: {
+            ...mockGame.game_details,
+            timezone: "America/New_York",
+          },
+        }}
+        camp={mockCamp}
+      />,
+    );
+    expect(screen.getAllByText("EDT")).toHaveLength(2);
+    expect(screen.queryByText("CDT")).not.toBeInTheDocument();
+    expect(screen.getByText("12:45 PM")).toBeInTheDocument();
+  });
+
+  it("uses the game date to distinguish daylight and standard time", () => {
+    render(
+      <MyGameCard
+        game={{
+          ...mockGame,
+          game_details: { ...mockGame.game_details, date: "2026-01-08" },
+        }}
+        camp={mockCamp}
+      />,
+    );
+    expect(screen.getAllByText("CST")).toHaveLength(2);
+    expect(screen.getByText("12:45 PM")).toBeInTheDocument();
+  });
+
+  it("does not invent a timezone when neither the game nor camp supplies one", () => {
+    render(
+      <MyGameCard
+        game={mockGame}
+        camp={{ ...mockCamp, timezone: undefined }}
+      />,
+    );
+    expect(screen.queryByTitle(/Timezone:/)).not.toBeInTheDocument();
+    expect(screen.getByText("Friday, May 8, 2026")).toBeInTheDocument();
+    expect(screen.getByText("12:45 PM")).toBeInTheDocument();
   });
 
   it("renders camp name, court, and position details", () => {
@@ -71,7 +131,9 @@ describe("MyGameCard Component", () => {
     expect(screen.getByText("TEST- DO NOT REGISTER")).toBeInTheDocument();
     expect(screen.getByText("Court 1")).toBeInTheDocument();
     expect(screen.getByText("Titumir College")).toBeInTheDocument();
-    expect(screen.getAllByText("Assistant Referee").length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("Assistant Referee").length,
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Referee1 One")).toBeInTheDocument();
     expect(screen.getByText("Referee9 Nine")).toBeInTheDocument();
   });
@@ -85,7 +147,7 @@ describe("MyGameCard Component", () => {
 
     expect(openSpy).toHaveBeenCalledWith(
       "https://www.google.com/maps/search/?api=1&query=23.7818898,90.4038511",
-      "_blank"
+      "_blank",
     );
     openSpy.mockRestore();
   });
