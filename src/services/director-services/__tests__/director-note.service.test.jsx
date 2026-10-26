@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useDirectorNoteService } from "../director-note.service";
 
 const mockAxiosSecure = vi.hoisted(() => ({
-  put: vi.fn(),
+  patch: vi.fn(),
   delete: vi.fn(),
 }));
 
@@ -18,7 +18,7 @@ describe("director-note.service", () => {
     const { result } = renderHook(() => useDirectorNoteService());
 
     result.current.updateRefereeNote("camp-123", "ref-456", "Needs extra water break");
-    expect(mockAxiosSecure.put).toHaveBeenCalledWith(
+    expect(mockAxiosSecure.patch).toHaveBeenCalledWith(
       "/v1/director/camp/camp-123/referee/ref-456/update-note",
       { notes: "Needs extra water break" },
     );
