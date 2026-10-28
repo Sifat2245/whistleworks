@@ -17,6 +17,17 @@ describe("referee-performance.service", () => {
     const { result } = renderHook(() => useRefereePerformanceService());
 
     result.current.getMyEvaluations("camp-1");
-    expect(mockAxiosSecure.get).toHaveBeenCalledWith("/referee/my-evaluations/camp-1");
+    expect(mockAxiosSecure.get).toHaveBeenCalledWith(
+      "/referee/my-evaluations/camp-1",
+    );
+  });
+
+  it("fetches the selected evaluation details using its evaluation ID", () => {
+    const { result } = renderHook(() => useRefereePerformanceService());
+
+    result.current.getMyEvaluationDetails(3609);
+    expect(mockAxiosSecure.get).toHaveBeenCalledWith(
+      "/referee/my-evaluations/details/3609",
+    );
   });
 });

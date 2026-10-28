@@ -1,7 +1,20 @@
+import { useState } from "react";
 import { format } from "date-fns";
-import { LuMessageSquareQuote, LuUser, LuCalendar } from "react-icons/lu";
+import {
+  LuMessageSquareQuote,
+  LuUser,
+  LuCalendar,
+  LuArrowUpRight,
+} from "react-icons/lu";
+import CommonSubmitBtn from "@/components/common/CommonSubmitBtn";
+import RefereeEvaluationDetailsModal from "@/page/dashboard/RefereeDashboard/performancePage/components/RefereeEvaluationDetailsModal";
 
-export default function RecentFeedback({ feedbackList = [] }) {
+export default function RecentFeedback({
+  feedbackList = [],
+  hideEvaluatorName = false,
+}) {
+  const [selectedEvaluationId, setSelectedEvaluationId] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   if (feedbackList.length === 0) {
     return (
       <div className="w-full bg-white rounded-xl border border-[#E8E8E8] md:p-6 p-4 shadow-xs font-sans">
@@ -40,11 +53,13 @@ export default function RecentFeedback({ feedbackList = [] }) {
 
       <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
         {recentEvals.map((evalItem) => {
-          const averageScore = (evalItem?.total_score / evalItem?.max_score) * 10;
-          const feedbackText = evalItem?.feedback || "No written feedback provided.";
+          const averageScore =
+            (evalItem?.total_score / evalItem?.max_score) * 10;
+          const feedbackText =
+            evalItem?.feedback || "No written feedback provided.";
 
           return (
-            <div
+            <article
               key={evalItem.id}
               className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 sm:p-5 hover:bg-white hover:border-[#00AEEF]/40 transition-all duration-200 space-y-3"
             >
@@ -68,25 +83,52 @@ export default function RecentFeedback({ feedbackList = [] }) {
               </div>
 
               {/* Footer Meta */}
-              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
-                {evalItem?.submitted_at && (
-                  <span className="flex items-center gap-1.5">
-                    <LuCalendar className="text-slate-400" />
-                    <span>{format(new Date(evalItem.submitted_at), "MMM d, yyyy")}</span>
-                  </span>
-                )}
+              <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                  {evalItem?.submitted_at && (
+                    <span className="flex items-center gap-1.5">
+                      <LuCalendar className="text-slate-400" />
+                      <span>
+                        {format(new Date(evalItem.submitted_at), "MMM d, yyyy")}
+                      </span>
+                    </span>
+                  )}
 
-                {evalItem?.evaluator_name && evalItem.evaluator_name !== "Anonymous Evaluator" && (
-                  <span className="flex items-center gap-1.5 font-semibold text-slate-700">
-                    <LuUser className="text-slate-400" />
-                    <span>Evaluator: {evalItem.evaluator_name}</span>
+                  {!hideEvaluatorName &&
+                    evalItem?.evaluator_name &&
+                    evalItem.evaluator_name !== "Anonymous Evaluator" && (
+                      <span className="flex items-center gap-1.5 font-semibold text-slate-700">
+                        <LuUser className="text-slate-400" />
+                        <span>Evaluator: {evalItem.evaluator_name}</span>
+                      </span>
+                    )}
+                </div>
+                <CommonSubmitBtn
+                  type="button"
+                  variant="secondary"
+                  disabled={evalItem.id == null}
+                  onClick={() => {
+                    setSelectedEvaluationId(evalItem.id);
+                    setDetailsOpen(true);
+                  }}
+                  className="relative min-h-11 w-full gap-1.5 px-3 text-xs text-sky-700 hover:bg-primary/10 hover:text-sky-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800 sm:w-auto"
+                >
+                  <span aria-hidden="true">View details</span>
+                  <span className="sr-only">
+                    View details for evaluation {evalItem.id}
                   </span>
-                )}
+                  <LuArrowUpRight aria-hidden="true" className="size-4" />
+                </CommonSubmitBtn>
               </div>
-            </div>
+            </article>
           );
         })}
       </div>
+      <RefereeEvaluationDetailsModal
+        isOpen={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        evaluationId={selectedEvaluationId}
+      />
     </div>
   );
 }

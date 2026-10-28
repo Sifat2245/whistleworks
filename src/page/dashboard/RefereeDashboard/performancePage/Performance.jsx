@@ -1,11 +1,11 @@
 // Performance.jsx
-import OverallPerformance from "@/page/dashboard/RefereeDashboard/performancePage/components/OverallPerformance";
-import PerformanceBreakdown from "@/page/dashboard/RefereeDashboard/performancePage/components/PerformanceBreakdown";
-import RecentFeedback from "@/page/dashboard/RefereeDashboard/performancePage/components/RecentFeedback";
+import { Spin } from "antd";
 import { useMyEvaluations } from "@/hooks/api/referee-hooks/useRefereePerformance";
 import { useRecommendedLevels } from "@/hooks/api/useEvaluation";
 import { resolveLevels } from "@/lib/recommendedLevels";
-import { Spin } from "antd";
+import OverallPerformance from "@/page/dashboard/RefereeDashboard/performancePage/components/OverallPerformance";
+import PerformanceBreakdown from "@/page/dashboard/RefereeDashboard/performancePage/components/PerformanceBreakdown";
+import RecentFeedback from "@/page/dashboard/RefereeDashboard/performancePage/components/RecentFeedback";
 
 export default function Performance({ camp_id }) {
   const { data, isLoading } = useMyEvaluations(camp_id);
@@ -13,8 +13,7 @@ export default function Performance({ camp_id }) {
   // Recommended levels are driven by the camp's sports type
   // (e.g. HS Basketball → Large School Varsity ... JH/ELEM),
   // falling back to the legacy list while loading or for other sports.
-  const { data: recommendedLevels = [] } =
-    useRecommendedLevels(camp_id);
+  const { data: recommendedLevels = [] } = useRecommendedLevels(camp_id);
   const levels = resolveLevels(recommendedLevels);
 
   // Destructure properly
@@ -48,7 +47,13 @@ export default function Performance({ camp_id }) {
         hasEvaluations={hasEvaluations}
         levels={levels}
       />
-      <RecentFeedback feedbackList={recentFeedback} />
+      <RecentFeedback
+        key={camp_id}
+        feedbackList={recentFeedback}
+        hideEvaluatorName={[true, 1, "1"].includes(
+          data?.settings?.hide_evaluator_name,
+        )}
+      />
     </section>
   );
 }

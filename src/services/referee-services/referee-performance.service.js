@@ -6,5 +6,7 @@ export const useRefereePerformanceService = () => {
   return {
     getMyEvaluations: (campId) =>
       axiosSecure.get(`/referee/my-evaluations/${campId}`),
+    getMyEvaluationDetails: (evaluationId) =>
+      axiosSecure.get(`/referee/my-evaluations/details/${evaluationId}`),
   };
 };
