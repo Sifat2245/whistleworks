@@ -347,4 +347,18 @@ describe("RecentFeedback evaluation details", () => {
     ).not.toBeInTheDocument();
     expect(mockGetMyEvaluationDetails).not.toHaveBeenCalled();
   });
+
+  it("hides View details button when canViewEvaluations is false", () => {
+    renderFeedback({ canViewEvaluations: false });
+    expect(
+      screen.queryByRole("button", { name: /View details/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows View details button when canViewEvaluations is true", () => {
+    renderFeedback({ canViewEvaluations: true });
+    expect(
+      screen.getByRole("button", { name: "View details for evaluation 3609" }),
+    ).toBeInTheDocument();
+  });
 });

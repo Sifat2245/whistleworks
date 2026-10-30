@@ -6,6 +6,8 @@ import {
   useUpdateRankingSettings,
 } from "@/hooks/api/useRankings";
 
+const toBool = (val) => val === true || val === 1 || val === "1";
+
 const SettingsModal = ({ isOpen, onClose, campId }) => {
   // Fetch settings via cached hook
   const { data: settings } = useRankingSettings(
@@ -20,14 +22,16 @@ const SettingsModal = ({ isOpen, onClose, campId }) => {
   const [hideEvaluatorName, setHideEvaluatorName] = useState(true);
   const [hideRankingNumbers, setHideRankingNumbers] = useState(true);
   const [publishForReferees, setPublishForReferees] = useState(false);
+  const [publishEvaluationsForReferees, setPublishEvaluationsForReferees] = useState(false);
 
   // Sync local state when settings are fetched from the server
   useEffect(() => {
     if (!settings) return;
-    setPublishForEvaluators(settings.publish_for_evaluators === 1);
-    setHideEvaluatorName(settings.hide_evaluator_name === 1);
-    setHideRankingNumbers(settings.hide_ranking_numbers === 1);
-    setPublishForReferees(settings.publish_for_referees === 1);
+    setPublishForEvaluators(toBool(settings.publish_for_evaluators));
+    setHideEvaluatorName(toBool(settings.hide_evaluator_name));
+    setHideRankingNumbers(toBool(settings.hide_ranking_numbers));
+    setPublishForReferees(toBool(settings.publish_for_referees));
+    setPublishEvaluationsForReferees(toBool(settings.publish_evaluations_for_referees));
   }, [settings]);
 
   // Build payload from current local state
@@ -36,11 +40,18 @@ const SettingsModal = ({ isOpen, onClose, campId }) => {
     hide_evaluator_name: hideEvaluatorName ? 1 : 0,
     hide_ranking_numbers: hideRankingNumbers ? 1 : 0,
     publish_for_referees: publishForReferees ? 1 : 0,
+    publish_evaluations_for_referees: Boolean(publishEvaluationsForReferees),
   });
 
   // Auto-save on any toggle
   const updateSetting = (key, value) => {
-    const payload = { ...buildPayload(), [key]: value ? 1 : 0 };
+    const formattedValue =
+      key === "publish_evaluations_for_referees"
+        ? Boolean(value)
+        : value
+        ? 1
+        : 0;
+    const payload = { ...buildPayload(), [key]: formattedValue };
     saveSettings(payload);
   };
 
@@ -117,6 +128,16 @@ const SettingsModal = ({ isOpen, onClose, campId }) => {
                 disabled={saving}
                 highlightTitle
               />
+              <ToggleItem
+                title="Publish Evaluations for Referees"
+                description="Show evaluations to referees"
+                checked={publishEvaluationsForReferees}
+                onChange={handleToggle(
+                  setPublishEvaluationsForReferees,
+                  "publish_evaluations_for_referees"
+                )}
+                disabled={saving}
+              />
             </div>
           </div>
 
@@ -150,6 +171,7 @@ const ToggleItem = ({ title, description, checked, onChange, disabled, highlight
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         disabled={disabled}
+        aria-label={title}
         className="sr-only peer"
       />
       <div

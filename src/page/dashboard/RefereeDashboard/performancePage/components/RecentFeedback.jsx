@@ -12,6 +12,7 @@ import RefereeEvaluationDetailsModal from "@/page/dashboard/RefereeDashboard/per
 export default function RecentFeedback({
   feedbackList = [],
   hideEvaluatorName = false,
+  canViewEvaluations = true,
 }) {
   const [selectedEvaluationId, setSelectedEvaluationId] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -103,22 +104,24 @@ export default function RecentFeedback({
                       </span>
                     )}
                 </div>
-                <CommonSubmitBtn
-                  type="button"
-                  variant="secondary"
-                  disabled={evalItem.id == null}
-                  onClick={() => {
-                    setSelectedEvaluationId(evalItem.id);
-                    setDetailsOpen(true);
-                  }}
-                  className="relative min-h-11 w-full gap-1.5 px-3 text-xs text-sky-700 hover:bg-primary/10 hover:text-sky-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800 sm:w-auto"
-                >
-                  <span aria-hidden="true">View details</span>
-                  <span className="sr-only">
-                    View details for evaluation {evalItem.id}
-                  </span>
-                  <LuArrowUpRight aria-hidden="true" className="size-4" />
-                </CommonSubmitBtn>
+                {canViewEvaluations && (
+                  <CommonSubmitBtn
+                    type="button"
+                    variant="secondary"
+                    disabled={evalItem.id == null}
+                    onClick={() => {
+                      setSelectedEvaluationId(evalItem.id);
+                      setDetailsOpen(true);
+                    }}
+                    className="relative min-h-11 w-full gap-1.5 px-3 text-xs text-sky-700 hover:bg-primary/10 hover:text-sky-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800 sm:w-auto"
+                  >
+                    <span aria-hidden="true">View details</span>
+                    <span className="sr-only">
+                      View details for evaluation {evalItem.id}
+                    </span>
+                    <LuArrowUpRight aria-hidden="true" className="size-4" />
+                  </CommonSubmitBtn>
+                )}
               </div>
             </article>
           );

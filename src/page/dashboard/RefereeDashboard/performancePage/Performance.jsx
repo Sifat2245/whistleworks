@@ -53,6 +53,9 @@ export default function Performance({ camp_id }) {
         hideEvaluatorName={[true, 1, "1"].includes(
           data?.settings?.hide_evaluator_name,
         )}
+        canViewEvaluations={[true, 1, "1"].includes(
+          data?.settings?.can_view_evaluations,
+        )}
       />
     </section>
   );
